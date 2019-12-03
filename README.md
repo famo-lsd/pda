@@ -1,2 +1,2 @@
 # pda
-Android app which it will replace old PDA's.
+Android application to replace old PDA's.
