@@ -1,0 +1,1 @@
+{"version":3,"file":"constants.js","sourceRoot":"","sources":["../../src/utils/constants.ts"],"names":[],"mappings":";;AAAa,QAAA,YAAY,GAAG,QAAQ,EAChC,QAAA,QAAQ,GAAG,UAAU,EACrB,QAAA,OAAO,GAAG,+BAA+B,CAAC","sourcesContent":["export const LOG_BASE_DIR = './log/',\r\n    MONTH_MS = 2592000000,\r\n    WEB_API = 'http://localhost/FAMO.WebAPI/';\r\n"]}
