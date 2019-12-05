@@ -15,6 +15,13 @@ export default class Authentication {
         });
     }
 
+    static autoSignIn = async () => {
+        return fetch(NODE_SERVER + 'Authentication/AutoSignIn', {
+            method: 'GET',
+            credentials: 'include'
+        });
+    }
+
     static signOut = async () => {
         return fetch(NODE_SERVER + 'Authentication/SignOut', {
             method: 'GET',

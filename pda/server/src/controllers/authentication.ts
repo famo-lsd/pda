@@ -3,7 +3,7 @@ import express from 'express';
 import httpStatus from 'http-status';
 import Log from '../utils/log';
 import querystring from 'querystring';
-import { SESSION_NAME, WEB_API } from '../utils/constants';
+import { SESSION_NAME, WEB_API } from '../utils/variablesRepo';
 
 const router = express.Router();
 

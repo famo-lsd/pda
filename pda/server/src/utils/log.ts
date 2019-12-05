@@ -1,6 +1,6 @@
 import fs from 'fs';
 import moment from 'moment';
-import { LOG_FOLDER } from './constants';
+import { LOG_FOLDER } from './variablesRepo';
 
 interface HttpLogData {
     method: string;

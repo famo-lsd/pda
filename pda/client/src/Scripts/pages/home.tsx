@@ -1,6 +1,5 @@
 import Authentication from '../utils/authentication';
 import React from 'react';
-import PropTypes from 'prop-types';
 import store from '../redux/store';
 import { setAuthUser } from '../redux/actions';
 import { withRouter } from 'react-router-dom';

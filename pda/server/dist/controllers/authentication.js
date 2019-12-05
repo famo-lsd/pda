@@ -8,12 +8,12 @@ const express_1 = __importDefault(require("express"));
 const http_status_1 = __importDefault(require("http-status"));
 const log_1 = __importDefault(require("../utils/log"));
 const querystring_1 = __importDefault(require("querystring"));
-const constants_1 = require("../utils/constants");
+const variablesRepo_1 = require("../utils/variablesRepo");
 const router = express_1.default.Router();
 function getAuthUser(accessToken, username) {
     return axios_1.default({
         method: 'POST',
-        url: constants_1.WEB_API + 'api/Authorization/PDA',
+        url: variablesRepo_1.WEB_API + 'api/Authorization/PDA',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'bearer ' + accessToken
@@ -26,7 +26,7 @@ function getAuthUser(accessToken, username) {
 router.post('/SignIn', (req, res) => {
     axios_1.default({
         method: 'POST',
-        url: constants_1.WEB_API + 'token',
+        url: variablesRepo_1.WEB_API + 'token',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -57,7 +57,7 @@ router.get('/SignOut', (req, res) => {
             res.status(http_status_1.default.INTERNAL_SERVER_ERROR).send();
         }
         else {
-            res.clearCookie(constants_1.SESSION_NAME);
+            res.clearCookie(variablesRepo_1.SESSION_NAME);
             res.send();
         }
     });

@@ -76,17 +76,17 @@ class SignIn extends React.Component<SignInProps, SignInState> {
             this.setState({ hideUserMsg: this.state.username ? true : false, hidePwdMsg: this.state.password ? true : false });
         }
         else {
-            const sigInRes = await Auth.signIn(this.state.username, this.state.password),
+            const signInRes = await Auth.signIn(this.state.username, this.state.password),
                 { t } = this.props;
 
             this.setState({ authError: false, authHttpCode: -1 });
 
-            if (sigInRes.ok) {
-                store.dispatch(setAuthUser(await sigInRes.json()));
+            if (signInRes.ok) {
+                store.dispatch(setAuthUser(await signInRes.json()));
                 this.setState({ authSuccess: true });
             }
             else {
-                const httpCode = sigInRes.status;
+                const httpCode = signInRes.status;
 
                 if (httpCode !== 400 && httpCode !== 500) {
                     console.log(t('key_416') + ' - ' + httpCode);

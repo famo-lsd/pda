@@ -4,20 +4,22 @@ import PropTypes from 'prop-types';
 import SignIn from './pages/signIn';
 import store from './redux/store';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
+import Authentication from './utils/authentication';
+import { setAuthUser } from './redux/actions';
 
 export default class Routing extends React.Component<any, any> {
     render() {
         if (!(window as any).cordova) {
             return (
                 <BrowserRouter>
-                    <RoutingBody />
+                    <AutoRoutingBody />
                 </BrowserRouter>
             );
         }
         else {
             return (
                 <HashRouter>
-                    <RoutingBody />
+                    <AutoRoutingBody />
                 </HashRouter>
             );
         }
@@ -36,6 +38,19 @@ function RoutingBody() {
         </Switch>
     );
 }
+
+async function AutoRoutingBody() {
+   const userAuthRes = Authentication.autoSignIn();
+   
+   .then((userAuthRes) => {
+        store.dispatch(setAuthUser(userAuthRes.json()));
+
+        return (<Route exact path="/">
+            <Home />
+        </Route>);
+    }).catch(() => { });
+}
+
 
 function PrivateRoute({ component: Component, ...rest }) {
     const { authUser } = store.getState();
