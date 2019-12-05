@@ -3,15 +3,15 @@ import express from 'express';
 import httpStatus from 'http-status';
 import Log from '../utils/log';
 import querystring from 'querystring';
-import { WEB_API } from '../utils/constants';
+import { SESSION_NAME, WEB_API } from '../utils/constants';
 
 const router = express.Router();
 
-// #region AUX_FUNCTIONS
+// #region function
 function getAuthUser(accessToken: string, username: string) {
     return axios({
         method: 'POST',
-        url: WEB_API + 'api/Authorization/TruckTracker',
+        url: WEB_API + 'api/Authorization/PDA',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'bearer ' + accessToken
@@ -66,6 +66,7 @@ router.get('/SignOut', (req, res) => {
             res.status(httpStatus.INTERNAL_SERVER_ERROR).send();
         }
         else {
+            res.clearCookie(SESSION_NAME);
             res.send();
         }
     });

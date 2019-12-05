@@ -7,7 +7,7 @@
     "lint": "eslint src/**/*.ts",
     "compile:ts": "eslint src/**/*.ts && tsc",
     "watch:ts": "watch \"npm run compile:ts\" src",
-    "server:dev": "nodemon ./dist/app.js"
+    "server:dev": "nodemon --watch dist --ext js ./dist/app.js"
   },
   "author": "FAMO",
   "license": "ISC",

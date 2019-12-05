@@ -12,7 +12,7 @@ import path from 'path';
 import session from 'express-session';
 import uuidv4 from 'uuid/v4';
 import winston from 'winston';
-import { LOG_BASE_DIR, MONTH_MS } from './utils/constants';
+import { LOG_FOLDER, MONTH_MS, SESSION_NAME } from './utils/constants';
 
 // express
 const app = express();
@@ -41,7 +41,7 @@ app.use(session({
     store: new FileStore({
         ttl: MONTH_MS
     }),
-    secret: 'famo_truck_tracker_session_sk',
+    secret: 'famo_pda_session_sk',
     cookie: {
         maxAge: MONTH_MS,
         httpOnly: true,
@@ -50,13 +50,13 @@ app.use(session({
     genid: function (req) { // eslint-disable-line @typescript-eslint/no-unused-vars
         return uuidv4();
     },
-    name: 'TRUCK_TRACKER_AUTH',
+    name: SESSION_NAME,
     saveUninitialized: false,
     resave: false
 }));
 
 // morgan
-app.use(morgan('combined', { stream: fs.createWriteStream(path.join(LOG_BASE_DIR, 'access.log'), { flags: 'a' }) }));
+app.use(morgan('combined', { stream: fs.createWriteStream(path.join(LOG_FOLDER, 'access.log'), { flags: 'a' }) }));
 
 // routes
 app.use('/Authentication', authentication);
@@ -64,7 +64,7 @@ app.use('/Authentication', authentication);
 // express-winston
 app.use(expressWinston.errorLogger({
     transports: [
-        new winston.transports.File({ filename: LOG_BASE_DIR + 'error.log' })
+        new winston.transports.File({ filename: LOG_FOLDER + 'error.log' })
     ],
     format: winston.format.combine(
         winston.format.json()
@@ -72,6 +72,7 @@ app.use(expressWinston.errorLogger({
     msg: '{{req.method}} | {{req.url}} | {{res.statusCode}} | {{err.message}}'
 }));
 
+// start server
 app.listen(3001, () => {
     console.log('Iniciar o servidor...');
 });

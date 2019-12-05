@@ -13,7 +13,7 @@ const router = express_1.default.Router();
 function getAuthUser(accessToken, username) {
     return axios_1.default({
         method: 'POST',
-        url: constants_1.WEB_API + 'api/Authorization/TruckTracker',
+        url: constants_1.WEB_API + 'api/Authorization/PDA',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'bearer ' + accessToken
@@ -57,6 +57,7 @@ router.get('/SignOut', (req, res) => {
             res.status(http_status_1.default.INTERNAL_SERVER_ERROR).send();
         }
         else {
+            res.clearCookie(constants_1.SESSION_NAME);
             res.send();
         }
     });

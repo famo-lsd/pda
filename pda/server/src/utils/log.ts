@@ -1,6 +1,6 @@
 import fs from 'fs';
 import moment from 'moment';
-import { LOG_BASE_DIR } from './constants';
+import { LOG_FOLDER } from './constants';
 
 interface HttpLogData {
     method: string;
@@ -11,8 +11,8 @@ interface HttpLogData {
 class Log {
     public static add(errorMsg: string, errorStack: string = null, httpData: HttpLogData = null) {
         const dateTimeFormat = 'DD/MM/YYYY HH:mm:ss.SSS',
-            logsDir = LOG_BASE_DIR + 'app/',
-            logFile = logsDir + moment().format('DD_MM_YYYY') + '.log',
+            appLogFolder = LOG_FOLDER + 'app/',
+            logFile = appLogFolder + moment().format('DD_MM_YYYY') + '.log',
             errorMessage = 'Date: ' + moment().format(dateTimeFormat) + '\n'
                 + 'Message: ' + errorMsg + '\n'
                 + (errorStack ? 'Stack: ' + errorStack + '\n' : '')
@@ -20,8 +20,8 @@ class Log {
                     + 'Url: ' + httpData.url + '\n'
                     + 'StatusCode: ' + httpData.statusCode + '\n\n') : '\n');
 
-        if (!fs.existsSync(logsDir)) {
-            fs.mkdirSync(logsDir);
+        if (!fs.existsSync(appLogFolder)) {
+            fs.mkdirSync(appLogFolder);
         }
 
         fs.appendFile(logFile, errorMessage, (err) => {

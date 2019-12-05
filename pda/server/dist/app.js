@@ -32,7 +32,7 @@ app.use(express_session_1.default({
     store: new FileStore({
         ttl: constants_1.MONTH_MS
     }),
-    secret: 'famo_truck_tracker_session_sk',
+    secret: 'famo_pda_session_sk',
     cookie: {
         maxAge: constants_1.MONTH_MS,
         httpOnly: true,
@@ -41,15 +41,15 @@ app.use(express_session_1.default({
     genid: function (req) {
         return v4_1.default();
     },
-    name: 'TRUCK_TRACKER_AUTH',
+    name: constants_1.SESSION_NAME,
     saveUninitialized: false,
     resave: false
 }));
-app.use(morgan_1.default('combined', { stream: fs_1.default.createWriteStream(path_1.default.join(constants_1.LOG_BASE_DIR, 'access.log'), { flags: 'a' }) }));
+app.use(morgan_1.default('combined', { stream: fs_1.default.createWriteStream(path_1.default.join(constants_1.LOG_FOLDER, 'access.log'), { flags: 'a' }) }));
 app.use('/Authentication', authentication_1.default);
 app.use(express_winston_1.default.errorLogger({
     transports: [
-        new winston_1.default.transports.File({ filename: constants_1.LOG_BASE_DIR + 'error.log' })
+        new winston_1.default.transports.File({ filename: constants_1.LOG_FOLDER + 'error.log' })
     ],
     format: winston_1.default.format.combine(winston_1.default.format.json()),
     msg: '{{req.method}} | {{req.url}} | {{res.statusCode}} | {{err.message}}'

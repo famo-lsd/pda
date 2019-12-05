@@ -122,9 +122,9 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                             <div className="signin-famo-logo">
                                 <img src={famoLogo} alt="FAMO" />
                             </div>
-                            <div className="signin-form-wrapper">
+                            <div className="signin-form">
                                 <div className="signin-app-name">
-                                    <span className="famo-text-2">{process.env.REACT_APP_WEBSITE_NAME}</span>
+                                    <span className="famo-text-2">{process.env.REACT_APP_NAME}</span>
                                 </div>
                                 <form id="signin-form" method="POST" onSubmit={this.handleSubmit}>
                                     <div className="signin-input-wrapper">
@@ -153,7 +153,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                 <div className="famo-row">
                     <div className="famo-cell famo-cell-bottom">
                         <div className="signin-footer text-center">
-                            <span className="famo-text-1">{new Date().getFullYear()} &copy; FAMO - {process.env.REACT_APP_WEBSITE_NAME}</span>
+                            <span className="famo-text-1">{new Date().getFullYear()} &copy; FAMO - {process.env.REACT_APP_NAME}</span>
                         </div>
                     </div>
                 </div>
