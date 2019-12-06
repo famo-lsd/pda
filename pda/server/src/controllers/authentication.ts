@@ -7,7 +7,6 @@ import { SESSION_NAME, WEB_API } from '../utils/variablesRepo';
 
 const router = express.Router();
 
-// #region function
 function getAuthUser(accessToken: string, username: string) {
     return axios({
         method: 'POST',
@@ -21,9 +20,8 @@ function getAuthUser(accessToken: string, username: string) {
         }
     });
 }
-// #endregion
 
-router.post('/SignIn', (req, res) => {
+function signIn(req: any, res: any, username: string = null, password: string = null) {
     axios({
         method: 'POST',
         url: WEB_API + 'token',
@@ -32,37 +30,39 @@ router.post('/SignIn', (req, res) => {
         },
         data: querystring.stringify({
             grant_type: 'password', // eslint-disable-line @typescript-eslint/camelcase
-            username: req.body.username,
-            password: req.body.password
+            username: !username ? req.body.username : username,
+            password: !password ? req.body.password : password
         }),
     }).then((tokenRes) => {
-        getAuthUser(tokenRes.data.access_token, req.body.username).then((userAuthRes) => {
-            (req as any).session.token = tokenRes.data;
-            (req as any).session.authUser = userAuthRes.data;
+        getAuthUser(tokenRes.data.access_token, !username ? req.body.username : username).then((userAuthRes) => {
+            req.session.token = tokenRes.data;
+            req.session.authUser = userAuthRes.data;
 
             res.send(userAuthRes.data);
         }).catch((userErr) => {
-            Log.add(userErr.message,
-                userErr.stack,
-                userErr.request && userErr.response ? { method: userErr.request.method, url: userErr.request.path, statusCode: userErr.response.status } : null);
-
+            Log.addPromiseError(userErr);
             res.status(userErr.response ? userErr.response.status : httpStatus.INTERNAL_SERVER_ERROR).send();
         });
     }).catch((tokenErr) => {
-        Log.add(tokenErr.message,
-            tokenErr.stack,
-            tokenErr.request && tokenErr.response ? { method: tokenErr.request.method, url: tokenErr.request.path, statusCode: tokenErr.response.status } : null);
-
+        Log.addPromiseError(tokenErr);
         res.status(tokenErr.response ? tokenErr.response.status : httpStatus.INTERNAL_SERVER_ERROR).send();
     });
+}
+
+router.post('/SignIn', (req: any, res: any) => {
+    signIn(req, res);
 });
 
-router.get('/SignOut', (req, res) => {
-    const sessionID = (req as any).sessionID;
+router.get('/AutoSignIn', (req: any, res: any) => {
+    signIn(req, res, 'userti', 'teste');
+});
 
-    (req as any).sessionStore.destroy(sessionID, (err) => {
+router.get('/SignOut', (req: any, res: any) => {
+    const sessionID = req.sessionID;
+
+    req.sessionStore.destroy(sessionID, (err: any) => {
         if (err) {
-            Log.add(err.message, err.stack, { method: req.method, url: req.path, statusCode: httpStatus.INTERNAL_SERVER_ERROR });
+            Log.addError(err.message, err.stack, { method: req.method, url: req.path, statusCode: httpStatus.INTERNAL_SERVER_ERROR });
             res.status(httpStatus.INTERNAL_SERVER_ERROR).send();
         }
         else {
@@ -72,8 +72,8 @@ router.get('/SignOut', (req, res) => {
     });
 });
 
-router.get('/Session/User', (req, res) => {
-    const authUser = (req as any).session.authUser;
+router.get('/Session/User', (req: any, res: any) => {
+    const authUser = req.session.authUser;
 
     if (authUser) {
         res.send(authUser);

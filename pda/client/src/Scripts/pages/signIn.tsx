@@ -1,4 +1,4 @@
-import Auth from '../utils/authentication';
+import Authentication from '../utils/authentication';
 import classNames from 'classnames';
 import React from 'react';
 import store from '../redux/store';
@@ -36,8 +36,6 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     constructor(props) {
         super(props);
 
-        this.usernameInput = React.createRef();
-
         this.state = {
             username: '',
             password: '',
@@ -47,6 +45,8 @@ class SignIn extends React.Component<SignInProps, SignInState> {
             authError: false,
             authHttpCode: -1
         };
+
+        this.usernameInput = React.createRef();
     }
 
     hideInputMsg = (hideFlag) => {
@@ -76,14 +76,14 @@ class SignIn extends React.Component<SignInProps, SignInState> {
             this.setState({ hideUserMsg: this.state.username ? true : false, hidePwdMsg: this.state.password ? true : false });
         }
         else {
-            const signInRes = await Auth.signIn(this.state.username, this.state.password),
+            const signInRes = await Authentication.signIn(this.state.username, this.state.password),
                 { t } = this.props;
 
             this.setState({ authError: false, authHttpCode: -1 });
 
             if (signInRes.ok) {
-                store.dispatch(setAuthUser(await signInRes.json()));
                 this.setState({ authSuccess: true });
+                store.dispatch(setAuthUser(await signInRes.json()));
             }
             else {
                 const httpCode = signInRes.status;

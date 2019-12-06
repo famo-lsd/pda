@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
+import erp from './controllers/erp';
 import express from 'express';
 import expressWinston from 'express-winston';
 import fs from 'fs';
@@ -75,6 +76,7 @@ app.use(morgan('combined', { stream: fs.createWriteStream(accessLogPath, { flags
 
 // routes
 app.use('/Authentication', authentication);
+app.use('/ERP', erp);
 
 // express-winston
 app.use(expressWinston.errorLogger({

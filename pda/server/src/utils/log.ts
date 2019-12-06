@@ -9,7 +9,7 @@ interface HttpLogData {
 };
 
 class Log {
-    public static add(errorMsg: string, errorStack: string = null, httpData: HttpLogData = null) {
+    public static addError(errorMsg: string, errorStack: string = null, httpData: HttpLogData = null) {
         const dateTimeFormat = 'DD/MM/YYYY HH:mm:ss.SSS',
             appLogFolder = LOG_FOLDER + 'app/',
             logFile = appLogFolder + moment().format('DD_MM_YYYY') + '.log',
@@ -29,6 +29,12 @@ class Log {
                 console.log('[' + moment().format(dateTimeFormat) + '] ' + err + '\n\n');
             }
         });
+    }
+
+    public static addPromiseError(error: any) {
+        Log.addError(error.message,
+            error.stack,
+            error.request && error.response ? { method: error.request.method, url: error.request.path, statusCode: error.response.status } : null);
     }
 }
 

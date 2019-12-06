@@ -1,32 +1,38 @@
+import Authentication from './utils/authentication';
 import Home from './pages/home';
+import Inventory from './pages/inventory';
 import React from 'react';
 import PropTypes from 'prop-types';
 import SignIn from './pages/signIn';
 import store from './redux/store';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
-import Authentication from './utils/authentication';
 import { setAuthUser } from './redux/actions';
+import '../Content/style.css';
+
+interface AutoRouteBodyState {
+    isAuthenticated: boolean;
+}
 
 export default class Routing extends React.Component<any, any> {
     render() {
         if (!(window as any).cordova) {
             return (
                 <BrowserRouter>
-                    <AutoRoutingBody />
+                    <AutoRouteBody />
                 </BrowserRouter>
             );
         }
         else {
             return (
                 <HashRouter>
-                    <AutoRoutingBody />
+                    <AutoRouteBody />
                 </HashRouter>
             );
         }
     }
 }
 
-function RoutingBody() {
+function RouteBody() {
     const { authUser } = store.getState();
 
     return (
@@ -38,19 +44,6 @@ function RoutingBody() {
         </Switch>
     );
 }
-
-async function AutoRoutingBody() {
-   const userAuthRes = Authentication.autoSignIn();
-   
-   .then((userAuthRes) => {
-        store.dispatch(setAuthUser(userAuthRes.json()));
-
-        return (<Route exact path="/">
-            <Home />
-        </Route>);
-    }).catch(() => { });
-}
-
 
 function PrivateRoute({ component: Component, ...rest }) {
     const { authUser } = store.getState();
@@ -76,3 +69,40 @@ function PrivateRoute({ component: Component, ...rest }) {
 PrivateRoute.propTypes = {
     component: PropTypes.elementType
 };
+
+class AutoRouteBody extends React.Component<any, AutoRouteBodyState>{
+    constructor(props: any) {
+        super(props);
+
+        this.state = {
+            isAuthenticated: false
+        };
+    }
+
+    componentDidMount() {
+        Authentication.autoSignIn().then((wsRes) => {
+            this.setState({ isAuthenticated: true });
+            store.dispatch(setAuthUser(wsRes.json()));
+        }).catch(() => { });
+    }
+
+    render() {
+        const { loadPage } = store.getState(),
+            body = !this.state.isAuthenticated || loadPage ?
+                (<div className="pda-app-loader">
+                    <div className="famo-loader"></div>
+                </div>) :
+                (<Switch>
+                    <Route exact path="/">
+                        <Home />
+                    </Route>
+                    <Route exact path="/Inventory">
+                        <Inventory />
+                    </Route>
+                </Switch>);
+
+        return (<section className="famo-body">
+            {body}
+        </section>);
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "watchFolder": "src/Content/src",
+    "outputFolder": "src/Content",
+    "runOnce": true,
+    "allowedExtensions": [
+        ".less"
+    ]
+}

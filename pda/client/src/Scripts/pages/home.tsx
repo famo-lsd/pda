@@ -1,38 +1,47 @@
-import Authentication from '../utils/authentication';
 import React from 'react';
-import store from '../redux/store';
-import { setAuthUser } from '../redux/actions';
-import { withRouter } from 'react-router-dom';
+import { Redirect, withRouter } from 'react-router-dom';
+import { withTranslation } from 'react-i18next';
 
-// #region interface
-interface HomeProps {
-    history: any;
+interface HomeState {
+    inventoryRedirect: boolean;
 }
-// #endregion
 
-// #region class
-class Home extends React.Component<HomeProps, any> {
-    handleSignOut = async () => {
-        const signOutRes = await Authentication.signOut(),
-            { history } = this.props;
+class Home extends React.Component<any, HomeState> {
+    constructor(props) {
+        super(props);
 
-        if (signOutRes.ok) {
-            store.dispatch(setAuthUser(null));
-            history.push('/SignIn');
-        }
+        this.state = {
+            inventoryRedirect: false
+        };
+    }
+
+    handleButtonClick = (event) => {
+        this.setState({ inventoryRedirect: true });
     }
 
     render() {
-        console.log(this.props);
+        if (this.state.inventoryRedirect) {
+            return <Redirect to="/Inventory" />
+        }
 
         return (
             <React.Fragment>
-                <h1>Página inicial</h1>
-                <button onClick={this.handleSignOut} style={{ marginTop: '50px' }}>Click</button>
+                <section className="famo-wrapper">
+                    <div className="famo-content">
+                        <div className="famo-grid">
+                            <div className="famo-row">
+                                <div className="famo-cell text-center">
+                                    <button type="button" className="famo-button famo-normal-button" onClick={this.handleButtonClick}>
+                                        <span className="famo-text-5">Inventário</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </React.Fragment>
         );
     }
 }
-// #endregion
 
-export default withRouter(Home);
+export default withRouter(withTranslation()(Home));

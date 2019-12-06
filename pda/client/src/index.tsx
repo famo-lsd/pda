@@ -1,7 +1,7 @@
 import httpStatus from 'http-status';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Routing from './Scripts/routing';
+import Routing from './Scripts/route';
 import store from './Scripts/redux/store';
 import { NODE_SERVER } from './Scripts/utils/variablesRepo';
 import { setAuthUser } from './Scripts/redux/actions';

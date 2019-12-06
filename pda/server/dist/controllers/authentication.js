@@ -23,7 +23,7 @@ function getAuthUser(accessToken, username) {
         }
     });
 }
-router.post('/SignIn', (req, res) => {
+function signIn(req, res, username = null, password = null) {
     axios_1.default({
         method: 'POST',
         url: variablesRepo_1.WEB_API + 'token',
@@ -32,28 +32,34 @@ router.post('/SignIn', (req, res) => {
         },
         data: querystring_1.default.stringify({
             grant_type: 'password',
-            username: req.body.username,
-            password: req.body.password
+            username: !username ? req.body.username : username,
+            password: !password ? req.body.password : password
         }),
     }).then((tokenRes) => {
-        getAuthUser(tokenRes.data.access_token, req.body.username).then((userAuthRes) => {
+        getAuthUser(tokenRes.data.access_token, !username ? req.body.username : username).then((userAuthRes) => {
             req.session.token = tokenRes.data;
             req.session.authUser = userAuthRes.data;
             res.send(userAuthRes.data);
         }).catch((userErr) => {
-            log_1.default.add(userErr.message, userErr.stack, userErr.request && userErr.response ? { method: userErr.request.method, url: userErr.request.path, statusCode: userErr.response.status } : null);
+            log_1.default.addPromiseError(userErr);
             res.status(userErr.response ? userErr.response.status : http_status_1.default.INTERNAL_SERVER_ERROR).send();
         });
     }).catch((tokenErr) => {
-        log_1.default.add(tokenErr.message, tokenErr.stack, tokenErr.request && tokenErr.response ? { method: tokenErr.request.method, url: tokenErr.request.path, statusCode: tokenErr.response.status } : null);
+        log_1.default.addPromiseError(tokenErr);
         res.status(tokenErr.response ? tokenErr.response.status : http_status_1.default.INTERNAL_SERVER_ERROR).send();
     });
+}
+router.post('/SignIn', (req, res) => {
+    signIn(req, res);
+});
+router.get('/AutoSignIn', (req, res) => {
+    signIn(req, res, 'userti', 'teste');
 });
 router.get('/SignOut', (req, res) => {
     const sessionID = req.sessionID;
     req.sessionStore.destroy(sessionID, (err) => {
         if (err) {
-            log_1.default.add(err.message, err.stack, { method: req.method, url: req.path, statusCode: http_status_1.default.INTERNAL_SERVER_ERROR });
+            log_1.default.addError(err.message, err.stack, { method: req.method, url: req.path, statusCode: http_status_1.default.INTERNAL_SERVER_ERROR });
             res.status(http_status_1.default.INTERNAL_SERVER_ERROR).send();
         }
         else {

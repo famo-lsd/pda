@@ -8,6 +8,7 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const compression_1 = __importDefault(require("compression"));
 const connect_redis_1 = __importDefault(require("connect-redis"));
 const cors_1 = __importDefault(require("cors"));
+const erp_1 = __importDefault(require("./controllers/erp"));
 const express_1 = __importDefault(require("express"));
 const express_winston_1 = __importDefault(require("express-winston"));
 const fs_1 = __importDefault(require("fs"));
@@ -56,6 +57,7 @@ app.use(express_session_1.default({
 }));
 app.use(morgan_1.default('combined', { stream: fs_1.default.createWriteStream(accessLogPath, { flags: 'a' }) }));
 app.use('/Authentication', authentication_1.default);
+app.use('/ERP', erp_1.default);
 app.use(express_winston_1.default.errorLogger({
     transports: [
         new winston_1.default.transports.File({ filename: variablesRepo_1.LOG_FOLDER + 'error.log' })

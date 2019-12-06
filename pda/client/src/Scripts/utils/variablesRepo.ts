@@ -1,2 +1,3 @@
 export const NODE_SERVER = 'http://localhost:3030/',
-    SET_AUTH_USER = 'SET_AUTH_USER';
+    RDX_AUTH_USER = 'RDX_AUTH_USER',
+    RDX_LOAD_PAGE = 'RDX_LOAD_PAGE';

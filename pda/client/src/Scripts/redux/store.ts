@@ -1,6 +1,6 @@
-import appReducer from './reducers';
+import reducer from './reducers';
 import { createStore } from 'redux';
 
-const store = createStore(appReducer);
+const store = createStore(reducer);
 
 export default store;

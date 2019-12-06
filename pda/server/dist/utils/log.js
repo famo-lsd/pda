@@ -8,7 +8,7 @@ const moment_1 = __importDefault(require("moment"));
 const variablesRepo_1 = require("./variablesRepo");
 ;
 class Log {
-    static add(errorMsg, errorStack = null, httpData = null) {
+    static addError(errorMsg, errorStack = null, httpData = null) {
         const dateTimeFormat = 'DD/MM/YYYY HH:mm:ss.SSS', appLogFolder = variablesRepo_1.LOG_FOLDER + 'app/', logFile = appLogFolder + moment_1.default().format('DD_MM_YYYY') + '.log', errorMessage = 'Date: ' + moment_1.default().format(dateTimeFormat) + '\n'
             + 'Message: ' + errorMsg + '\n'
             + (errorStack ? 'Stack: ' + errorStack + '\n' : '')
@@ -23,6 +23,9 @@ class Log {
                 console.log('[' + moment_1.default().format(dateTimeFormat) + '] ' + err + '\n\n');
             }
         });
+    }
+    static addPromiseError(error) {
+        Log.addError(error.message, error.stack, error.request && error.response ? { method: error.request.method, url: error.request.path, statusCode: error.response.status } : null);
     }
 }
 exports.default = Log;

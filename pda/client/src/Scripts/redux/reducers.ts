@@ -1,15 +1,19 @@
-import { SET_AUTH_USER } from '../utils/variablesRepo';
+import { RDX_AUTH_USER, RDX_LOAD_PAGE } from '../utils/variablesRepo';
 
-const appState = {
-    authUser: null
+const initState = {
+    authUser: null,
+    loadPage: false
 };
 
-export default function appReducer(state = appState, action) {
+export default function reducer(state = initState, action) {
     const copyState = { ...state };
 
     switch (action.type) {
-        case SET_AUTH_USER:
+        case RDX_AUTH_USER:
             copyState.authUser = action.data;
+            break;
+        case RDX_LOAD_PAGE:
+            copyState.loadPage = action.data;
             break;
         default:
             break;

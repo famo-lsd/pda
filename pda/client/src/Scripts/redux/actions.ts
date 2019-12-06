@@ -1,7 +1,11 @@
-import { SET_AUTH_USER } from '../utils/variablesRepo';
+import { RDX_AUTH_USER, RDX_LOAD_PAGE } from '../utils/variablesRepo';
 
-function setAuthUser(data) {
-    return { type: SET_AUTH_USER, data };
+function setAuthUser(data: any) {
+    return { type: RDX_AUTH_USER, data };
 }
 
-export { setAuthUser };
+function setLoadPage(data: boolean) {
+    return { type: RDX_LOAD_PAGE, data };
+}
+
+export { setAuthUser, setLoadPage };

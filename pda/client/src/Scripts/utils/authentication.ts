@@ -16,7 +16,7 @@ export default class Authentication {
     }
 
     static autoSignIn = async () => {
-        return fetch(NODE_SERVER + 'Authentication/AutoSignIn', {
+        return fetch(NODE_SERVER + 'Authentication/AutoSignIn?timestamp=' + new Date().getTime(), {
             method: 'GET',
             credentials: 'include'
         });
