@@ -1,62 +1,59 @@
 import Authentication from './utils/authentication';
 import Home from './pages/home';
 import Inventory from './pages/inventory';
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import SignIn from './pages/signIn';
-import store from './redux/store';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
-import { setAuthUser } from './redux/actions';
+import { useGlobal } from './utils/globalHooks';
 import '../Content/style.css';
 
 interface AutoRouteBodyState {
     isAuthenticated: boolean;
 }
 
-export default class Routing extends React.Component<any, any> {
-    render() {
-        if (!(window as any).cordova) {
-            return (
-                <BrowserRouter>
-                    <AutoRouteBody />
-                </BrowserRouter>
-            );
-        }
-        else {
-            return (
-                <HashRouter>
-                    <AutoRouteBody />
-                </HashRouter>
-            );
-        }
+export default function Routing() {
+    if (!(window as any).cordova) {
+        return (
+            <BrowserRouter>
+                <AutoRouteBody />
+            </BrowserRouter>
+        );
+    }
+    else {
+        return (
+            <HashRouter>
+                <AutoRouteBody />
+            </HashRouter>
+        );
     }
 }
 
 function RouteBody() {
-    const { authUser } = store.getState();
+    const [globalState, ] = useGlobal();
 
     return (
         <Switch>
-            <PrivateRoute exact path="/" component={Home} />
-            <Route exact path="/SignIn" render={(routeProps) => {
-                return authUser ? (<Redirect to={{ pathname: "/" }} />) : (<SignIn {...routeProps} />);
+            <PrivateRoute exact path='/' component={Home} />
+            <Route exact path='/SignIn' render={(routeProps) => {
+                return globalState.authUser ? (<Redirect to={{ pathname: '/' }} />) : (<SignIn {...routeProps} />);
             }} />
         </Switch>
     );
 }
 
 function PrivateRoute({ component: Component, ...rest }) {
-    const { authUser } = store.getState();
+    const [globalState, ] = useGlobal();
 
     return (
         <Route
             render={routeProps => {
-                return authUser ? (
+                return globalState.authUser ? (
                     <Component {...routeProps} />
                 ) : (
                         <Redirect
                             to={{
-                                pathname: "/SignIn",
+                                pathname: '/SignIn',
                                 state: { from: routeProps.location }
                             }}
                         />
@@ -70,39 +67,30 @@ PrivateRoute.propTypes = {
     component: PropTypes.elementType
 };
 
-class AutoRouteBody extends React.Component<any, AutoRouteBodyState>{
-    constructor(props: any) {
-        super(props);
+function AutoRouteBody() {
+    const [globalState, globalActions] = useGlobal();
 
-        this.state = {
-            isAuthenticated: false
-        };
-    }
-
-    componentDidMount() {
+    useEffect(() => {
         Authentication.autoSignIn().then((wsRes) => {
-            this.setState({ isAuthenticated: true });
-            store.dispatch(setAuthUser(wsRes.json()));
+            wsRes.json().then((data) => {
+                globalActions.setAuthUser(data);
+            })
         }).catch(() => { });
-    }
+    }, []);
 
-    render() {
-        const { loadPage } = store.getState(),
-            body = !this.state.isAuthenticated || loadPage ?
-                (<div className="pda-app-loader">
-                    <div className="famo-loader"></div>
-                </div>) :
-                (<Switch>
-                    <Route exact path="/">
-                        <Home />
-                    </Route>
-                    <Route exact path="/Inventory">
-                        <Inventory />
-                    </Route>
-                </Switch>);
-
-        return (<section className="famo-body">
-            {body}
-        </section>);
-    }
+    return (
+        <section className='famo-body'>
+            <div className={'pda-app-loader' + (globalState.authUser && !globalState.loadPage ? ' hide' : '')}>
+                <div className="famo-loader"></div>
+            </div>
+            <Switch>
+                <Route exact path='/'>
+                    <Home />
+                </Route>
+                <Route path='/Inventory'>
+                    <Inventory />
+                </Route>
+            </Switch>
+        </section>
+    );
 }

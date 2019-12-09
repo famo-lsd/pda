@@ -2,20 +2,17 @@ import httpStatus from 'http-status';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Routing from './Scripts/route';
-import store from './Scripts/redux/store';
-import { NODE_SERVER } from './Scripts/utils/variablesRepo';
-import { setAuthUser } from './Scripts/redux/actions';
 
 async function initApp() {
     try {
-        const sessionRes = await fetch(NODE_SERVER + 'Authentication/Session/User', {
-            method: 'GET',
-            credentials: 'include'
-        });
+        // const sessionRes = await fetch(NODE_SERVER + 'Authentication/Session/User', {
+        //     method: 'GET',
+        //     credentials: 'include'
+        // });
 
-        if (sessionRes.ok && sessionRes.status === httpStatus.OK) {
-            store.dispatch(setAuthUser(await sessionRes.json()));
-        }
+        // if (sessionRes.ok && sessionRes.status === httpStatus.OK) {
+        //     store.dispatch(setAuthUser(await sessionRes.json()));
+        // }
 
         ReactDOM.render(<Routing />, document.getElementById('root'));
     }
