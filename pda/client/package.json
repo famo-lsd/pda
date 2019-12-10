@@ -1,13 +1,9 @@
 {
   "name": "pda-client",
+  "homepage": "./",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@types/jest": "24.0.23",
-    "@types/node": "12.12.14",
-    "@types/react": "16.9.14",
-    "@types/react-dom": "16.9.4",
-    "@types/use-global-hook": "^0.1.2",
     "classnames": "^2.2.6",
     "http-status": "^1.4.1",
     "i18next": "^19.0.1",
@@ -17,16 +13,19 @@
     "react-i18next": "^11.2.5",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
-    "redux": "^4.0.4",
-    "typescript": "3.7.3",
     "use-global-hook": "^0.1.12"
   },
   "scripts": {
     "lint": "eslint src/Scripts/**/*",
-    "start": "\"npm run lint\" && less-watch-compiler --config less.config.json && react-scripts start",
+    "start": "npm run lint && less-watch-compiler --config less.config.json && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:cordova": "npm run build && npm run delete:cordova && npm run copy:cordova",
+    "build:cordova:android": "npm run build:cordova && cd ../cordova && cordova run android",
+    "build:cordova:browser": "npm run build:cordova && cd ../cordova && cordova run browser",
+    "copy:cordova": "xcopy /s build ..\\cordova\\www",
+    "delete:cordova": "rimraf ../cordova/www/*"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -44,11 +43,17 @@
     ]
   },
   "devDependencies": {
+    "@types/jest": "24.0.23",
+    "@types/node": "12.12.14",
+    "@types/react": "16.9.14",
+    "@types/react-dom": "16.9.4",
+    "@types/use-global-hook": "^0.1.2",
     "@typescript-eslint/eslint-plugin": "^2.10.0",
     "@typescript-eslint/parser": "^2.10.0",
-    "concurrently": "^5.0.0",
     "eslint": "^6.7.2",
     "less": "^3.10.3",
-    "less-watch-compiler": "^1.14.1"
+    "less-watch-compiler": "^1.14.1",
+    "rimraf": "^3.0.0",
+    "typescript": "3.7.3"
   }
 }

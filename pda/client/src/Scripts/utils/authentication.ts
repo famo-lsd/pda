@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import { NODE_SERVER } from './variablesRepo';
 
 export default class Authentication {
@@ -15,10 +16,23 @@ export default class Authentication {
         });
     }
 
-    static autoSignIn = async () => {
-        return fetch(NODE_SERVER + 'Authentication/AutoSignIn?timestamp=' + new Date().getTime(), {
+    static autoSignIn = (globalActions: any, t: any) => {
+        fetch(NODE_SERVER + 'Authentication/AutoSignIn?timestamp=' + new Date().getTime(), {
             method: 'GET',
             credentials: 'include'
+        }).then((wsRes) => {
+            if (wsRes.ok && wsRes.status === httpStatus.OK) {
+                wsRes.json().then((data) => {
+                    globalActions.setAuthUser(data);
+                }).catch(() => {
+                    alert(t('key_306'));
+                });
+            }
+            else {
+                alert(t('key_306'));
+            }
+        }).catch(() => {
+            alert(t('key_416'));
         });
     }
 

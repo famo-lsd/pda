@@ -1,20 +1,32 @@
 import axios from 'axios';
 import express from 'express';
-import httpStatus from 'http-status';
 import Log from '../utils/log';
-import { addAuthorizationHeader } from '../utils/http';
+import { Authorize } from '../utils/http';
 import { WEB_API } from '../utils/variablesRepo';
 
 const router = express.Router();
 
 router.get('/Inventories', (req: any, res: any) => {
-    axios(addAuthorizationHeader({
+    axios(Authorize({
         method: 'GET',
         url: WEB_API + 'api/Navision/Inventories'
-    }, req)).then((wsRes) => {
+    }, req.session.token)).then((wsRes) => {
         res.send(wsRes.data);
     }).catch((wsErr) => {
         Log.addPromiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+
+router.get('/Products', (req: any, res: any) => {
+    axios(Authorize({
+        method: 'GET',
+        url: WEB_API + 'api/Navision/Products?productCode=' + req.query.productCode
+    }, req.session.token)).then((wsRes) => {
+        res.send(wsRes.data);
+    }).catch((wsErr) => {
+        Log.addPromiseError(wsErr);
+        res.status(wsErr.response.status).send();
     });
 });
 

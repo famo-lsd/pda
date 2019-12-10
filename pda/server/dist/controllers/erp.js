@@ -10,13 +10,25 @@ const http_1 = require("../utils/http");
 const variablesRepo_1 = require("../utils/variablesRepo");
 const router = express_1.default.Router();
 router.get('/Inventories', (req, res) => {
-    axios_1.default(http_1.addAuthorizationHeader({
+    axios_1.default(http_1.Authorize({
         method: 'GET',
         url: variablesRepo_1.WEB_API + 'api/Navision/Inventories'
-    }, req)).then((wsRes) => {
+    }, req.session.token)).then((wsRes) => {
         res.send(wsRes.data);
     }).catch((wsErr) => {
         log_1.default.addPromiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+router.get('/Products', (req, res) => {
+    axios_1.default(http_1.Authorize({
+        method: 'GET',
+        url: variablesRepo_1.WEB_API + 'api/Navision/Products?productCode=' + req.query.productCode
+    }, req.session.token)).then((wsRes) => {
+        res.send(wsRes.data);
+    }).catch((wsErr) => {
+        log_1.default.addPromiseError(wsErr);
+        res.status(wsErr.response.status).send();
     });
 });
 exports.default = router;

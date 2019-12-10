@@ -1,8 +1,8 @@
-export function addAuthorizationHeader(reqConfig: any, req: any) {
-    if (!reqConfig.headers) {
-        reqConfig.headers = {};
+export function Authorize(req: any, token: any) {
+    if (!req.headers) {
+        req.headers = {};
     }
 
-    reqConfig.headers.Authorization = 'bearer ' + req.session.token.access_token;
-    return reqConfig;
+    req.headers.Authorization = 'bearer ' + token.access_token;
+    return req;
 }

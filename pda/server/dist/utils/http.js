@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function addAuthorizationHeader(reqConfig, req) {
-    if (!reqConfig.headers) {
-        reqConfig.headers = {};
+function Authorize(req, token) {
+    if (!req.headers) {
+        req.headers = {};
     }
-    reqConfig.headers.Authorization = 'bearer ' + req.session.token.access_token;
-    return reqConfig;
+    req.headers.Authorization = 'bearer ' + token.access_token;
+    return req;
 }
-exports.addAuthorizationHeader = addAuthorizationHeader;
+exports.Authorize = Authorize;
 //# sourceMappingURL=http.js.map

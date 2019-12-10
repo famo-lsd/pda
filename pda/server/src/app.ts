@@ -63,7 +63,7 @@ app.use(session({
         httpOnly: true,
         secure: false
     },
-    genid: (req) => { // eslint-disable-line @typescript-eslint/no-unused-vars
+    genid: (req: any) => { // eslint-disable-line @typescript-eslint/no-unused-vars
         return uuidv4();
     },
     name: SESSION_NAME,
