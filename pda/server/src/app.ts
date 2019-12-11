@@ -5,28 +5,13 @@ import connectRedis from 'connect-redis';
 import cors from 'cors';
 import erp from './controllers/erp';
 import express from 'express';
-import expressWinston from 'express-winston';
-import fs from 'fs';
 import helmet from 'helmet';
-import morgan from 'morgan';
-import path from 'path';
+import log from './controllers/log';
 import redis from 'redis';
 import session from 'express-session';
 import uuidv4 from 'uuid/v4';
-import winston from 'winston';
-import { LOG_FOLDER, MONTH_MS, SESSION_NAME } from './utils/variablesRepo';
-
-// create log files (if not exist)
-const accessLogPath = path.join(LOG_FOLDER, 'access.log'),
-    errorLogPath = path.join(LOG_FOLDER, 'error.log');
-
-if (fs.existsSync(accessLogPath)) {
-    fs.openSync(accessLogPath, 'w');
-}
-
-if (fs.existsSync(errorLogPath)) {
-    fs.openSync(errorLogPath, 'w');
-}
+import { MONTH_MS, SESSION_NAME } from './utils/variablesRepo';
+import { trackRequest } from './utils/middleware';
 
 // redis - session
 const redisStore = connectRedis(session),
@@ -71,23 +56,13 @@ app.use(session({
     resave: true
 }));
 
-// morgan
-app.use(morgan('combined', { stream: fs.createWriteStream(accessLogPath, { flags: 'a' }) }));
+// access
+app.use(trackRequest);
 
 // routes
 app.use('/Authentication', authentication);
 app.use('/ERP', erp);
-
-// express-winston
-app.use(expressWinston.errorLogger({
-    transports: [
-        new winston.transports.File({ filename: LOG_FOLDER + 'error.log' })
-    ],
-    format: winston.format.combine(
-        winston.format.json()
-    ),
-    msg: '{{req.method}} | {{req.url}} | {{res.statusCode}} | {{err.message}}'
-}));
+app.use('/Log', log);
 
 // start server
 app.listen(3030, () => {

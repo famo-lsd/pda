@@ -1,11 +1,12 @@
-import Authentication from './utils/authentication';
 import Home from './pages/home';
 import httpStatus from 'http-status';
 import Inventory from './pages/inventory';
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import SignIn from './pages/signIn';
+import { autoSignIn } from './utils/authentication';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
+import { httpErrorLog, promiseErrorLog } from './utils/log';
 import { NODE_SERVER } from './utils/variablesRepo';
 import { useGlobal } from './utils/globalHooks';
 import { withTranslation } from 'react-i18next';
@@ -78,20 +79,26 @@ function AutoRouteBody(props: any) {
         fetch(NODE_SERVER + 'Authentication/Session/User', {
             method: 'GET',
             credentials: 'include'
-        }).then((wsRes) => {
-            if (wsRes.ok && wsRes.status === httpStatus.OK) {
-                wsRes.json().then((data) => {
-                    globalActions.setAuthUser(data);
-                }).catch(() => {
-                    Authentication.autoSignIn(globalActions, t);
-                });
-            }
-            else {
-                Authentication.autoSignIn(globalActions, t);
-            }
-        }).catch(() => {
-            Authentication.autoSignIn(globalActions, t);
-        });
+        })
+            .then((wsRes) => {
+                if (wsRes.ok && wsRes.status === httpStatus.OK) {
+                    wsRes.json()
+                        .then((data) => {
+                            globalActions.setAuthUser(data);
+                        }).catch((error) => {
+                            autoSignIn(globalActions, t);
+                            promiseErrorLog(error);
+                        });
+                }
+                else {
+                    autoSignIn(globalActions, t);
+                    httpErrorLog(wsRes);
+                }
+            })
+            .catch((wsErr) => {
+                autoSignIn(globalActions, t);
+                promiseErrorLog(wsErr);
+            });
     }, []);
 
     return (

@@ -6,7 +6,6 @@ import { useGlobal } from '../utils/globalHooks';
 import { withTranslation } from 'react-i18next';
 import '../utils/i18n';
 
-// #region interface
 interface SignInProps {
     t: any;
     location: any;
@@ -26,9 +25,7 @@ interface SignInInputMsgProps {
     msgClass: string;
     msgText: string;
 }
-// #endregion
 
-// #region class
 class SignIn extends React.Component<SignInProps, SignInState> {
     private usernameInput: React.RefObject<any>;
 
@@ -175,4 +172,3 @@ class SignInInputMsg extends React.Component<SignInInputMsgProps, any> {
 }
 
 export default withTranslation()(SignIn as any);
-// #endregion

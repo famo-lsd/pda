@@ -1,9 +1,11 @@
 import httpStatus from 'http-status';
 import React, { useEffect, useState } from 'react';
-import { useGlobal } from '../utils/globalHooks';
+import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
+import { useGlobal } from '../utils/globalHooks';
 import { withRouter } from 'react-router-dom';
 import { withTranslation } from 'react-i18next';
+
 
 interface ItemJournal {
     Code: string;
@@ -14,30 +16,38 @@ function Inventory(props: any) {
     const { t } = props,
         [product, setProduct] = useState(),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
+        [inventoryCode, setInventoryCode] = useState<string>(),
         [globalState, globalActions] = useGlobal(),
         action = 'javascript:void(0)';
 
     function barcodeScanner() {
         (window as any).cordova.plugins.barcodeScanner.scan(
             (result) => {
-                if(!result.cancelled) {
+                if (!result.cancelled) {
                     fetch(NODE_SERVER + 'ERP/Products?productCode=' + result.text + '&timestamp=' + new Date().getTime(), {
                         method: 'GET',
                         credentials: 'include'
-                    }).then((wsRes) => {
-                        if (wsRes.ok && wsRes.status === httpStatus.OK) {
-                            wsRes.json().then((data) => {
-                                setProduct(data);
-                            }).catch(() => {
+                    })
+                        .then((wsRes) => {
+                            if (wsRes.ok && wsRes.status === httpStatus.OK) {
+                                wsRes.json()
+                                    .then((data) => {
+                                        setProduct(data);
+                                    })
+                                    .catch((error) => {
+                                        alert(t('O código de barras não corresponde a um produto.'));
+                                        promiseErrorLog(error);
+                                    });
+                            }
+                            else {
                                 alert(t('O código de barras não corresponde a um produto.'));
-                            });
-                        }
-                        else {
-                            alert(t('O código de barras não corresponde a um produto.'));
-                        }
-                    }).catch(() => {
-                        alert(t('key_416'));
-                    });
+                                httpErrorLog(wsRes);
+                            }
+                        })
+                        .catch((wsErr) => {
+                            alert(t('key_416'));
+                            promiseErrorLog(wsErr);
+                        });
                 }
             },
             (error) => {
@@ -51,7 +61,7 @@ function Inventory(props: any) {
                 saveHistory: false,
                 prompt: '',
                 resultDisplayDuration: 0,
-                formats: 'QR_CODE,CODE_39',
+                formats: 'CODE_39',
                 orientation: 'unset',
                 disableAnimations: true,
                 disableSuccessBeep: false,
@@ -61,7 +71,11 @@ function Inventory(props: any) {
     }
 
     function handleInventoryCode(event) {
-        barcodeScanner();
+        setInventoryCode(event.target.value);
+
+        if (event.target.value !== '') {
+            barcodeScanner();
+        }
     }
 
     function handleBarcodeScannerButton(event) {
@@ -73,21 +87,25 @@ function Inventory(props: any) {
             fetch(NODE_SERVER + 'ERP/Inventories?timestamp=' + new Date().getTime(), {
                 method: 'GET',
                 credentials: 'include'
-            }).then((wsRes) => {
-                if (wsRes.ok && wsRes.status === httpStatus.OK) {
-                    wsRes.json().then((data) => {
-                        setInventories(data);
-                        globalActions.setLoadPage(false);
-                    }).catch(() => {
+            })
+                .then((wsRes) => {
+                    if (wsRes.ok && wsRes.status === httpStatus.OK) {
+                        wsRes.json()
+                            .then((data) => {
+                                setInventories(data);
+                                globalActions.setLoadPage(false);
+                            })
+                            .catch(() => {
+                                alert(t('key_303'));
+                            });
+                    }
+                    else {
                         alert(t('key_303'));
-                    });
-                }
-                else {
-                    alert(t('key_303'));
-                }
-            }).catch(() => {
-                alert(t('key_416'));
-            });
+                    }
+                })
+                .catch(() => {
+                    alert(t('key_416'));
+                });
         }
     }, [globalState.authUser]);
 
@@ -139,7 +157,7 @@ function Inventory(props: any) {
                     </div>
                 </section>
             ) : null}
-            <section className="famo-wrapper">
+            {inventoryCode ? (<section className="famo-wrapper">
                 <div className="famo-grid">
                     <div className="famo-row">
                         <div className="famo-cell text-right">
@@ -149,7 +167,7 @@ function Inventory(props: any) {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section>) : null}
         </React.Fragment>
     );
 }

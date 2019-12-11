@@ -1,4 +1,3 @@
-import httpStatus from 'http-status';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Routing from './Scripts/route';

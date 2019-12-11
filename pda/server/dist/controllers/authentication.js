@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const http_status_1 = __importDefault(require("http-status"));
 const log_1 = __importDefault(require("../utils/log"));
 const querystring_1 = __importDefault(require("querystring"));
+const middleware_1 = require("../utils/middleware");
 const variablesRepo_1 = require("../utils/variablesRepo");
 const router = express_1.default.Router();
 function getAuthUser(accessToken, username) {
@@ -34,18 +35,18 @@ function signIn(req, res, username = null, password = null) {
             grant_type: 'password',
             username: !username ? req.body.username : username,
             password: !password ? req.body.password : password
-        }),
+        })
     }).then((tokenRes) => {
         getAuthUser(tokenRes.data.access_token, !username ? req.body.username : username).then((userAuthRes) => {
             req.session.token = tokenRes.data;
             req.session.authUser = userAuthRes.data;
             res.send(userAuthRes.data);
         }).catch((userErr) => {
-            log_1.default.addPromiseError(userErr);
+            log_1.default.promiseError(userErr);
             res.status(userErr.response ? userErr.response.status : http_status_1.default.INTERNAL_SERVER_ERROR).send();
         });
     }).catch((tokenErr) => {
-        log_1.default.addPromiseError(tokenErr);
+        log_1.default.promiseError(tokenErr);
         res.status(tokenErr.response ? tokenErr.response.status : http_status_1.default.INTERNAL_SERVER_ERROR).send();
     });
 }
@@ -59,7 +60,7 @@ router.get('/SignOut', (req, res) => {
     const sessionID = req.sessionID;
     req.sessionStore.destroy(sessionID, (err) => {
         if (err) {
-            log_1.default.addError(err.message, err.stack, { method: req.method, url: req.path, statusCode: http_status_1.default.INTERNAL_SERVER_ERROR });
+            log_1.default.error(err.message, err.stack, { method: req.method, url: req.path, statusCode: http_status_1.default.INTERNAL_SERVER_ERROR });
             res.status(http_status_1.default.INTERNAL_SERVER_ERROR).send();
         }
         else {
@@ -68,7 +69,7 @@ router.get('/SignOut', (req, res) => {
         }
     });
 });
-router.get('/Session/User', (req, res) => {
+router.get('/Session/User', middleware_1.checkToken, (req, res) => {
     const authUser = req.session.authUser;
     if (authUser) {
         res.send(authUser);
