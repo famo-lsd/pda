@@ -20,21 +20,19 @@ function Home() {
     }
     else {
         return (
-            <React.Fragment>
-                <section className='famo-wrapper'>
-                    <div className='famo-content'>
-                        <div className='famo-grid'>
-                            <div className='famo-row'>
-                                <div className='famo-cell text-center'>
-                                    <button type='button' className='famo-button famo-normal-button' onClick={handleButtonClick}>
-                                        <span className='famo-text-5'>Inventário</span>
-                                    </button>
-                                </div>
+            <section className='famo-wrapper'>
+                <div className='famo-content'>
+                    <div className='famo-grid'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-center'>
+                                <button type='button' className='famo-button famo-normal-button' onClick={handleButtonClick}>
+                                    <span className='famo-text-5'>Inventário</span>
+                                </button>
                             </div>
                         </div>
                     </div>
-                </section>
-            </React.Fragment>
+                </div>
+            </section>
         );
     }
 }

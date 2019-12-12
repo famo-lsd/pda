@@ -21,10 +21,10 @@ router.get('/Inventories', (req: any, res: any) => {
     });
 });
 
-router.get('/Products', (req: any, res: any) => {
+router.get('/Inventories/Products', (req: any, res: any) => {
     axios(authorize({
         method: 'GET',
-        url: WEB_API + 'api/Navision/Products?productCode=' + req.query.productCode
+        url: WEB_API + 'api/Navision/Inventories/Products?productCode=' + req.query.productCode + '&productVariantCode=' + req.query.productVariantCode + '&inventoryCode=' + req.query.inventoryCode
     }, req.session.token)).then((wsRes) => {
         res.send(wsRes.data);
     }).catch((wsErr) => {

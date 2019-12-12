@@ -5,7 +5,7 @@ import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { withRouter } from 'react-router-dom';
 import { withTranslation } from 'react-i18next';
-
+import { ContentLoader } from './loader';
 
 interface ItemJournal {
     Code: string;
@@ -14,9 +14,10 @@ interface ItemJournal {
 
 function Inventory(props: any) {
     const { t } = props,
-        [product, setProduct] = useState(),
+        [inventoryCode, setInventoryCode] = useState<string>(''),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
-        [inventoryCode, setInventoryCode] = useState<string>(),
+        [loadProduct, setLoadProduct] = useState<boolean>(false),
+        [product, setProduct] = useState(null),
         [globalState, globalActions] = useGlobal(),
         action = 'javascript:void(0)';
 
@@ -24,7 +25,17 @@ function Inventory(props: any) {
         (window as any).cordova.plugins.barcodeScanner.scan(
             (result) => {
                 if (!result.cancelled) {
-                    fetch(NODE_SERVER + 'ERP/Products?productCode=' + result.text + '&timestamp=' + new Date().getTime(), {
+                    const split: Array<string> = result.text.split('/'),
+                        productCode = split[0];
+                    let productVariantCode = '';
+
+                    if (split.length > 1) {
+                        productVariantCode = split[1];
+                    }
+
+                    setLoadProduct(true);
+
+                    fetch(NODE_SERVER + 'ERP/Inventories/Products?productCode=' + productCode + '&productVariantCode=' + productVariantCode + '&inventoryCode=' + inventoryCode + '&timestamp=' + new Date().getTime(), {
                         method: 'GET',
                         credentials: 'include'
                     })
@@ -35,18 +46,24 @@ function Inventory(props: any) {
                                         setProduct(data);
                                     })
                                     .catch((error) => {
-                                        alert(t('O código de barras não corresponde a um produto.'));
+                                        setProduct(null);
                                         promiseErrorLog(error);
+                                        alert(t('key_416'));
                                     });
                             }
                             else {
-                                alert(t('O código de barras não corresponde a um produto.'));
+                                setProduct(null);
                                 httpErrorLog(wsRes);
+                                alert(t('O código de barras não corresponde a um produto do inventário.'));
                             }
                         })
                         .catch((wsErr) => {
-                            alert(t('key_416'));
+                            setProduct(null);
                             promiseErrorLog(wsErr);
+                            alert(t('key_416'));
+                        })
+                        .finally(() => {
+                            setLoadProduct(false);
                         });
                 }
             },
@@ -72,10 +89,6 @@ function Inventory(props: any) {
 
     function handleInventoryCode(event) {
         setInventoryCode(event.target.value);
-
-        if (event.target.value !== '') {
-            barcodeScanner();
-        }
     }
 
     function handleBarcodeScannerButton(event) {
@@ -83,6 +96,8 @@ function Inventory(props: any) {
     }
 
     useEffect(() => {
+        globalActions.setLoadPage(true);
+
         if (globalState.authUser) {
             fetch(NODE_SERVER + 'ERP/Inventories?timestamp=' + new Date().getTime(), {
                 method: 'GET',
@@ -95,19 +110,31 @@ function Inventory(props: any) {
                                 setInventories(data);
                                 globalActions.setLoadPage(false);
                             })
-                            .catch(() => {
-                                alert(t('key_303'));
+                            .catch((error) => {
+                                promiseErrorLog(error);
+                                alert(t('key_416'));
                             });
                     }
                     else {
+                        httpErrorLog(wsRes);
                         alert(t('key_303'));
                     }
                 })
-                .catch(() => {
+                .catch((wsErr) => {
+                    promiseErrorLog(wsErr);
                     alert(t('key_416'));
                 });
         }
     }, [globalState.authUser]);
+
+    useEffect(() => {
+        if (inventoryCode !== '') {
+            barcodeScanner();
+        }
+        else {
+            setProduct(null);
+        }
+    }, [inventoryCode]);
 
     return (
         <React.Fragment>
@@ -122,7 +149,7 @@ function Inventory(props: any) {
                                 <select className='famo-input famo-text-10' name='inventoryCode' onChange={handleInventoryCode}>
                                     <option key=''></option>
                                     {inventories.map((x) => {
-                                        return <option key={x.Code}>{x.Name}</option>
+                                        return <option value={x.Code}>{x.Name}</option>
                                     })}
                                 </select>
                             </div>
@@ -130,33 +157,63 @@ function Inventory(props: any) {
                     </form>
                 </div>
             </section>
-            {product ? (
+            {!product && !loadProduct ? null : (
                 <section className='famo-wrapper'>
                     <div className="famo-title">
                         <span className="famo-text-13">{t('key_339')}</span>
                     </div>
                     <div className='famo-content'>
-                        <form action={action} className='famo-grid famo-form-grid' noValidate>
-                            <div className='famo-row'>
-                                <div className='famo-cell famo-input-label'>
-                                    <span className='famo-text-11'>{t('key_87')}</span>
+                        <ContentLoader hide={!loadProduct}></ContentLoader>
+                        {product ? (
+                            <form action={action} className={'famo-grid famo-form-grid' + (loadProduct ? ' hide' : '')} noValidate>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_87')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <input type="text" className="famo-input famo-text-10" name="productCode" disabled value={product.ProductCode} />
+                                    </div>
                                 </div>
-                                <div className='famo-cell'>
-                                    <input type="text" className="famo-input famo-text-10" name="code" disabled value={product.Code} />
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_464')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <input type="text" className="famo-input famo-text-10" name="productVariantCode" disabled value={product.ProductVariantCode} />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className='famo-row'>
-                                <div className='famo-cell famo-input-label'>
-                                    <span className='famo-text-11'>{t('key_138')}</span>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_138')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <input type="text" className="famo-input famo-text-10" name="productDescription" disabled value={product.ProductDescription} />
+                                    </div>
                                 </div>
-                                <div className='famo-cell'>
-                                    <input type="text" className="famo-input famo-text-10" name="description" disabled value={product.Description} />
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_751')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <input type="text" className="famo-input famo-text-10" name="locationCode" disabled value={product.LocationCode} />
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_347')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <input type="text" className="famo-input famo-text-10" name="quantity" data-sub-type="number" />
+                                        <div className="famo-input-message hide">
+                                            <span className="famo-text-15">{t('key_13')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        ) : null}
                     </div>
                 </section>
-            ) : null}
+            )}
             {inventoryCode ? (<section className="famo-wrapper">
                 <div className="famo-grid">
                     <div className="famo-row">

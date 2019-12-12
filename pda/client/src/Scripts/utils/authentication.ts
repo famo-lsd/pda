@@ -11,18 +11,18 @@ export function autoSignIn(globalActions: any, t: any) {
                         globalActions.setAuthUser(data);
                     })
                     .catch((error) => {
-                        alert(t('key_306'));
                         promiseErrorLog(error);
+                        alert(t('key_416'));
                     });
             }
             else {
-                alert(t('key_306'));
                 httpErrorLog(wsRes);
+                alert(t('key_306'));
             }
         })
         .catch((wsErr) => {
-            alert(t('key_416'));
             promiseErrorLog(wsErr);
+            alert(t('key_416'));
         });
 }
 

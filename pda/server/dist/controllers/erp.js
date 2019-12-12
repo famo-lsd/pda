@@ -22,10 +22,10 @@ router.get('/Inventories', (req, res) => {
         res.status(wsErr.response.status).send();
     });
 });
-router.get('/Products', (req, res) => {
+router.get('/Inventories/Products', (req, res) => {
     axios_1.default(http_1.authorize({
         method: 'GET',
-        url: variablesRepo_1.WEB_API + 'api/Navision/Products?productCode=' + req.query.productCode
+        url: variablesRepo_1.WEB_API + 'api/Navision/Inventories/Products?productCode=' + req.query.productCode + '&productVariantCode=' + req.query.productVariantCode + '&inventoryCode=' + req.query.inventoryCode
     }, req.session.token)).then((wsRes) => {
         res.send(wsRes.data);
     }).catch((wsErr) => {

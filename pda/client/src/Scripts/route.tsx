@@ -1,9 +1,9 @@
-import Home from './pages/home';
+import Home from './components/home';
 import httpStatus from 'http-status';
-import Inventory from './pages/inventory';
+import Inventory from './components/inventory';
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import SignIn from './pages/signIn';
+import SignIn from './components/signIn';
 import { autoSignIn } from './utils/authentication';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
@@ -17,6 +17,8 @@ interface AutoRouteBodyState {
 }
 
 function Routing(props: any) {
+    const [, globalActions] = useGlobal();
+
     if (!(window as any).cordova) {
         return (
             <BrowserRouter>

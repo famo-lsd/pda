@@ -44,7 +44,8 @@ class Log {
         });
     }
     static tracking(req) {
-        const trackingFolder = variablesRepo_1.LOG_FOLDER + 'tracking/', logFile = trackingFolder + moment_1.default().format('DD_MM_YYYY') + '.log', message = req.ip.padEnd(25) + ' '
+        const trackingFolder = variablesRepo_1.LOG_FOLDER + 'tracking/', logFile = trackingFolder + moment_1.default().format('DD_MM_YYYY') + '.log', message = moment_1.default().format(variablesRepo_1.LOG_DATETIME_FORMAT) + ' '
+            + req.ip.padEnd(25) + ' '
             + req.hostname.padEnd(20) + ' '
             + req.httpVersion.padEnd(5) + ' '
             + req.method.padEnd(5) + ' '
