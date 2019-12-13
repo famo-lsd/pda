@@ -15,8 +15,8 @@ router.get('/Inventories', (req, res) => {
     axios_1.default(http_1.authorize({
         method: 'GET',
         url: variablesRepo_1.WEB_API + 'api/Navision/Inventories'
-    }, req.session.token)).then((wsRes) => {
-        res.send(wsRes.data);
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
     }).catch((wsErr) => {
         log_1.default.promiseError(wsErr);
         res.status(wsErr.response.status).send();
@@ -26,8 +26,8 @@ router.get('/Inventories/Products', (req, res) => {
     axios_1.default(http_1.authorize({
         method: 'GET',
         url: variablesRepo_1.WEB_API + 'api/Navision/Inventories/Products?productCode=' + req.query.productCode + '&productVariantCode=' + req.query.productVariantCode + '&inventoryCode=' + req.query.inventoryCode
-    }, req.session.token)).then((wsRes) => {
-        res.send(wsRes.data);
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
     }).catch((wsErr) => {
         log_1.default.promiseError(wsErr);
         res.status(wsErr.response.status).send();

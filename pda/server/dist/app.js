@@ -12,6 +12,7 @@ const erp_1 = __importDefault(require("./controllers/erp"));
 const express_1 = __importDefault(require("express"));
 const helmet_1 = __importDefault(require("helmet"));
 const log_1 = __importDefault(require("./controllers/log"));
+const platform_1 = __importDefault(require("./controllers/platform"));
 const redis_1 = __importDefault(require("redis"));
 const express_session_1 = __importDefault(require("express-session"));
 const v4_1 = __importDefault(require("uuid/v4"));
@@ -49,6 +50,7 @@ app.use(middleware_1.trackRequest);
 app.use('/Authentication', authentication_1.default);
 app.use('/ERP', erp_1.default);
 app.use('/Log', log_1.default);
+app.use('/Platform', platform_1.default);
 app.listen(3030, () => {
     console.log('Start server...');
 });

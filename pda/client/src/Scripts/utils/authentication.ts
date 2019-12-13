@@ -1,14 +1,15 @@
 import httpStatus from 'http-status';
 import { httpErrorLog, promiseErrorLog } from './log';
+import { isAndroidApp } from './platform';
 import { NODE_SERVER } from './variablesRepo';
 
 export function autoSignIn(globalActions: any, t: any) {
     Authentication.autoSignIn()
-        .then((wsRes) => {
-            if (wsRes.ok && wsRes.status === httpStatus.OK) {
-                wsRes.json()
+        .then((wsSucc) => {
+            if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                wsSucc.json()
                     .then((data) => {
-                        globalActions.setAuthUser(data);
+                        isAndroidApp(data, globalActions, t);
                     })
                     .catch((error) => {
                         promiseErrorLog(error);
@@ -16,7 +17,7 @@ export function autoSignIn(globalActions: any, t: any) {
                     });
             }
             else {
-                httpErrorLog(wsRes);
+                httpErrorLog(wsSucc);
                 alert(t('key_306'));
             }
         })

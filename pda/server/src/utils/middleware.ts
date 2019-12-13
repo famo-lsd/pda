@@ -15,8 +15,8 @@ export function checkToken(req: any, res: any, next: Function) {
             currentDate = new Date(new Date().toUTCString());
 
         if (currentDate > tokenExpirationDate) {
-            refreshToken(token).then((wsRes) => {
-                req.session.token = wsRes.data;
+            refreshToken(token).then((wsSucc) => {
+                req.session.token = wsSucc.data;
                 next();
             }).catch((wsErr) => {
                 Log.promiseError(wsErr);

@@ -7,6 +7,7 @@ import erp from './controllers/erp';
 import express from 'express';
 import helmet from 'helmet';
 import log from './controllers/log';
+import platform from './controllers/platform';
 import redis from 'redis';
 import session from 'express-session';
 import uuidv4 from 'uuid/v4';
@@ -63,6 +64,7 @@ app.use(trackRequest);
 app.use('/Authentication', authentication);
 app.use('/ERP', erp);
 app.use('/Log', log);
+app.use('/Platform', platform);
 
 // start server
 app.listen(3030, () => {

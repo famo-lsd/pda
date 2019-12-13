@@ -7,7 +7,7 @@ function Home() {
     const [, globalActions] = useGlobal(),
         [inventoryRedirect, setRedirection] = useState(false);
 
-    function handleButtonClick(event) {
+    function handleRedirection(event) {
         setRedirection(true);
     }
 
@@ -25,7 +25,7 @@ function Home() {
                     <div className='famo-grid'>
                         <div className='famo-row'>
                             <div className='famo-cell text-center'>
-                                <button type='button' className='famo-button famo-normal-button' onClick={handleButtonClick}>
+                                <button type='button' className='famo-button famo-normal-button' onClick={handleRedirection}>
                                     <span className='famo-text-5'>Inventário</span>
                                 </button>
                             </div>

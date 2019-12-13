@@ -7,6 +7,7 @@ import SignIn from './components/signIn';
 import { autoSignIn } from './utils/authentication';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
+import { isAndroidApp } from './utils/platform';
 import { NODE_SERVER } from './utils/variablesRepo';
 import { useGlobal } from './utils/globalHooks';
 import { withTranslation } from 'react-i18next';
@@ -17,8 +18,6 @@ interface AutoRouteBodyState {
 }
 
 function Routing(props: any) {
-    const [, globalActions] = useGlobal();
-
     if (!(window as any).cordova) {
         return (
             <BrowserRouter>
@@ -82,11 +81,11 @@ function AutoRouteBody(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then((wsRes) => {
-                if (wsRes.ok && wsRes.status === httpStatus.OK) {
-                    wsRes.json()
+            .then((wsSucc) => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    wsSucc.json()
                         .then((data) => {
-                            globalActions.setAuthUser(data);
+                            isAndroidApp(data, globalActions, t);
                         }).catch((error) => {
                             autoSignIn(globalActions, t);
                             promiseErrorLog(error);
@@ -94,7 +93,7 @@ function AutoRouteBody(props: any) {
                 }
                 else {
                     autoSignIn(globalActions, t);
-                    httpErrorLog(wsRes);
+                    httpErrorLog(wsSucc);
                 }
             })
             .catch((wsErr) => {

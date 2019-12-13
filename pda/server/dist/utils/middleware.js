@@ -16,8 +16,8 @@ function checkToken(req, res, next) {
     if (token) {
         const tokenExpirationDate = new Date(token['.expires']), currentDate = new Date(new Date().toUTCString());
         if (currentDate > tokenExpirationDate) {
-            http_1.refreshToken(token).then((wsRes) => {
-                req.session.token = wsRes.data;
+            http_1.refreshToken(token).then((wsSucc) => {
+                req.session.token = wsSucc.data;
                 next();
             }).catch((wsErr) => {
                 log_1.default.promiseError(wsErr);
