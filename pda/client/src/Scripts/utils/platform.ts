@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import { httpErrorLog, promiseErrorLog } from './log';
 import { NODE_SERVER } from './variablesRepo';
+import { setNumeralLocale } from './numeral';
 
 export function isAndroidApp(authUser: any, globalActions: any, t: any) {
     fetch(NODE_SERVER + 'Platform/Android?timestamp=' + new Date().getTime(), {
@@ -11,6 +12,7 @@ export function isAndroidApp(authUser: any, globalActions: any, t: any) {
             if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                 wsSucc.json()
                     .then((data) => {
+                        setNumeralLocale(authUser.Language.Code);
                         globalActions.setAndroidApp(data);
                         globalActions.setAuthUser(authUser);
                     })

@@ -1,3 +1,6 @@
+* .famo-button:not(:first-child) {
+  margin-left: 4px;
+}
 .pda-app-loader {
   position: fixed;
   width: 100%;

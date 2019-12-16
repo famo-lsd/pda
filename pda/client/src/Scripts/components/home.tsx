@@ -7,9 +7,11 @@ function Home() {
     const [, globalActions] = useGlobal(),
         [inventoryRedirect, setRedirection] = useState(false);
 
+    // #region Events
     function handleRedirection(event) {
         setRedirection(true);
     }
+    // #endregion
 
     useEffect(() => {
         globalActions.setLoadPage(false);

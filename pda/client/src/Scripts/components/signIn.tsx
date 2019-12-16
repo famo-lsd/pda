@@ -49,6 +49,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
         return 'signin-error-input' + (hideFlag ? ' hide' : '');
     }
 
+    // #region Events
     handleChangeInput = (event) => {
         this.setState(({ [event.target.name]: event.target.value } as any));
     }
@@ -95,6 +96,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
             }
         }
     }
+    // #endregion
 
     componentDidMount() {
         this.usernameInput.current.focus();

@@ -1,6 +1,7 @@
 {
     "watchFolder": "src/Content/src",
     "outputFolder": "src/Content",
+    "mainFile": "style.less",
     "runOnce": true,
     "allowedExtensions": [
         ".less"

@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const log_1 = __importDefault(require("../utils/log"));
 const http_1 = require("../utils/http");
 const middleware_1 = require("../utils/middleware");
+const general_1 = require("../utils/general");
 const variablesRepo_1 = require("../utils/variablesRepo");
 const router = express_1.default.Router();
 router.use(middleware_1.checkToken);
@@ -25,7 +26,18 @@ router.get('/Inventories', (req, res) => {
 router.get('/Inventories/Products', (req, res) => {
     axios_1.default(http_1.authorize({
         method: 'GET',
-        url: variablesRepo_1.WEB_API + 'api/Navision/Inventories/Products?productCode=' + req.query.productCode + '&productVariantCode=' + req.query.productVariantCode + '&inventoryCode=' + req.query.inventoryCode
+        url: variablesRepo_1.WEB_API + 'api/Navision/Inventories/Products' + general_1.createQueryString(req.query)
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr) => {
+        log_1.default.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+router.patch('/Inventories/Products', (req, res) => {
+    axios_1.default(http_1.authorize({
+        method: 'PATCH',
+        url: variablesRepo_1.WEB_API + 'api/Navision/Inventories/Products' + general_1.createQueryString(req.query)
     }, req.session.token)).then((wsSucc) => {
         res.send(wsSucc.data);
     }).catch((wsErr) => {
