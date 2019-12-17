@@ -58,7 +58,7 @@ function Modal(props) {
                                                     <span className='famo-text-11'>{t('key_87')}</span>
                                                 </div>
                                                 <div className='famo-cell'>
-                                                    <input type='text' className='famo-input famo-text-10' name='productCode' value={input} onInput={(event) => setInput((event.target as HTMLInputElement).value)} />
+                                                    <input type='text' className='famo-input famo-text-10' name='productCode' value={input} onChange={(event) => setInput((event.target as HTMLInputElement).value)} />
                                                 </div>
                                             </div>
                                             <input type='submit' className='hide' value='' />

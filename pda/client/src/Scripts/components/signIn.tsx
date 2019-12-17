@@ -27,7 +27,7 @@ interface SignInInputMsgProps {
 }
 
 class SignIn extends React.Component<SignInProps, SignInState> {
-    private usernameInput: React.RefObject<any>;
+    private usernameRef: React.RefObject<any>;
 
     constructor(props) {
         super(props);
@@ -42,7 +42,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
             authHttpCode: -1
         };
 
-        this.usernameInput = React.createRef();
+        this.usernameRef = React.createRef();
     }
 
     hideInputMsg = (hideFlag) => {
@@ -91,7 +91,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                     console.log(t('key_416') + ' - ' + httpCode);
                 }
 
-                this.usernameInput.current.focus();
+                this.usernameRef.current.focus();
                 this.setState({ password: '', hidePwdMsg: true, authError: true, authHttpCode: httpCode });
             }
         }
@@ -99,7 +99,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     // #endregion
 
     componentDidMount() {
-        this.usernameInput.current.focus();
+        this.usernameRef.current.focus();
     }
 
     render() {
@@ -128,7 +128,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                                 </div>
                                 <form id='signin-form' method='POST' onSubmit={this.handleSubmit}>
                                     <div className='signin-input-wrapper'>
-                                        <input type='text' id='signin-username-input' className={userInputClassName} placeholder={t('key_397')} ref={this.usernameInput} name='username' value={this.state.username} autoComplete='off' onChange={this.handleChangeInput} onFocus={this.handleUserInput} onBlur={this.handleUserInput} />
+                                        <input type='text' id='signin-username-input' className={userInputClassName} placeholder={t('key_397')} ref={this.usernameRef} name='username' value={this.state.username} autoComplete='off' onChange={this.handleChangeInput} onFocus={this.handleUserInput} onBlur={this.handleUserInput} />
                                         <SignInInputMsg msgClass={this.hideInputMsg(this.state.hideUserMsg)} msgText={t('key_196')} />
                                     </div>
                                     <div className='signin-input-wrapper'>

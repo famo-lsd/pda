@@ -10,11 +10,14 @@ export function isInteger(number: any) {
     return Number.isInteger(parseFloat(number));
 }
 
-export function setDecimalChar(event: any, setInput: Function) {
+export async function setDecimalDelimiter(event: any, input: React.RefObject<any>, setInput: Function) {
+    const cursorPos = input.current.selectionStart,
+        inputVal = input.current.value;
+
     if (event.keyCode === 110) {
         event.preventDefault();
 
-        setInput(event.target.value + numeral.localeData().delimiters.decimal);
+        input.current.value = inputVal.substr(0, cursorPos) + numeral.localeData().delimiters.decimal + inputVal.substr(cursorPos, inputVal.length - 1);
     }
 }
 

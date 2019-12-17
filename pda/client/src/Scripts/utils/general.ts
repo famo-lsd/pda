@@ -16,3 +16,13 @@ export function createQueryString(json: any) {
 
     return qs;
 };
+
+export function loadScript(src: string, ref: React.RefObject<any>) {
+    const script = document.createElement('script');
+
+    script.async = true;
+    script.src = src;
+    script.type = 'text/javascript';
+
+    ref.current.appendChild(script);
+}
