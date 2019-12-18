@@ -23,7 +23,7 @@ export default class Log {
             fs.mkdirSync(folder, { recursive: true });
         }
 
-        fs.appendFile(logFile, message, (err) => {
+        fs.appendFile(logFile, message, (err: any) => {
             if (err) {
                 console.log('[' + moment().format(LOG_DATETIME_FORMAT) + '] ' + err + '\n\n');
             }
@@ -52,7 +52,7 @@ export default class Log {
             fs.mkdirSync(folder, { recursive: true });
         }
 
-        fs.appendFile(logFile, message, (err) => {
+        fs.appendFile(logFile, message, (err: any) => {
             if (err) {
                 console.log('[' + moment().format(LOG_DATETIME_FORMAT) + '] ' + err + '\n\n');
             }
@@ -75,7 +75,7 @@ export default class Log {
             fs.mkdirSync(trackingFolder);
         }
 
-        fs.appendFile(logFile, message, (err) => {
+        fs.appendFile(logFile, message, (err: any) => {
             if (err) {
                 console.log('[' + moment().format(LOG_DATETIME_FORMAT) + '] ' + err + '\n\n');
             }

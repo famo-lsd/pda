@@ -37,15 +37,15 @@ function Modal(props) {
         setVisibility(visible);
 
         if (!visible) {
-            setInputs.forEach((x) => {
+            setInputs.forEach(x => {
                 x('');
             });
         }
     }, [visible]);
 
     return (
-        <section className={'w3-modal famo-modal' + (visibility ? ' w3-show' : '')} onClick={(event) => setVisible(false)}>
-            <div className='w3-modal-content famo-modal-content' onClick={(event) => event.stopPropagation()}>
+        <section className={'w3-modal famo-modal' + (visibility ? ' w3-show' : '')} onClick={event => setVisible(false)}>
+            <div className='w3-modal-content famo-modal-content' onClick={event => event.stopPropagation()}>
                 {(function () {
                     switch (contentType as ModalContentType) {
                         case ModalContentType.productInput:
@@ -58,7 +58,7 @@ function Modal(props) {
                                                     <span className='famo-text-11'>{t('key_87')}</span>
                                                 </div>
                                                 <div className='famo-cell'>
-                                                    <input type='text' className='famo-input famo-text-10' name='productCode' value={input} onChange={(event) => setInput((event.target as HTMLInputElement).value)} />
+                                                    <input type='text' className='famo-input famo-text-10' name='productCode' value={input} onChange={event => setInput((event.target as HTMLInputElement).value)} />
                                                 </div>
                                             </div>
                                             <input type='submit' className='hide' value='' />
@@ -66,10 +66,10 @@ function Modal(props) {
                                         <div className='famo-grid famo-buttons'>
                                             <div className='famo-row'>
                                                 <div className='famo-cell text-right'>
-                                                    <button type='button' className='famo-button famo-confirm-button' onClick={(event) => result()}>
+                                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => result()}>
                                                         <span className='famo-text-12'>{t('key_701')}</span>
                                                     </button>
-                                                    <button type="button" className="famo-button famo-cancel-button" onClick={(event) => setVisible(false)}>
+                                                    <button type="button" className="famo-button famo-cancel-button" onClick={event => setVisible(false)}>
                                                         <span className="famo-text-12">{t('key_484')}</span>
                                                     </button>
                                                 </div>

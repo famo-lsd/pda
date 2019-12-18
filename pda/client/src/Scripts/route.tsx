@@ -40,7 +40,7 @@ function RouteBody() {
     return (
         <Switch>
             <PrivateRoute exact path='/' component={Home} />
-            <Route exact path='/SignIn' render={(routeProps) => {
+            <Route exact path='/SignIn' render={routeProps => {
                 return globalState.authUser ? (<Redirect to={{ pathname: '/' }} />) : (<SignIn {...routeProps} />);
             }} />
         </Switch>
@@ -81,12 +81,12 @@ function AutoRouteBody(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then((wsSucc) => {
+            .then(wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
-                        .then((data) => {
+                        .then(data => {
                             isAndroidApp(data, globalActions, t);
-                        }).catch((error) => {
+                        }).catch(error => {
                             autoSignIn(globalActions, t);
                             promiseErrorLog(error);
                         });
@@ -96,7 +96,7 @@ function AutoRouteBody(props: any) {
                     httpErrorLog(wsSucc);
                 }
             })
-            .catch((wsErr) => {
+            .catch(wsErr => {
                 autoSignIn(globalActions, t);
                 promiseErrorLog(wsErr);
             });

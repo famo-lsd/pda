@@ -14,9 +14,9 @@ router.get('/Inventories', (req: any, res: any) => {
     axios(authorize({
         method: 'GET',
         url: WEB_API + 'api/Navision/Inventories'
-    }, req.session.token)).then((wsSucc) => {
+    }, req.session.token)).then((wsSucc: any) => {
         res.send(wsSucc.data);
-    }).catch((wsErr) => {
+    }).catch((wsErr: any) => {
         Log.promiseError(wsErr);
         res.status(wsErr.response.status).send();
     });
@@ -26,9 +26,9 @@ router.get('/Inventories/Products', (req: any, res: any) => {
     axios(authorize({
         method: 'GET',
         url: WEB_API + 'api/Navision/Inventories/Products' + createQueryString(req.query)
-    }, req.session.token)).then((wsSucc) => {
+    }, req.session.token)).then((wsSucc: any) => {
         res.send(wsSucc.data);
-    }).catch((wsErr) => {
+    }).catch((wsErr: any) => {
         Log.promiseError(wsErr);
         res.status(wsErr.response.status).send();
     });
@@ -38,9 +38,9 @@ router.patch('/Inventories/Products', (req: any, res: any) => {
     axios(authorize({
         method: 'PATCH',
         url: WEB_API + 'api/Navision/Inventories/Products' + createQueryString(req.query)
-    }, req.session.token)).then((wsSucc) => {
+    }, req.session.token)).then((wsSucc: any) => {
         res.send(wsSucc.data);
-    }).catch((wsErr) => {
+    }).catch((wsErr: any) => {
         Log.promiseError(wsErr);
         res.status(wsErr.response.status).send();
     });

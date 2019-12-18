@@ -8,15 +8,15 @@ export function isAndroidApp(authUser: any, globalActions: any, t: any) {
         method: 'GET',
         credentials: 'include'
     })
-        .then((wsSucc) => {
+        .then(wsSucc => {
             if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                 wsSucc.json()
-                    .then((data) => {
+                    .then(data => {
                         setNumeralLocale(authUser.Language.Code);
                         globalActions.setAndroidApp(data);
                         globalActions.setAuthUser(authUser);
                     })
-                    .catch((error) => {
+                    .catch(error => {
                         promiseErrorLog(error);
                         alert(t('key_416'));
                     });
@@ -26,7 +26,7 @@ export function isAndroidApp(authUser: any, globalActions: any, t: any) {
                 alert(t('key_303'));
             }
         })
-        .catch((wsErr) => {
+        .catch(wsErr => {
             promiseErrorLog(wsErr);
             alert(t('key_416'));
         });

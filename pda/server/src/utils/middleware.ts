@@ -15,10 +15,10 @@ export function checkToken(req: any, res: any, next: Function) {
             currentDate = new Date(new Date().toUTCString());
 
         if (currentDate > tokenExpirationDate) {
-            refreshToken(token).then((wsSucc) => {
+            refreshToken(token).then((wsSucc: any) => {
                 req.session.token = wsSucc.data;
                 next();
-            }).catch((wsErr) => {
+            }).catch((wsErr: any) => {
                 Log.promiseError(wsErr);
                 res.status(httpStatus.INTERNAL_SERVER_ERROR).send();
             });

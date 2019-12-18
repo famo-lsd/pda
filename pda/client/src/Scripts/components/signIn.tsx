@@ -45,28 +45,28 @@ class SignIn extends React.Component<SignInProps, SignInState> {
         this.usernameRef = React.createRef();
     }
 
-    hideInputMsg = (hideFlag) => {
+    hideInputMsg = hideFlag => {
         return 'signin-error-input' + (hideFlag ? ' hide' : '');
     }
 
     // #region Events
-    handleChangeInput = (event) => {
+    handleChangeInput = event => {
         this.setState(({ [event.target.name]: event.target.value } as any));
     }
 
-    handleUserInput = (event) => {
+    handleUserInput = event => {
         if (!event.target.value) {
             this.setState({ hideUserMsg: event.type === 'blur' ? false : true });
         }
     }
 
-    handlePwdInput = (event) => {
+    handlePwdInput = event => {
         if (!event.target.value) {
             this.setState({ hidePwdMsg: event.type === 'blur' ? false : true });
         }
     }
 
-    handleSubmit = async (event) => {
+    handleSubmit = async event => {
         event.preventDefault();
 
         const [, globalActions] = useGlobal();

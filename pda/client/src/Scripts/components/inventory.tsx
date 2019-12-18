@@ -4,12 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { ContentLoader } from './loader';
 import { createQueryString, loadScript } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
+import { Input, getValue } from './input';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { setDecimalDelimiter, convertNumeralToJS } from '../utils/numeral';
 import { useGlobal } from '../utils/globalHooks';
 import { withRouter } from 'react-router-dom';
 import { withTranslation } from 'react-i18next';
-import { InputText, noDataAlert, wrongFormatAlert, invalidValuesAlert } from './input';
 
 interface ItemJournal {
     Code: string;
@@ -18,24 +18,37 @@ interface ItemJournal {
 
 function Inventory(props: any) {
     const { t } = props,
+        [globalState, globalActions] = useGlobal(),
         [inventoryCode, setInventoryCode] = useState<string>(''),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [productInputVisible, setProductInputVisible] = useState(false),
         [loadProduct, setLoadProduct] = useState<boolean>(false),
         [product, setProduct] = useState(null),
-        [quantity, setQuantity] = useState(''),
-        [quantityState, setQuantityState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
-        [globalState, globalActions] = useGlobal(),
+        [quantity, setQuantity] = useState({
+            isNumber: true,
+            className: 'famo-input famo-text-10',
+            name: 'quantity',
+            label: t('key_347'),
+            value: '',
+            invalidMessage: t('key_13'),
+            noData: false,
+            wrongFormat: false,
+            invalidValue: false,
+            validate: false,
+            validateForm: false
+        }),
+        inputs: Array<any> = [quantity],
+        setInputs: Array<any> = [setQuantity],
         sectionRef: React.RefObject<any> = React.createRef();
 
     function barcodeScanner() {
         (window as any).cordova.plugins.barcodeScanner.scan(
-            (result) => {
+            result => {
                 if (!result.cancelled) {
                     getProduct(result.text);
                 }
             },
-            (error) => {
+            error => {
                 alert(t('key_686'));
             },
             {
@@ -70,13 +83,16 @@ function Inventory(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then((wsSucc) => {
+            .then(wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
-                        .then((data) => {
+                        .then(data => {
                             setProduct(data);
+                            setInputs.forEach(x => {
+                                x(prevState => { return { ...prevState, value: '' } });
+                            });
                         })
-                        .catch((error) => {
+                        .catch(error => {
                             setProduct(null);
                             promiseErrorLog(error);
                             alert(t('key_416'));
@@ -88,7 +104,7 @@ function Inventory(props: any) {
                     alert('O código não corresponde a um produto do inventário.');
                 }
             })
-            .catch((wsErr) => {
+            .catch(wsErr => {
                 setProduct(null);
                 promiseErrorLog(wsErr);
                 alert(t('key_416'));
@@ -100,79 +116,9 @@ function Inventory(props: any) {
 
     // #region Events
     function handleRegister(event) {
-        const wrongFormatInputs: Array<string> = [],
-            invalidValuesInputs: Array<string> = [];
-
-        let quantityLt: any = quantity,
-            noData = false;
-
-            // reset
-            setQuantityState({ noData: false, wrongFormat: false, invalidValue: false });
-
-        if (!quantityLt) {
-            noData = true;
-            setQuantityState({ ...quantityState, noData: true });
-        }
-        else {
-            quantityLt = convertNumeralToJS(quantityLt);
-
-            if (isNaN(quantityLt)) {
-                wrongFormatInputs.push(t('key_347'));
-                setQuantityState({ ...quantityState, wrongFormat: true })
-            }
-            else if (parseFloat(quantityLt) <= 0) {
-                invalidValuesInputs.push(t('key_347'));
-                setQuantityState({ ...quantityState, invalidValue: true })
-            }
-            else {
-                quantityLt = parseFloat(quantityLt);
-            }
-        }
-
-        if (noData || wrongFormatInputs.length > 0 || invalidValuesInputs.length > 0) {
-            if (noData) {
-                noDataAlert(t);
-            }
-
-            if (wrongFormatInputs.length > 0) {
-                wrongFormatAlert(wrongFormatInputs, t);
-            }
-
-            if (invalidValuesInputs.length > 0) {
-                invalidValuesAlert(invalidValuesInputs, t);
-            }
-        }
-        else {
-            setLoadProduct(true);
-
-            fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
-                documentCode: product.Code,
-                productCode: product.ProductCode,
-                productVariantCode: product.ProductVariantCode,
-                locationCode: product.LocationCode,
-                quantity: quantityLt
-            }), {
-                method: 'PATCH',
-                credentials: 'include'
-            })
-                .then((wsSucc) => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        setProduct(null);
-                        alert('A quantidade foi alterada com sucesso.');
-                    }
-                    else {
-                        httpErrorLog(wsSucc);
-                        alert(t('key_302'));
-                    }
-                })
-                .catch((wsErr) => {
-                    promiseErrorLog(wsErr);
-                    alert(t('key_416'));
-                })
-                .finally(() => {
-                    setLoadProduct(false);
-                });
-        }
+        setInputs.forEach(x => {
+            x(prevState => { return { ...prevState, validate: true } });
+        });
     }
     // #endregion
 
@@ -191,14 +137,14 @@ function Inventory(props: any) {
                 method: 'GET',
                 credentials: 'include'
             })
-                .then((wsSucc) => {
+                .then(wsSucc => {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                         wsSucc.json()
-                            .then((data) => {
+                            .then(data => {
                                 setInventories(data);
                                 globalActions.setLoadPage(false);
                             })
-                            .catch((error) => {
+                            .catch(error => {
                                 promiseErrorLog(error);
                                 alert(t('key_416'));
                             });
@@ -208,7 +154,7 @@ function Inventory(props: any) {
                         alert(t('key_303'));
                     }
                 })
-                .catch((wsErr) => {
+                .catch(wsErr => {
                     promiseErrorLog(wsErr);
                     alert(t('key_416'));
                 });
@@ -221,17 +167,61 @@ function Inventory(props: any) {
         }
     }, [inventoryCode]);
 
+    useEffect(() => {
+        if (!inputs.some(x => { return !x.validateForm; })) {
+            if (!inputs.some(x => { return x.noData || x.wrongFormat || x.invalidValue })) {
+                setLoadProduct(true);
+
+                fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
+                    documentCode: product.Code,
+                    productCode: product.ProductCode,
+                    productVariantCode: product.ProductVariantCode,
+                    locationCode: product.LocationCode,
+                    quantity: getValue(quantity.value, true)
+                }), {
+                    method: 'PATCH',
+                    credentials: 'include'
+                })
+                    .then(wsSucc => {
+                        if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                            setProduct(null);
+                            alert('A quantidade foi alterada com sucesso.');
+                        }
+                        else {
+                            httpErrorLog(wsSucc);
+                            alert(t('key_302'));
+                        }
+                    })
+                    .catch(wsErr => {
+                        promiseErrorLog(wsErr);
+                        alert(t('key_416'));
+                    })
+                    .finally(() => {
+                        setLoadProduct(false);
+                    });
+            }
+            else {
+                // alerts everywhere
+            }
+
+            setInputs.forEach(x => {
+                x(prevState => { return { ...prevState, validate: false, validateForm: false } });
+            });
+        }
+
+    }, inputs);
+
     return (
         <React.Fragment>
             <section className='famo-wrapper' ref={sectionRef}>
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid' noValidate onSubmit={(event) => event.preventDefault()}>
+                    <form className='famo-grid famo-form-grid' noValidate onSubmit={event => event.preventDefault()}>
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
                                 <span className='famo-text-11'>Inventário</span>
                             </div>
                             <div className='famo-cell'>
-                                <select className='famo-input famo-text-10' name='inventoryCode' disabled={loadProduct} onChange={(event) => setInventoryCode((event.target as HTMLSelectElement).value)}>
+                                <select className='famo-input famo-text-10' name='inventoryCode' disabled={loadProduct} onChange={event => setInventoryCode((event.target as HTMLSelectElement).value)}>
                                     <option key=''></option>
                                     {inventories.map((x, i) => {
                                         return <option key={i} value={x.Code}>{x.Name}</option>
@@ -249,7 +239,7 @@ function Inventory(props: any) {
                     </div>
                     <div className='famo-content'>
                         <ContentLoader hide={!loadProduct} />
-                        <form className={'famo-grid famo-form-grid' + (loadProduct ? ' hide' : '')} noValidate onSubmit={(event) => event.preventDefault()}>
+                        <form className={'famo-grid famo-form-grid' + (loadProduct ? ' hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
                             <div className='famo-row'>
                                 <div className='famo-cell famo-input-label'>
                                     <span className='famo-text-11'>{t('key_87')}</span>
@@ -287,7 +277,7 @@ function Inventory(props: any) {
                                     <span className='famo-text-11'>{t('key_347')}</span>
                                 </div>
                                 <div className='famo-cell'>
-                                    <InputText t={t} isNumber={true} className='famo-input famo-text-10' name='quantity' value={quantity} setInput={setQuantity} state={quantityState} message={t('key_13')} />
+                                    <Input {...quantity} set={setQuantity} />
                                 </div>
                             </div>
                         </form>
@@ -307,11 +297,11 @@ function Inventory(props: any) {
                 <div className='famo-grid'>
                     <div className='famo-row'>
                         <div className='famo-cell text-right'>
-                            <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={(event) => setProductInputVisible(true)}>
+                            <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => setProductInputVisible(true)}>
                                 <span className='famo-text-12'>Manual</span>
                             </button>
                             {!globalState.androidApp ? null : (
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={(event) => barcodeScanner()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => barcodeScanner()}>
                                     <span className='famo-text-12'>{t('key_681')}</span>
                                 </button>
                             )}

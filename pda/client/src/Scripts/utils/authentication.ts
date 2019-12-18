@@ -5,13 +5,13 @@ import { NODE_SERVER } from './variablesRepo';
 
 export function autoSignIn(globalActions: any, t: any) {
     Authentication.autoSignIn()
-        .then((wsSucc) => {
+        .then(wsSucc => {
             if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                 wsSucc.json()
-                    .then((data) => {
+                    .then(data => {
                         isAndroidApp(data, globalActions, t);
                     })
-                    .catch((error) => {
+                    .catch(error => {
                         promiseErrorLog(error);
                         alert(t('key_416'));
                     });
@@ -21,7 +21,7 @@ export function autoSignIn(globalActions: any, t: any) {
                 alert(t('key_306'));
             }
         })
-        .catch((wsErr) => {
+        .catch(wsErr => {
             promiseErrorLog(wsErr);
             alert(t('key_416'));
         });

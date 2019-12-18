@@ -34,17 +34,17 @@ function signIn(req: any, res: any, username: string = null, password: string = 
             username: !username ? req.body.username : username,
             password: !password ? req.body.password : password
         })
-    }).then((tokenRes) => {
-        getAuthUser(tokenRes.data.access_token, !username ? req.body.username : username).then((userAuthRes) => {
+    }).then((tokenRes: any) => {
+        getAuthUser(tokenRes.data.access_token, !username ? req.body.username : username).then((userAuthRes: any) => {
             req.session.token = tokenRes.data;
             req.session.authUser = userAuthRes.data;
 
             res.send(userAuthRes.data);
-        }).catch((userErr) => {
+        }).catch((userErr: any) => {
             Log.promiseError(userErr);
             res.status(userErr.response ? userErr.response.status : httpStatus.INTERNAL_SERVER_ERROR).send();
         });
-    }).catch((tokenErr) => {
+    }).catch((tokenErr: any) => {
         Log.promiseError(tokenErr);
         res.status(tokenErr.response ? tokenErr.response.status : httpStatus.INTERNAL_SERVER_ERROR).send();
     });

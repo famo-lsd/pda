@@ -10,7 +10,7 @@ export function isInteger(number: any) {
     return Number.isInteger(parseFloat(number));
 }
 
-export async function setDecimalDelimiter(event: any, input: React.RefObject<any>, setInput: Function) {
+export async function setDecimalDelimiter(event: any, input: React.RefObject<any>) {
     const cursorPos = input.current.selectionStart,
         inputVal = input.current.value;
 
