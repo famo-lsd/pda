@@ -1,12 +1,12 @@
 import httpStatus from 'http-status';
+import Input, { getValue, InputConfig, invalidValuesAlert, noDataAlert, wrongFormatAlert } from './wrapper/input';
 import Modal, { ModalContentType } from './modal';
 import React, { useEffect, useState } from 'react';
+import Title from './wrapper/title';
 import { ContentLoader } from './loader';
 import { createQueryString, loadScript } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
-import { Input, getValue } from './input';
 import { NODE_SERVER } from '../utils/variablesRepo';
-import { setDecimalDelimiter, convertNumeralToJS } from '../utils/numeral';
 import { useGlobal } from '../utils/globalHooks';
 import { withRouter } from 'react-router-dom';
 import { withTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ function Inventory(props: any) {
         [productInputVisible, setProductInputVisible] = useState(false),
         [loadProduct, setLoadProduct] = useState<boolean>(false),
         [product, setProduct] = useState(null),
-        [quantity, setQuantity] = useState({
+        [quantity, setQuantity] = useState<InputConfig>({
             isNumber: true,
             className: 'famo-input famo-text-10',
             name: 'quantity',
@@ -37,7 +37,7 @@ function Inventory(props: any) {
             validate: false,
             validateForm: false
         }),
-        inputs: Array<any> = [quantity],
+        inputs: Array<InputConfig> = [quantity],
         setInputs: Array<any> = [setQuantity],
         sectionRef: React.RefObject<any> = React.createRef();
 
@@ -126,9 +126,9 @@ function Inventory(props: any) {
         globalActions.setLoadPage(true);
 
         // load scripts
-        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/pt-pt.js?version=26', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/es-es.js?version=26', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/fr.js?version=26', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/es-es.js?version=27', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/fr.js?version=27', sectionRef);
     }, []);
 
     useEffect(() => {
@@ -201,7 +201,17 @@ function Inventory(props: any) {
                     });
             }
             else {
-                // alerts everywhere
+                if (inputs.some(x => { return x.noData; })) {
+                    noDataAlert(t);
+                }
+
+                if (inputs.some(x => { return x.wrongFormat; })) {
+                    wrongFormatAlert(inputs.filter(x => { return x.wrongFormat; }).map(x => { return x.label; }), t);
+                }
+
+                if (inputs.some(x => { return x.invalidValue; })) {
+                    invalidValuesAlert(inputs.filter(x => { return x.invalidValue; }).map(x => { return x.label; }), t);
+                }
             }
 
             setInputs.forEach(x => {
@@ -234,9 +244,7 @@ function Inventory(props: any) {
             </section>
             {!product && !loadProduct ? null : (
                 <section className='famo-wrapper'>
-                    <div className='famo-title'>
-                        <span className='famo-text-13'>{t('key_339')}</span>
-                    </div>
+                    <Title text={t('key_339')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!loadProduct} />
                         <form className={'famo-grid famo-form-grid' + (loadProduct ? ' hide' : '')} noValidate onSubmit={event => event.preventDefault()}>

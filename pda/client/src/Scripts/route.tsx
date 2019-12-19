@@ -104,9 +104,6 @@ function AutoRouteBody(props: any) {
 
     return (
         <section className='famo-body'>
-            <div className={'pda-app-loader' + (globalState.authUser && !globalState.loadPage ? ' hide' : '')}>
-                <div className="famo-loader"></div>
-            </div>
             <Switch>
                 <Route exact path='/'>
                     <Home />
@@ -115,8 +112,11 @@ function AutoRouteBody(props: any) {
                     <Inventory />
                 </Route>
             </Switch>
+            <div className={'pda-app-loader' + (globalState.authUser && !globalState.loadPage ? ' hide' : '')}>
+                <div className="famo-loader"></div>
+            </div>
         </section>
     );
 }
 
-export default (withTranslation()(Routing));
+export default withTranslation()(Routing);

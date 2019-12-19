@@ -18,7 +18,7 @@ function Home() {
     }, []);
 
     if (inventoryRedirect) {
-        return <Redirect to='/Inventory' />;
+        return <Redirect push to='/Inventory' />;
     }
     else {
         return (

@@ -1,7 +1,16 @@
-@import "variables.less";
+@import "baseStyle.less";
 
-* .famo-button:not(:first-child) {
-    margin-left: @famo_button_margin_l;
+.pda-back-button {
+    padding: 10px;
+    border-radius: 50%;
+    position: fixed;
+    left: 15px;
+    bottom: 50px;
+    z-index: 100;
+
+    .fas {
+        .applyIconsSettings(24px, 1em, white);
+    }
 }
 
 .pda-app-loader {

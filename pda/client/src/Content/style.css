@@ -1,5 +1,30 @@
-* .famo-button:not(:first-child) {
+.famo-text-5,
+.famo-text-13 {
+  font-size: 20px !important;
+}
+.famo-text-10,
+.famo-text-11,
+.famo-text-12 {
+  font-size: 18px !important;
+}
+.famo-input {
+  height: 40px;
+}
+* > .famo-button:not(:first-child) {
   margin-left: 4px;
+}
+.pda-back-button {
+  padding: 10px;
+  border-radius: 50%;
+  position: fixed;
+  left: 15px;
+  bottom: 50px;
+  z-index: 100;
+}
+.pda-back-button .fas {
+  font-size: 24px !important;
+  line-height: 1em !important;
+  color: white;
 }
 .pda-app-loader {
   position: fixed;

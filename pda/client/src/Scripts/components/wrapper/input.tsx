@@ -1,56 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { convertNumeralToJS, setDecimalDelimiter } from '../utils/numeral';
+import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/numeral';
 import { useTranslation } from 'react-i18next';
 
-// export function invalidValuesAlert(inputs: Array<string>, t: Function) {
-//     let message = t('key_192');
-
-//     for (let i = 0, len = inputs.length; i < len; i++) {
-//         message += inputs[i];
-
-//         if (i < len - 2) {
-//             message += ', ';
-//         }
-//         else if (i === len - 2) {
-//             message += ' ' + t('key_573') + ' ';
-//         }
-//     }
-
-//     alert(message);
-// }
-
-// export function noDataAlert(t: Function) {
-//     alert(t('key_197'));
-// }
-
-// export function wrongFormatAlert(inputs: Array<string>, t: Function) {
-//     let message = t('key_191');
-
-//     for (let i = 0, len = inputs.length; i < len; i++) {
-//         message += inputs[i];
-
-//         if (i < len - 2) {
-//             message += ', ';
-//         }
-//         else if (i === len - 2) {
-//             message += ' ' + t('key_573') + ' ';
-//         }
-//     }
-
-//     alert(message);
-// }
-
-// export enum inputState{
-//     UNK = 0,
-//     OK = 1,
-//     KO = 2
-// }
-
-export function getValue(value: string, isNumber: boolean) {
-    return !isNumber ? value : parseFloat(convertNumeralToJS(value));
+export interface InputConfig {
+    isNumber: boolean;
+    className: string;
+    name: string;
+    label: string;
+    value: string;
+    invalidMessage: string;
+    noData: boolean;
+    wrongFormat: boolean;
+    invalidValue: boolean;
+    validate: boolean;
+    validateForm: boolean;
 }
 
-export function Input(props: any) {
+function Input(props: any) {
     const { t } = useTranslation(),
         { isNumber, className, name, value, invalidMessage, noData, wrongFormat, invalidValue, validate, set } = props,
         [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
@@ -73,7 +39,7 @@ export function Input(props: any) {
             if (!valueLt) {
                 set(prevState => { return { ...prevState, noData: true, wrongFormat: false, invalidValue: false } });
             }
-            else {
+            else if (valueLt && isNumber) {
                 valueLt = convertNumeralToJS(valueLt);
 
                 if (isNaN(valueLt)) {
@@ -103,3 +69,49 @@ export function Input(props: any) {
             </div>
         </React.Fragment>);
 }
+
+export function getValue(value: string, isNumber: boolean) {
+    return !isNumber ? value : parseFloat(convertNumeralToJS(value));
+}
+
+// #region Alert
+export function invalidValuesAlert(inputs: Array<string>, t: Function) {
+    let message = t('key_192');
+
+    for (let i = 0, len = inputs.length; i < len; i++) {
+        message += inputs[i];
+
+        if (i < len - 2) {
+            message += ', ';
+        }
+        else if (i === len - 2) {
+            message += ' ' + t('key_573') + ' ';
+        }
+    }
+
+    alert(message);
+}
+
+export function noDataAlert(t: Function) {
+    alert(t('key_197'));
+}
+
+export function wrongFormatAlert(inputs: Array<string>, t: Function) {
+    let message = t('key_191');
+
+    for (let i = 0, len = inputs.length; i < len; i++) {
+        message += inputs[i];
+
+        if (i < len - 2) {
+            message += ', ';
+        }
+        else if (i === len - 2) {
+            message += ' ' + t('key_573') + ' ';
+        }
+    }
+
+    alert(message);
+}
+// #endregion Alert
+
+export default Input;

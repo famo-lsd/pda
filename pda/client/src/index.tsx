@@ -13,6 +13,7 @@ async function initApp() {
         //     store.dispatch(setAuthUser(await sessionRes.json()));
         // }
 
+        document.getElementById('pda-footer').innerText = new Date().getFullYear() + ' © FAMO - ' + process.env.REACT_APP_NAME;
         ReactDOM.render(<Routing />, document.getElementById('root'));
     }
     catch (err) {
