@@ -24,11 +24,19 @@ function Inventory(props: any) {
         [productInputVisible, setProductInputVisible] = useState(false),
         [loadProduct, setLoadProduct] = useState<boolean>(false),
         [product, setProduct] = useState(null),
+        [productCode,] = useState<InputConfig>({
+            isDisabled: true,
+            isNumber: false,
+            className: 'famo-input famo-text-10',
+            label: t('key_87'),
+            name: 'productCode',
+        }),
         [quantity, setQuantity] = useState<InputConfig>({
+            isDisabled: false,
             isNumber: true,
             className: 'famo-input famo-text-10',
-            name: 'quantity',
             label: t('key_347'),
+            name: 'quantity',
             value: '',
             invalidMessage: t('key_13'),
             noData: false,
@@ -37,7 +45,7 @@ function Inventory(props: any) {
             validate: false,
             validateForm: false
         }),
-        inputs: Array<InputConfig> = [quantity],
+        inputs: Array<InputConfig> = [quantity, productCode],
         setInputs: Array<any> = [setQuantity],
         sectionRef: React.RefObject<any> = React.createRef();
 
@@ -88,9 +96,7 @@ function Inventory(props: any) {
                     wsSucc.json()
                         .then(data => {
                             setProduct(data);
-                            setInputs.forEach(x => {
-                                x(prevState => { return { ...prevState, value: '' } });
-                            });
+                            resetInputs();
                         })
                         .catch(error => {
                             setProduct(null);
@@ -114,6 +120,12 @@ function Inventory(props: any) {
             });
     }
 
+    function resetInputs() {
+        setInputs.forEach(x => {
+            x(prevState => { return { ...prevState, value: '' } });
+        });
+    }
+
     // #region Events
     function handleRegister(event) {
         setInputs.forEach(x => {
@@ -126,9 +138,9 @@ function Inventory(props: any) {
         globalActions.setLoadPage(true);
 
         // load scripts
-        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/es-es.js?version=27', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + '/Scripts/numeral/locales/fr.js?version=27', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27', sectionRef);
     }, []);
 
     useEffect(() => {
@@ -162,9 +174,8 @@ function Inventory(props: any) {
     }, [globalState.authUser]);
 
     useEffect(() => {
-        if (inventoryCode === '') {
-            setProduct(null);
-        }
+        setProduct(null);
+        resetInputs();
     }, [inventoryCode]);
 
     useEffect(() => {
@@ -253,7 +264,8 @@ function Inventory(props: any) {
                                     <span className='famo-text-11'>{t('key_87')}</span>
                                 </div>
                                 <div className='famo-cell'>
-                                    <input type='text' className='famo-input famo-text-10' name='productCode' disabled value={product ? product.ProductCode : ''} />
+                                    <Input {...productCode} value={product ? product.ProductCode : ''} />
+                                    {/* <input type='text' className='famo-input famo-text-10' name='productCode' disabled value={product ? product.ProductCode : ''} /> */}
                                 </div>
                             </div>
                             <div className='famo-row'>

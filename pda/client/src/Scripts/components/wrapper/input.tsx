@@ -3,22 +3,23 @@ import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/numeral';
 import { useTranslation } from 'react-i18next';
 
 export interface InputConfig {
+    isDisabled: boolean;
     isNumber: boolean;
     className: string;
-    name: string;
     label: string;
-    value: string;
-    invalidMessage: string;
-    noData: boolean;
-    wrongFormat: boolean;
-    invalidValue: boolean;
-    validate: boolean;
-    validateForm: boolean;
+    name: string;
+    value?: string;
+    invalidMessage?: string;
+    noData?: boolean;
+    wrongFormat?: boolean;
+    invalidValue?: boolean;
+    validate?: boolean;
+    validateForm?: boolean;
 }
 
 function Input(props: any) {
     const { t } = useTranslation(),
-        { isNumber, className, name, value, invalidMessage, noData, wrongFormat, invalidValue, validate, set } = props,
+        { isDisabled, isNumber, className, name, value, invalidMessage, noData, wrongFormat, invalidValue, validate, set } = props,
         [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
         ref: React.RefObject<any> = React.createRef();
 
@@ -31,7 +32,7 @@ function Input(props: any) {
     // #endregion
 
     useEffect(() => {
-        if (validate) {
+        if (!isDisabled && validate) {
             let valueLt = value;
 
             set(prevState => { return { ...prevState, noData: false, wrongFormat: false, invalidValue: false } });
@@ -39,7 +40,7 @@ function Input(props: any) {
             if (!valueLt) {
                 set(prevState => { return { ...prevState, noData: true, wrongFormat: false, invalidValue: false } });
             }
-            else if (valueLt && isNumber) {
+            else if (isNumber && valueLt) {
                 valueLt = convertNumeralToJS(valueLt);
 
                 if (isNaN(valueLt)) {
@@ -60,7 +61,7 @@ function Input(props: any) {
 
     return (
         <React.Fragment>
-            <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} onKeyDown={handleKeyDown} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })} />
+            <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })} />
             <div className={'famo-input-message' + (localState.wrongFormat ? '' : ' hide')}>
                 <span className='famo-text-15'>O campo tem um formato inválido.</span>
             </div>

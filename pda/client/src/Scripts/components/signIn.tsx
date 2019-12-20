@@ -103,7 +103,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     }
 
     render() {
-        const famoLogo = process.env.REACT_APP_CODE_URL + '/Content/Images/logo-famo-black-normal.png',
+        const famoLogo = process.env.REACT_APP_CODE_URL + 'Content/Images/logo-famo-black-normal.png',
             inputClassName = 'famo-input signin-form-input famo-text-3',
             userInputClassName = classNames(inputClassName, { 'famo-input-error': !this.state.hideUserMsg }),
             pwdInputClassName = classNames(inputClassName, { 'famo-input-error': !this.state.hidePwdMsg }),

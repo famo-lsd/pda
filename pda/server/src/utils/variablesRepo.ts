@@ -3,4 +3,4 @@ export const ANDROID_APP_ID = 'famo.pda',
     LOG_FOLDER = './log/',
     MONTH_MS = 2592000000,
     SESSION_NAME = 'PDA_AUTH',
-    WEB_API = 'http://localhost/FAMO.WebAPI/';
+    WEB_API = process.env.NODE_ENV === 'production' ? 'http://dionisio.famo.pt:9060/FAMO.WebAPI/' : 'http://localhost/FAMO.WebAPI/';

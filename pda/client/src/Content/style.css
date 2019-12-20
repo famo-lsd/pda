@@ -13,6 +13,12 @@
 * > .famo-button:not(:first-child) {
   margin-left: 4px;
 }
+.famo-body .famo-wrapper .famo-title span {
+  cursor: default;
+}
+.famo-body .famo-wrapper .famo-title span::before {
+  content: none;
+}
 .pda-back-button {
   padding: 10px;
   border-radius: 50%;

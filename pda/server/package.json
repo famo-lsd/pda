@@ -4,11 +4,13 @@
   "description": "Server - PDA",
   "main": "app.js",
   "scripts": {
+    "delete:log": "cd log && del /s /q *",
     "lint": "eslint src/**/*.ts",
     "nodemon:watch:js": "nodemon --watch dist --ext js ./dist/app.js",
     "compile:ts": "npm run lint && tsc",
     "watch:ts": "watch \"npm run compile:ts\" src",
-    "server:dev": "concurrently \"npm run watch:ts\" \"npm run nodemon:watch:js\""
+    "server:dev": "cross-env NODE_ENV=development concurrently \"npm run watch:ts\" \"npm run nodemon:watch:js\"",
+    "server:prod": "cross-env NODE_ENV=production node ./dist/app.js"
   },
   "author": "FAMO",
   "license": "ISC",
@@ -23,6 +25,7 @@
     "helmet": "^3.21.2",
     "http-status": "^1.4.1",
     "moment": "^2.24.0",
+    "node-windows": "^0.1.14",
     "redis": "^2.8.0",
     "uuid": "^3.3.3"
   },
@@ -32,6 +35,7 @@
     "@typescript-eslint/eslint-plugin": "^2.10.0",
     "@typescript-eslint/parser": "^2.10.0",
     "concurrently": "^5.0.1",
+    "cross-env": "^6.0.3",
     "eslint": "^6.7.2",
     "nodemon": "^2.0.1",
     "ts-node": "^8.5.4",

@@ -18,13 +18,14 @@
     height: 40px;
 }
 
-// .famo-wrapper .famo-title {
-//     &.collapsed+.famo-content {
-//         .runAnimation(slide-top 0.7s);
-//         background-color: blue;
-//     }
-// }
-
 *>.famo-button:not(:first-child) {
     margin-left: @famo_button_margin_l;
+}
+
+.famo-body .famo-wrapper .famo-title span {
+    cursor: default;
+
+    &::before {
+        content: none;
+    }
 }
