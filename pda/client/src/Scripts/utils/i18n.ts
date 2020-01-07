@@ -11,7 +11,6 @@ i18n
         whitelist: ['pt', 'en', 'es', 'fr'],
         debug: false,
         react: {
-            useSuspense: false
         },
         backend: {
             loadPath: './JSON/i18n/{{lng}}.json?timestamp=' + new Date().getTime(),

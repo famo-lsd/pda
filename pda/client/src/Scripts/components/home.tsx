@@ -3,8 +3,9 @@ import { Redirect, withRouter } from 'react-router-dom';
 import { useGlobal } from '../utils/globalHooks';
 import { withTranslation } from 'react-i18next';
 
-function Home() {
-    const [, globalActions] = useGlobal(),
+function Home(props: any) {
+    const { t } = props,
+        [, globalActions] = useGlobal(),
         [inventoryRedirect, setRedirection] = useState(false);
 
     // #region Events
@@ -28,7 +29,7 @@ function Home() {
                         <div className='famo-row'>
                             <div className='famo-cell text-center'>
                                 <button type='button' className='famo-button famo-normal-button' onClick={handleRedirection}>
-                                    <span className='famo-text-5'>Inventário</span>
+                                    <span className='famo-text-5'>{t('key_806')}</span>
                                 </button>
                             </div>
                         </div>

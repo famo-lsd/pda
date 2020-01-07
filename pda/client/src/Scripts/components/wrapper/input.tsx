@@ -3,24 +3,25 @@ import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/numeral';
 import { useTranslation } from 'react-i18next';
 
 export interface InputConfig {
+    className: string;
     isDisabled: boolean;
     isNumber: boolean;
-    className: string;
     label: string;
     name: string;
-    value?: string;
-    invalidMessage?: string;
+    value: string;
     noData?: boolean;
     wrongFormat?: boolean;
     invalidValue?: boolean;
-    validate?: boolean;
-    validateForm?: boolean;
+    invalidMessage?: string;
+    analyze?: boolean;
+    analyzeForm?: boolean;
 }
 
 function Input(props: any) {
     const { t } = useTranslation(),
-        { isDisabled, isNumber, className, name, value, invalidMessage, noData, wrongFormat, invalidValue, validate, set } = props,
+        { className, isDisabled, isNumber, name, value, noData, wrongFormat, invalidValue, invalidMessage, analyze, set, children } = props,
         [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
+        hasChildren = React.Children.count(children) > 0,
         ref: React.RefObject<any> = React.createRef();
 
     // #region Events
@@ -32,7 +33,7 @@ function Input(props: any) {
     // #endregion
 
     useEffect(() => {
-        if (!isDisabled && validate) {
+        if (!isDisabled && analyze) {
             let valueLt = value;
 
             set(prevState => { return { ...prevState, noData: false, wrongFormat: false, invalidValue: false } });
@@ -51,9 +52,9 @@ function Input(props: any) {
                 }
             }
 
-            set(prevState => { return { ...prevState, validateForm: true } });
+            set(prevState => { return { ...prevState, analyzeForm: true } });
         }
-    }, [validate]);
+    }, [analyze]);
 
     useEffect(() => {
         setLocalState({ noData: noData, wrongFormat: wrongFormat, invalidValue: invalidValue });
@@ -61,57 +62,121 @@ function Input(props: any) {
 
     return (
         <React.Fragment>
-            <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })} />
-            <div className={'famo-input-message' + (localState.wrongFormat ? '' : ' hide')}>
-                <span className='famo-text-15'>O campo tem um formato inválido.</span>
-            </div>
-            <div className={'famo-input-message' + (localState.invalidValue ? '' : ' hide')}>
-                <span className='famo-text-15'>{invalidMessage}</span>
-            </div>
+            {!hasChildren ? <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })} /> : (
+                <select className={className + (localState.noData ? ' famo-input-error' : '')} name={name} ref={ref} disabled={isDisabled} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })}>
+                    {children}
+                </select>
+            )}
+            {!hasChildren &&
+                <React.Fragment>
+                    {!isDisabled &&
+                        <div className={'famo-input-message' + (localState.wrongFormat ? '' : ' hide')}>
+                            <span className='famo-text-15'>{t('key_808')}</span>
+                        </div>
+                    }
+                    {(invalidMessage && !isDisabled) &&
+                        <div className={'famo-input-message' + (localState.invalidValue ? '' : ' hide')}>
+                            <span className='famo-text-15'>{invalidMessage}</span>
+                        </div>
+                    }
+                </React.Fragment>
+            }
         </React.Fragment>);
 }
 
-export function getValue(value: string, isNumber: boolean) {
-    return !isNumber ? value : parseFloat(convertNumeralToJS(value));
+// #region Tools
+export class InputTools {
+    public static analyze(inputs: Array<InputConfig>, setInputs: Array<any>) {
+        inputs.forEach((x, i) => {
+            if (!x.isDisabled) {
+                setInputs[i](prevState => { return { ...prevState, analyze: true } });
+            }
+        });
+    }
+
+    public static areAllAnalyzed(inputs: Array<InputConfig>): boolean {
+        return !inputs.filter(x => { return !x.isDisabled; }).some(x => { return !x.analyzeForm; });
+    }
+
+    public static areAllValid(inputs: Array<InputConfig>): boolean {
+        return !inputs.filter(x => { return !x.isDisabled; }).some(x => { return x.noData || x.wrongFormat || x.invalidValue });
+    }
+
+    public static getValue(input: InputConfig) {
+        return !input.isNumber ? input.value : parseFloat(convertNumeralToJS(input.value));
+    }
+
+    public static popUpAlerts(inputs: Array<InputConfig>, t: Function) {
+        if (inputs.some(x => { return x.noData; })) {
+            InputAlert.noDataAlert(t);
+        }
+
+        if (inputs.some(x => { return x.wrongFormat; })) {
+            InputAlert.wrongFormatAlert(inputs.filter(x => { return x.wrongFormat; }).map(x => { return x.label; }), t);
+        }
+
+        if (inputs.some(x => { return x.invalidValue; })) {
+            InputAlert.invalidValuesAlert(inputs.filter(x => { return x.invalidValue; }).map(x => { return x.label; }), t);
+        }
+    }
+
+    public static resetValues(inputs: Array<InputConfig>, setInputs: Array<any>) {
+        inputs.forEach((x, i) => {
+            if (!x.isDisabled) {
+                setInputs[i](prevState => { return { ...prevState, value: '', noData: false, wrongFormat: false, invalidValue: false, analyze: false, analyzeForm: false } });
+            }
+        });
+    }
+
+    public static resetValidations(inputs: Array<InputConfig>, setInputs: Array<any>) {
+        inputs.forEach((x, i) => {
+            if (!x.isDisabled) {
+                setInputs[i](prevState => { return { ...prevState, analyze: false, analyzeForm: false } });
+            }
+        });
+    }
 }
+// #endregion
 
 // #region Alert
-export function invalidValuesAlert(inputs: Array<string>, t: Function) {
-    let message = t('key_192');
+export class InputAlert {
+    public static invalidValuesAlert(inputs: Array<string>, t: Function) {
+        let message = t('key_192');
 
-    for (let i = 0, len = inputs.length; i < len; i++) {
-        message += inputs[i];
+        for (let i = 0, len = inputs.length; i < len; i++) {
+            message += inputs[i];
 
-        if (i < len - 2) {
-            message += ', ';
+            if (i < len - 2) {
+                message += ', ';
+            }
+            else if (i === len - 2) {
+                message += ' ' + t('key_573') + ' ';
+            }
         }
-        else if (i === len - 2) {
-            message += ' ' + t('key_573') + ' ';
-        }
+
+        alert(message);
     }
 
-    alert(message);
-}
-
-export function noDataAlert(t: Function) {
-    alert(t('key_197'));
-}
-
-export function wrongFormatAlert(inputs: Array<string>, t: Function) {
-    let message = t('key_191');
-
-    for (let i = 0, len = inputs.length; i < len; i++) {
-        message += inputs[i];
-
-        if (i < len - 2) {
-            message += ', ';
-        }
-        else if (i === len - 2) {
-            message += ' ' + t('key_573') + ' ';
-        }
+    public static noDataAlert(t: Function) {
+        alert(t('key_197'));
     }
 
-    alert(message);
+    public static wrongFormatAlert(inputs: Array<string>, t: Function) {
+        let message = t('key_191');
+
+        for (let i = 0, len = inputs.length; i < len; i++) {
+            message += inputs[i];
+
+            if (i < len - 2) {
+                message += ', ';
+            }
+            else if (i === len - 2) {
+                message += ' ' + t('key_573') + ' ';
+            }
+        }
+
+        alert(message);
+    }
 }
 // #endregion Alert
 

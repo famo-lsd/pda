@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Input, { InputConfig, InputTools } from './wrapper/input';
 import { withTranslation } from 'react-i18next';
 
 export enum ModalContentType {
@@ -8,23 +9,42 @@ export enum ModalContentType {
 function Modal(props) {
     const { contentType, visible, setVisible, confirm, t } = props,
         [visibility, setVisibility] = useState(visible),
-        [input, setInput] = useState(''),
-        setInputs: Array<any> = [setInput];
+        [productCode, setProductCode] = useState<InputConfig>({
+            className: 'famo-input famo-text-10',
+            isDisabled: false,
+            isNumber: false,
+            label: t('key_87'),
+            name: 'productCode',
+            value: '',
+            noData: false,
+            analyze: false,
+            analyzeForm: false
+        }),
+        contentForm: Array<InputConfig> = (() => {
+            switch (contentType as ModalContentType) {
+                case ModalContentType.productInput:
+                    return [productCode];
+            }
+        })(),
+        setContentForm: Array<any> = (() => {
+            switch (contentType as ModalContentType) {
+                case ModalContentType.productInput:
+                    return [setProductCode];
+            }
+        })();
 
-    function result() {
+    function submitForm() {
         switch (contentType as ModalContentType) {
             case ModalContentType.productInput:
-                confirm(input);
+                InputTools.analyze(contentForm, setContentForm);
                 break;
         }
-
-        setVisible(false);
     }
 
     // #region Events
     function handleSubmit(event) {
         event.preventDefault();
-        result();
+        submitForm();
     }
 
     function handleCloseModal(event) {
@@ -37,16 +57,29 @@ function Modal(props) {
         setVisibility(visible);
 
         if (!visible) {
-            setInputs.forEach(x => {
-                x('');
-            });
+            InputTools.resetValues(contentForm, setContentForm);
         }
     }, [visible]);
+
+    useEffect(() => {
+        if (InputTools.areAllAnalyzed(contentForm)) {
+            if (InputTools.areAllValid(contentForm)) {
+                switch (contentType as ModalContentType) {
+                    case ModalContentType.productInput:
+                        confirm(contentForm[0].value);
+                        setVisible(false);
+                        break;
+                }
+            }
+
+            InputTools.resetValidations(contentForm, setContentForm);
+        }
+    }, contentForm)
 
     return (
         <section className={'w3-modal famo-modal' + (visibility ? ' w3-show' : '')} onClick={event => setVisible(false)}>
             <div className='w3-modal-content famo-modal-content' onClick={event => event.stopPropagation()}>
-                {(function () {
+                {(() => {
                     switch (contentType as ModalContentType) {
                         case ModalContentType.productInput:
                             return (
@@ -55,10 +88,10 @@ function Modal(props) {
                                         <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={handleSubmit}>
                                             <div className='famo-row'>
                                                 <div className='famo-cell famo-input-label'>
-                                                    <span className='famo-text-11'>{t('key_87')}</span>
+                                                    <span className='famo-text-11'>{productCode.label}</span>
                                                 </div>
                                                 <div className='famo-cell'>
-                                                    <input type='text' className='famo-input famo-text-10' name='productCode' value={input} onChange={event => setInput((event.target as HTMLInputElement).value)} />
+                                                    <Input {...productCode} set={setProductCode} />
                                                 </div>
                                             </div>
                                             <input type='submit' className='hide' value='' />
@@ -66,7 +99,7 @@ function Modal(props) {
                                         <div className='famo-grid famo-buttons'>
                                             <div className='famo-row'>
                                                 <div className='famo-cell text-right'>
-                                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => result()}>
+                                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => submitForm()}>
                                                         <span className='famo-text-12'>{t('key_701')}</span>
                                                     </button>
                                                     <button type="button" className="famo-button famo-cancel-button" onClick={event => setVisible(false)}>

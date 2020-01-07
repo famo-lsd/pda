@@ -4,6 +4,7 @@ import Inventory from './components/inventory';
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import SignIn from './components/signIn';
+import { AppLoader } from './components/loader';
 import { autoSignIn } from './utils/authentication';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
@@ -112,9 +113,7 @@ function AutoRouteBody(props: any) {
                     <Inventory />
                 </Route>
             </Switch>
-            <div className={'pda-app-loader' + (globalState.authUser && !globalState.loadPage ? ' hide' : '')}>
-                <div className="famo-loader"></div>
-            </div>
+            <AppLoader hide={globalState.authUser && !globalState.loadPage} />
         </section>
     );
 }

@@ -788,5 +788,12 @@
     "key_801": "Date of last observation",
     "key_802": "Export faults",
     "key_803": "Update employees",
-    "key_804": "Employees were updated successfully."
+    "key_804": "Employees were updated successfully.",
+    "key_805": "Quantity was successfully amended.",
+    "key_806": "Inventory",
+    "key_807": "Manual",
+    "key_808": "Format of the field is invalid.",
+    "key_809": "Code does not match with an inventory product.",
+    "key_810": "Register",
+    "key_811": "Back"
 }
