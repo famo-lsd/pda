@@ -788,5 +788,12 @@
     "key_801": "Date dernière observation",
     "key_802": "Reporter les manquants",
     "key_803": "Mettre à jour collaborateurs",
-    "key_804": "Les collaborateurs ont été mis à jour avec succès."
+    "key_804": "Les collaborateurs ont été mis à jour avec succès.",
+    "key_805": "La quantité a été modifié avec succès.",
+    "key_806": "Inventaire",
+    "key_807": "Manuel",
+    "key_808": "Le champ a un format non valide.",
+    "key_809": "Le code ne correspond pas à un produit en stock.",
+    "key_810": "Enregistrer",
+    "key_811": "Retour"
 }

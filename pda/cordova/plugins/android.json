@@ -20,6 +20,9 @@
     },
     "cordova-plugin-media": {
       "PACKAGE_NAME": "io.famo.pda"
+    },
+    "cordova-plugin-headercolor": {
+      "PACKAGE_NAME": "famo.pda"
     }
   },
   "dependent_plugins": {

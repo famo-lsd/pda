@@ -246,6 +246,14 @@ module.exports = [
         "clobbers": [
             "window.Media"
         ]
+    },
+    {
+        "file": "plugins/cordova-plugin-headercolor/www/HeaderColor.js",
+        "id": "cordova-plugin-headercolor.HeaderColor",
+        "pluginId": "cordova-plugin-headercolor",
+        "clobbers": [
+            "cordova.plugins.headerColor"
+        ]
     }
 ];
 module.exports.metadata = 
@@ -255,7 +263,8 @@ module.exports.metadata =
     "phonegap-plugin-barcodescanner": "8.1.0",
     "cordova-plugin-camera": "4.1.0",
     "cordova-plugin-file": "6.0.2",
-    "cordova-plugin-media": "5.0.3"
+    "cordova-plugin-media": "5.0.3",
+    "cordova-plugin-headercolor": "1.0"
 }
 // BOTTOM OF METADATA
 });

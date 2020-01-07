@@ -18,6 +18,10 @@
     <feature name="Media">
         <param name="android-package" value="org.apache.cordova.media.AudioHandler" />
     </feature>
+    <feature name="HeaderColor">
+        <param name="android-package" value="tomloprod.HeaderColor" />
+        <param name="onload" value="true" />
+    </feature>
     <name>FAMO - PDA</name>
     <description>
         An application made by FAMO that is going to replace old PDA's.
@@ -34,5 +38,12 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     <allow-intent href="market:*" />
+    <icon density="ldpi" src="res/android/36.png" />
+    <icon density="mdpi" src="res/android/48.png" />
+    <icon density="hdpi" src="res/android/72.png" />
+    <icon density="xhdpi" src="res/android/96.png" />
+    <icon density="xxhdpi" src="res/android/144.png" />
+    <icon density="xxxhdpi" src="res/android/192.png" />
     <preference name="loglevel" value="DEBUG" />
+    <preference name="HeaderColor" value="#ffffff" />
 </widget>

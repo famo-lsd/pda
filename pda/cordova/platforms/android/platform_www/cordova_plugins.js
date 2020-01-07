@@ -228,6 +228,14 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
       "clobbers": [
         "window.Media"
       ]
+    },
+    {
+      "id": "cordova-plugin-headercolor.HeaderColor",
+      "file": "plugins/cordova-plugin-headercolor/www/HeaderColor.js",
+      "pluginId": "cordova-plugin-headercolor",
+      "clobbers": [
+        "cordova.plugins.headerColor"
+      ]
     }
   ];
   module.exports.metadata = {
@@ -235,6 +243,7 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
     "phonegap-plugin-barcodescanner": "8.1.0",
     "cordova-plugin-camera": "4.1.0",
     "cordova-plugin-file": "6.0.2",
-    "cordova-plugin-media": "5.0.3"
+    "cordova-plugin-media": "5.0.3",
+    "cordova-plugin-headercolor": "1.0"
   };
 });

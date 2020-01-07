@@ -788,5 +788,12 @@
     "key_801": "Data últ. observação",
     "key_802": "Exportar faltas",
     "key_803": "Atualizar colaboradores",
-    "key_804": "Os colaboradores foram atualizados com sucesso."
+    "key_804": "Os colaboradores foram atualizados com sucesso.",
+    "key_805": "A quantidade foi alterada com sucesso.",
+    "key_806": "Inventário",
+    "key_807": "Manual",
+    "key_808": "O campo tem um formato inválido.",
+    "key_809": "O código não corresponde a um produto do inventário.",
+    "key_810": "Registar",
+    "key_811": "Voltar"
 }
