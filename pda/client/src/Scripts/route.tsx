@@ -1,10 +1,11 @@
 import Home from './components/home';
 import httpStatus from 'http-status';
 import Inventory from './components/inventory';
-import React, { useEffect } from 'react';
+import Pallet from './components/pallet';
 import PropTypes from 'prop-types';
+import React, { useEffect } from 'react';
 import SignIn from './components/signIn';
-import { AppLoader } from './components/loader';
+import { AppLoader } from './components/elements/loader';
 import { autoSignIn } from './utils/authentication';
 import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
@@ -111,6 +112,9 @@ function AutoRouteBody(props: any) {
                 </Route>
                 <Route path='/Inventory'>
                     <Inventory />
+                </Route>
+                <Route path='/Pallet'>
+                    <Pallet />
                 </Route>
             </Switch>
             <AppLoader hide={globalState.authUser && !globalState.loadPage} />

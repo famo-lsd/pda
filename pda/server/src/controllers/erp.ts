@@ -46,4 +46,28 @@ router.patch('/Inventories/Products', (req: any, res: any) => {
     });
 });
 
+router.get('/Pallets', (req: any, res: any) => {
+    axios(authorize({
+        method: 'GET',
+        url: WEB_API + 'api/Navision/Pallets' + createQueryString(req.query)
+    }, req.session.token)).then((wsSucc: any) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr: any) => {
+        Log.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+
+router.get('/Pallets/Boxes', (req: any, res: any) => {
+    axios(authorize({
+        method: 'GET',
+        url: WEB_API + 'api/Navision/Pallets/Boxes' + createQueryString(req.query)
+    }, req.session.token)).then((wsSucc: any) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr: any) => {
+        Log.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+
 export default router;

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import Input, { InputConfig, InputTools } from './wrapper/input';
+import Input, { InputConfig, InputTools } from './input';
 import { withTranslation } from 'react-i18next';
 
 export enum ModalContentType {
-    productInput = 1
+    inventoryProduct = 1,
+    cargoMap = 2
 }
 
-function Modal(props) {
+function Modal(props: any) {
     const { contentType, visible, setVisible, confirm, t } = props,
         [visibility, setVisibility] = useState(visible),
         [productCode, setProductCode] = useState<InputConfig>({
@@ -20,22 +21,38 @@ function Modal(props) {
             analyze: false,
             analyzeForm: false
         }),
+        [cargoMapCode, setCargoMapCode] = useState<InputConfig>({
+            className: 'famo-input famo-text-10',
+            isDisabled: false,
+            isNumber: false,
+            label: 'Mapa de carga',
+            name: 'cargoMapCode',
+            value: '',
+            noData: false,
+            analyze: false,
+            analyzeForm: false
+        }),
         contentForm: Array<InputConfig> = (() => {
             switch (contentType as ModalContentType) {
-                case ModalContentType.productInput:
+                case ModalContentType.inventoryProduct:
                     return [productCode];
+                case ModalContentType.cargoMap:
+                    return [cargoMapCode];
             }
         })(),
         setContentForm: Array<any> = (() => {
             switch (contentType as ModalContentType) {
-                case ModalContentType.productInput:
+                case ModalContentType.inventoryProduct:
                     return [setProductCode];
+                case ModalContentType.cargoMap:
+                    return [setCargoMapCode];
             }
         })();
 
     function submitForm() {
         switch (contentType as ModalContentType) {
-            case ModalContentType.productInput:
+            case ModalContentType.inventoryProduct:
+            case ModalContentType.cargoMap:
                 InputTools.analyze(contentForm, setContentForm);
                 break;
         }
@@ -65,7 +82,8 @@ function Modal(props) {
         if (InputTools.areAllAnalyzed(contentForm)) {
             if (InputTools.areAllValid(contentForm)) {
                 switch (contentType as ModalContentType) {
-                    case ModalContentType.productInput:
+                    case ModalContentType.inventoryProduct:
+                    case ModalContentType.cargoMap:
                         confirm(contentForm[0].value);
                         setVisible(false);
                         break;
@@ -81,17 +99,18 @@ function Modal(props) {
             <div className='w3-modal-content famo-modal-content' onClick={event => event.stopPropagation()}>
                 {(() => {
                     switch (contentType as ModalContentType) {
-                        case ModalContentType.productInput:
+                        case ModalContentType.inventoryProduct:
+                        case ModalContentType.cargoMap:
                             return (
                                 <section className='famo-wrapper'>
                                     <div className='famo-content'>
                                         <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={handleSubmit}>
                                             <div className='famo-row'>
                                                 <div className='famo-cell famo-input-label'>
-                                                    <span className='famo-text-11'>{productCode.label}</span>
+                                                    <span className='famo-text-11'>{contentForm[0].label}</span>
                                                 </div>
                                                 <div className='famo-cell'>
-                                                    <Input {...productCode} set={setProductCode} />
+                                                    <Input {...contentForm[0]} set={setContentForm[0]} />
                                                 </div>
                                             </div>
                                             <input type='submit' className='hide' value='' />

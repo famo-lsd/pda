@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom';
 import Routing from './Scripts/route';
-import { AppLoader } from './Scripts/components/loader';
+import { AppLoader } from './Scripts/components/elements/loader';
 
 async function initApp() {
     try {

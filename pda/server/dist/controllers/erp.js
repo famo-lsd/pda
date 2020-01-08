@@ -45,5 +45,27 @@ router.patch('/Inventories/Products', (req, res) => {
         res.status(wsErr.response.status).send();
     });
 });
+router.get('/Pallets', (req, res) => {
+    axios_1.default(http_1.authorize({
+        method: 'GET',
+        url: variablesRepo_1.WEB_API + 'api/Navision/Pallets' + general_1.createQueryString(req.query)
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr) => {
+        log_1.default.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+router.get('/Pallets/Boxes', (req, res) => {
+    axios_1.default(http_1.authorize({
+        method: 'GET',
+        url: variablesRepo_1.WEB_API + 'api/Navision/Pallets/Boxes' + general_1.createQueryString(req.query)
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr) => {
+        log_1.default.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
 exports.default = router;
 //# sourceMappingURL=erp.js.map

@@ -1,9 +1,9 @@
 import httpStatus from 'http-status';
-import Input, { InputConfig, InputTools } from './wrapper/input';
-import Modal, { ModalContentType } from './modal';
+import Input, { InputConfig, InputTools } from './elements/input';
+import Modal, { ModalContentType } from './elements/modal';
 import React, { useEffect, useState } from 'react';
-import Title from './wrapper/title';
-import { ContentLoader } from './loader';
+import Title from './elements/title';
+import { ContentLoader } from './elements/loader';
 import { createQueryString, loadScript } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
@@ -16,8 +16,9 @@ interface ItemJournal {
     Name: string;
 }
 
-function Inventory({ t }) {
-    const [globalState, globalActions] = useGlobal(),
+function Inventory(props: any) {
+    const { t } = props,
+        [globalState, globalActions] = useGlobal(),
         [inventoryCode, setInventoryCode] = useState<InputConfig>({
             className: 'famo-input famo-text-10',
             isDisabled: false,
@@ -27,7 +28,7 @@ function Inventory({ t }) {
             value: ''
         }),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
-        [productInputVisible, setProductInputVisible] = useState(false),
+        [inventoryProductModal, setInventoryProductModal] = useState<boolean>(false),
         [loadProduct, setLoadProduct] = useState<boolean>(false),
         [product, setProduct] = useState(null),
         [productCode, setProductCode] = useState<InputConfig>({
@@ -84,7 +85,7 @@ function Inventory({ t }) {
         (window as any).cordova.plugins.barcodeScanner.scan(
             result => {
                 if (!result.cancelled) {
-                    getProduct(result.text);
+                    getInventoryProduct(result.text);
                 }
             },
             error => {
@@ -107,7 +108,7 @@ function Inventory({ t }) {
         );
     }
 
-    function getProduct(code: string) {
+    function getInventoryProduct(code: string) {
         const split: Array<string> = code.split('/'),
             productCode = split[0];
         let productVariantCode = '';
@@ -117,8 +118,13 @@ function Inventory({ t }) {
         }
 
         setLoadProduct(true);
+        resetInputs();
 
-        fetch(NODE_SERVER + 'ERP/Inventories/Products?inventoryCode=' + inventoryCode.value + '&productCode=' + productCode + '&productVariantCode=' + productVariantCode + '&timestamp=' + new Date().getTime(), {
+        fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
+            inventoryCode: inventoryCode.value,
+            productCode: productCode,
+            productVariantCode: productVariantCode
+        }), {
             method: 'GET',
             credentials: 'include'
         })
@@ -131,22 +137,18 @@ function Inventory({ t }) {
                             setProductVariantCode(prevState => { return { ...prevState, value: data.ProductVariantCode } });
                             setProductDescription(prevState => { return { ...prevState, value: data.ProductDescription } });
                             setLocationCode(prevState => { return { ...prevState, value: data.LocationCode } });
-                            setQuantity(prevState => { return { ...prevState, value: '' } });
                         })
                         .catch(error => {
-                            resetInputs();
                             promiseErrorLog(error);
                             alert(t('key_416'));
                         });
                 }
                 else {
-                    resetInputs();
                     httpErrorLog(wsSucc);
                     alert(t('key_809'));
                 }
             })
             .catch(wsErr => {
-                resetInputs();
                 promiseErrorLog(wsErr);
                 alert(t('key_416'));
             })
@@ -335,7 +337,7 @@ function Inventory({ t }) {
                 <div className='famo-grid'>
                     <div className='famo-row'>
                         <div className='famo-cell text-right'>
-                            <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => setProductInputVisible(true)}>
+                            <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => setInventoryProductModal(true)}>
                                 <span className='famo-text-12'>{t('key_807')}</span>
                             </button>
                             {!globalState.androidApp ? null : (
@@ -347,7 +349,7 @@ function Inventory({ t }) {
                     </div>
                 </div>
             </section>}
-            <Modal contentType={ModalContentType.productInput} visible={productInputVisible} setVisible={setProductInputVisible} confirm={getProduct} />
+            <Modal contentType={ModalContentType.inventoryProduct} visible={inventoryProductModal} setVisible={setInventoryProductModal} confirm={getInventoryProduct} />
         </React.Fragment>
     );
 }
