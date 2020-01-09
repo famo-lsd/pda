@@ -5,15 +5,10 @@ import { withTranslation } from 'react-i18next';
 
 function Home(props: any) {
     const { t } = props,
-        [, globalActions] = useGlobal(),
         [redirect, setRedirection] = useState<any>({
             inventory: false,
             pallet: false
         });
-
-    useEffect(() => {
-        globalActions.setLoadPage(false);
-    }, []);
 
     if (redirect.inventory) {
         return <Redirect push to='/Inventory' />;

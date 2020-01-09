@@ -26,3 +26,18 @@
         margin: auto;
     }
 }
+
+.pallets {
+    .famo-row:not(.famo-header-row) {
+        cursor: pointer;
+    }
+}
+
+.pallet-boxes {
+    .applyFamoColSettings(1, @width: 100px);
+    .applyFamoColSettings(3, @width: @famo_content_fa_button_w);
+
+    .button-delete-box .fas {
+        .applyIconsSettings(@famo_icon_fs_content, @base_line_height, @color_2);
+    }
+}

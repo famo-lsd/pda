@@ -3,6 +3,7 @@ import Input, { InputConfig, InputTools } from './elements/input';
 import Modal, { ModalContentType } from './elements/modal';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
+import { barcodeScan } from '../utils/barcode';
 import { ContentLoader } from './elements/loader';
 import { createQueryString, loadScript } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
@@ -82,30 +83,9 @@ function Inventory(props: any) {
         sectionRef: React.RefObject<any> = React.createRef();
 
     function barcodeScanner() {
-        (window as any).cordova.plugins.barcodeScanner.scan(
-            result => {
-                if (!result.cancelled) {
-                    getInventoryProduct(result.text);
-                }
-            },
-            error => {
-                alert(t('key_686'));
-            },
-            {
-                preferFrontCamera: false,
-                showFlipCameraButton: false,
-                showTorchButton: true,
-                torchOn: false,
-                saveHistory: false,
-                prompt: '',
-                resultDisplayDuration: 0,
-                formats: 'CODE_39',
-                orientation: 'unset',
-                disableAnimations: true,
-                disableSuccessBeep: false,
-                continuousMode: false
-            }
-        );
+        barcodeScan((result) => {
+            getInventoryProduct(result.text);
+        }, t);
     }
 
     function getInventoryProduct(code: string) {
@@ -188,7 +168,6 @@ function Inventory(props: any) {
                         wsSucc.json()
                             .then(data => {
                                 setInventories(data);
-                                globalActions.setLoadPage(false);
                             })
                             .catch(error => {
                                 promiseErrorLog(error);
@@ -203,6 +182,9 @@ function Inventory(props: any) {
                 .catch(wsErr => {
                     promiseErrorLog(wsErr);
                     alert(t('key_416'));
+                })
+                .finally(() => {
+                    globalActions.setLoadPage(false);
                 });
         }
     }, [globalState.authUser]);
@@ -340,11 +322,11 @@ function Inventory(props: any) {
                             <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => setInventoryProductModal(true)}>
                                 <span className='famo-text-12'>{t('key_807')}</span>
                             </button>
-                            {!globalState.androidApp ? null : (
+                            {!globalState.androidApp &&
                                 <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => barcodeScanner()}>
                                     <span className='famo-text-12'>{t('key_681')}</span>
                                 </button>
-                            )}
+                            }
                         </div>
                     </div>
                 </div>

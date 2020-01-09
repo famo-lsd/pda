@@ -9,6 +9,7 @@
     "i18next": "^19.0.1",
     "i18next-xhr-backend": "^3.2.2",
     "numeral": "^2.0.6",
+    "query-string": "^6.9.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-i18next": "^11.2.5",
@@ -17,6 +18,9 @@
     "use-global-hook": "^0.1.12"
   },
   "scripts": {
+    "copy:baseFunctions": "xcopy /s /y ..\\..\\..\\..\\TFS\\DOTNET\\Development\\FAMO.CODE\\FAMO.CODE\\Content\\src\\baseFunctions.less src\\Content\\src",
+    "copy:baseVariables": "xcopy /s /y ..\\..\\..\\..\\TFS\\DOTNET\\Development\\FAMO.CODE\\FAMO.CODE\\Content\\src\\baseVariables.less src\\Content\\src",
+    "copy:less": "npm run copy:baseFunctions && npm run copy:baseVariables",
     "lint": "eslint src/Scripts/**/*",
     "react:config": "npm run lint && less-watch-compiler --config less.config.json",
     "react:start": "npm run react:config && react-scripts start",

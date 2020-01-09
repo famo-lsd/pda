@@ -13,7 +13,7 @@ i18n
         react: {
         },
         backend: {
-            loadPath: './JSON/i18n/{{lng}}.json?timestamp=' + new Date().getTime(),
+            loadPath: '../JSON/i18n/{{lng}}.json?timestamp=' + new Date().getTime(),
             crossDomain: true
         }
     });

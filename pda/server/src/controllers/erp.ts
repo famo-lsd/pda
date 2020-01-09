@@ -10,6 +10,18 @@ const router = express.Router();
 
 router.use(checkToken);
 
+router.get('/Boxes', (req: any, res: any) => {
+    axios(authorize({
+        method: 'GET',
+        url: WEB_API + 'api/Navision/Boxes' + createQueryString(req.query)
+    }, req.session.token)).then((wsSucc: any) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr: any) => {
+        Log.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+
 router.get('/Inventories', (req: any, res: any) => {
     axios(authorize({
         method: 'GET',

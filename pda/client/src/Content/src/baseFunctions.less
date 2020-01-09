@@ -1,0 +1,344 @@
+﻿@import "baseVariables.less";
+
+.putBackgroundImg(@url_img, @repeat, @position, @size) {
+    background-image: url(@url_img);
+    background-repeat: @repeat;
+    background-position: @position;
+    background-size: @size;
+}
+
+/*.applyTextSettings(@font_family, @font_size, @color) {
+    font-family: @font_family !important;
+    font-size: @font_size !important;
+    line-height: @line_height !important;
+    color: @color;
+}*/
+
+.applyTextSettings(@font-style, @font-weight, @font_size, @color) {
+    font-style: @font-style !important;
+    font-weight: @font-weight !important;
+    font-size: @font_size !important;
+    line-height: @line_height !important;
+    font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
+    color: @color;
+}
+
+.applyIconsSettings(@font_size, @line_height_p: NULL, @color: NULL, @position: NULL) {
+    font-size: @font_size !important;
+
+    & when not (@line_height_p = NULL) {
+        line-height: @line_height_p !important;
+    }
+
+    & when (@line_height_p = NULL) {
+        line-height: @line_height !important;
+    }
+
+    & when not (@color = NULL) {
+        color: @color;
+    }
+
+    & when not (@position = NULL) {
+        position: @position;
+    }
+}
+
+.calculateWidthFamoHeaderCells(@width) {
+    width: @width + (@famo_header_pad * 2);
+}
+
+.applyFamoColSettings(@n_col, @display: NULL, @max-width: NULL, @width: NULL, @min-width: NULL, @vertical_align: NULL) {
+    .famo-col-@{n_col} {
+        & when not (@display = NULL) {
+            display: @display;
+        }
+
+        & when not (@max-width = NULL) {
+            & when (ispixel(@max-width)) {
+                max-width: @max-width + 20px;
+            }
+
+            & when not (ispixel(@max-width)) {
+                max-width: @max-width;
+            }
+        }
+
+        & when not (@width = NULL) {
+            & when (ispixel(@width)) {
+                width: @width + 20px;
+            }
+
+            & when not (ispixel(@width)) {
+                width: @width;
+            }
+        }
+
+        & when not (@min-width = NULL) {
+            & when (ispixel(@min-width)) {
+                min-width: @min-width + 20px;
+            }
+
+            & when not (ispixel(@min-width)) {
+                min-width: @min-width;
+            }
+        }
+
+        & when not (@vertical_align = NULL) {
+            vertical-align: @vertical_align;
+        }
+    }
+}
+
+.putFontAwesomeIcon(@icon_content, @isSolid: true) {
+    & when not (@icon_content = NULL) {
+        content: @icon_content;
+    }
+
+    display: inline-block;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+
+    & when (@isSolid = true) {
+        font-weight: 900;
+    }
+
+    & when (@isSolid = false) {
+        font-weight: 400;
+    }
+
+    font-style: normal;
+    font-family: 'Font Awesome 5 Free';
+    text-rendering: auto;
+}
+
+.applyWordWrapping() {
+    display: inline-block;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    word-break: break-all;
+    word-break: break-word;
+}
+
+.applyWordHyphenation() {
+    .applyWordWrapping();
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
+}
+
+// CSS para os botoes do slideshow e do modal.
+.putButtonsForSM() {
+    & > .famo-buttons {
+        position: absolute;
+        top: 25px;
+        right: 25px;
+        z-index: 120;
+
+        .famo-button {
+            .applyIconsSettings(28px, @base_line_height, @base_color_lighten_5);
+            float: right;
+
+            &:not(:last-child) {
+                margin-left: 10px;
+            }
+        }
+    }
+}
+
+.applyEllipsisSettings(@display: inline-block, @max_width: 100%) {
+    display: @display;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /*width: @max_width;*/
+    max-width: @max_width;
+}
+
+.runAnimation(@args) {
+    -webkit-animation: @args;
+    -moz-animation: @args;
+    -o-animation: @args;
+    animation: @args;
+}
+
+.changePadding(@direction, @from, @to) {
+    from {
+        padding-@{direction}: @from;
+    }
+
+    to {
+        padding-@{direction}: @to;
+    }
+}
+
+.changeOpacity() {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.fadeUp() {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 100%, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.adjustIconInButton() {
+    position: relative;
+    top: 1px;
+}
+
+.printBootstrap() {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 @famo_bootstrap_col_w;
+    -ms-flex: 0 0 @famo_bootstrap_col_w;
+    flex: 0 0 @famo_bootstrap_col_w;
+    max-width: @famo_bootstrap_col_w;
+}
+
+.printConfigs() {
+    .print-hide {
+        display: none !important;
+
+        &.famo-wrapper ~ .famo-wrapper {
+            margin-top: 0px;
+        }
+    }
+
+    .famo-header {
+        .famo-sidebar-button,
+        .famo-user,
+        .famo-navbar-button,
+        .famo-signout {
+            display: none !important;
+        }
+    }
+
+    .famo-navbar {
+        display: none;
+    }
+
+    .famo-body-wrapper {
+        height: auto !important;
+
+        .famo-sidebar {
+            display: none;
+        }
+
+        .famo-body {
+            overflow: visible;
+        }
+    }
+
+    .famo-wrapper {
+        .famo-content-scroll-top {
+            overflow-x: hidden !important;
+
+            & ~ div {
+                overflow-x: hidden !important;
+            }
+        }
+
+        .famo-content-grid {
+            display: table !important;
+
+            .famo-row {
+                page-break-inside: avoid !important;
+            }
+
+            & + .famo-grid-container {
+                display: none !important;
+            }
+        }
+
+        .famo-files {
+            &[data-view-mode="grid"] .famo-file .famo-grid + .famo-button {
+                display: none !important;
+            }
+
+            .masonry-row {
+                height: auto !important;
+
+                .masonry-sizer {
+                    display: none;
+                }
+
+                .masonry-item {
+                    position: relative !important;
+                    top: auto !important;
+                    left: auto !important;
+                }
+            }
+
+            .famo-file {
+                page-break-inside: avoid !important;
+            }
+        }
+    }
+}
+
+.createIconToCollapse() {
+    @transition_duration: 0.25s;
+    @turned_degrees: -90deg;
+
+    span {
+        .applyEllipsisSettings();
+        cursor: pointer;
+
+        &:before {
+            .putFontAwesomeIcon("\f078");
+            margin-right: 10px;
+            -webkit-transition: -webkit-transform @transition_duration;
+            -moz-transition: -moz-transform @transition_duration;
+            -o-transition: -o-transform @transition_duration;
+            transition: transform @transition_duration;
+        }
+    }
+
+    &.collapsed span:before {
+        -ms-transform: rotateZ(@turned_degrees);
+        -webkit-transform: rotateZ(@turned_degrees);
+        -moz-transform: rotateZ(@turned_degrees);
+        -o-transform: rotateZ(@turned_degrees);
+        transform: rotateZ(@turned_degrees);
+    }
+}
+
+.createFolderIcon() {
+    span {
+        .applyEllipsisSettings();
+        cursor: pointer;
+
+        &:before {
+            .putFontAwesomeIcon("\f07c", false);
+            margin-right: 10px;
+        }
+    }
+
+    &.collapsed span:before {
+        .putFontAwesomeIcon("\f07b", false);
+    }
+}
+
+.applySliderThumb() {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    width: 16px;
+    height: 16px;
+    background-color: @base_color;
+    cursor: pointer;
+    border-radius: 50%;
+}

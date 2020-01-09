@@ -107,15 +107,9 @@ function AutoRouteBody(props: any) {
     return (
         <section className='famo-body'>
             <Switch>
-                <Route exact path='/'>
-                    <Home />
-                </Route>
-                <Route path='/Inventory'>
-                    <Inventory />
-                </Route>
-                <Route path='/Pallet'>
-                    <Pallet />
-                </Route>
+                <Route exact path='/' render={() => { return <Home />; }} />
+                <Route path='/Inventory' render={() => { return <Inventory />; }} />
+                <Route path='/Pallet' render={() => { return <Pallet />; }} />
             </Switch>
             <AppLoader hide={globalState.authUser && !globalState.loadPage} />
         </section>

@@ -9,6 +9,7 @@ export interface InputConfig {
     label: string;
     name: string;
     value: string;
+    stableValue?: string;
     noData?: boolean;
     wrongFormat?: boolean;
     invalidValue?: boolean;

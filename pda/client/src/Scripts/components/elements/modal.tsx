@@ -4,7 +4,7 @@ import { withTranslation } from 'react-i18next';
 
 export enum ModalContentType {
     inventoryProduct = 1,
-    cargoMap = 2
+    palletBox = 2
 }
 
 function Modal(props: any) {
@@ -21,12 +21,12 @@ function Modal(props: any) {
             analyze: false,
             analyzeForm: false
         }),
-        [cargoMapCode, setCargoMapCode] = useState<InputConfig>({
+        [palletBoxCode, setPalletBoxCode] = useState<InputConfig>({
             className: 'famo-input famo-text-10',
             isDisabled: false,
             isNumber: false,
-            label: 'Mapa de carga',
-            name: 'cargoMapCode',
+            label: 'Embalagem',
+            name: 'boxCode',
             value: '',
             noData: false,
             analyze: false,
@@ -36,23 +36,23 @@ function Modal(props: any) {
             switch (contentType as ModalContentType) {
                 case ModalContentType.inventoryProduct:
                     return [productCode];
-                case ModalContentType.cargoMap:
-                    return [cargoMapCode];
+                case ModalContentType.palletBox:
+                    return [palletBoxCode];
             }
         })(),
         setContentForm: Array<any> = (() => {
             switch (contentType as ModalContentType) {
                 case ModalContentType.inventoryProduct:
                     return [setProductCode];
-                case ModalContentType.cargoMap:
-                    return [setCargoMapCode];
+                case ModalContentType.palletBox:
+                    return [setPalletBoxCode];
             }
         })();
 
     function submitForm() {
         switch (contentType as ModalContentType) {
             case ModalContentType.inventoryProduct:
-            case ModalContentType.cargoMap:
+            case ModalContentType.palletBox:
                 InputTools.analyze(contentForm, setContentForm);
                 break;
         }
@@ -83,7 +83,7 @@ function Modal(props: any) {
             if (InputTools.areAllValid(contentForm)) {
                 switch (contentType as ModalContentType) {
                     case ModalContentType.inventoryProduct:
-                    case ModalContentType.cargoMap:
+                    case ModalContentType.palletBox:
                         confirm(contentForm[0].value);
                         setVisible(false);
                         break;
@@ -100,7 +100,7 @@ function Modal(props: any) {
                 {(() => {
                     switch (contentType as ModalContentType) {
                         case ModalContentType.inventoryProduct:
-                        case ModalContentType.cargoMap:
+                        case ModalContentType.palletBox:
                             return (
                                 <section className='famo-wrapper'>
                                     <div className='famo-content'>

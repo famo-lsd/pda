@@ -1,14 +1,20 @@
+/*.applyTextSettings(@font_family, @font_size, @color) {
+    font-family: @font_family !important;
+    font-size: @font_size !important;
+    line-height: @line_height !important;
+    color: @color;
+}*/
 .famo-text-5,
 .famo-text-13 {
-  font-size: 20px !important;
+  font-size: 18px !important;
 }
 .famo-text-10,
 .famo-text-11,
 .famo-text-12 {
-  font-size: 18px !important;
+  font-size: 16px !important;
 }
 .famo-input {
-  height: 40px;
+  height: 38px;
 }
 * > .famo-button:not(:first-child) {
   margin-left: 4px;
@@ -43,4 +49,18 @@
 .pda-app-loader .famo-loader {
   width: 45px;
   margin: auto;
+}
+.pallets .famo-row:not(.famo-header-row) {
+  cursor: pointer;
+}
+.pallet-boxes .famo-col-1 {
+  width: 120px;
+}
+.pallet-boxes .famo-col-3 {
+  width: 60px;
+}
+.pallet-boxes .button-delete-box .fas {
+  font-size: 14px !important;
+  line-height: 1em !important;
+  color: #ffffff;
 }
