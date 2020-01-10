@@ -1,6 +1,7 @@
 import axios from 'axios';
 import express from 'express';
 import Log from '../utils/log';
+import querystring from 'querystring';
 import { authorize } from '../utils/http';
 import { checkToken } from '../utils/middleware';
 import { createQueryString } from '../utils/general';
@@ -74,6 +75,22 @@ router.get('/Pallets/Boxes', (req: any, res: any) => {
     axios(authorize({
         method: 'GET',
         url: WEB_API + 'api/Navision/Pallets/Boxes' + createQueryString(req.query)
+    }, req.session.token)).then((wsSucc: any) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr: any) => {
+        Log.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+
+router.put('/Pallets/Boxes', (req: any, res: any) => {
+    axios(authorize({
+        method: 'PUT',
+        url: WEB_API + 'api/Navision/Pallets/Boxes' + createQueryString(req.query),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(req.body)
     }, req.session.token)).then((wsSucc: any) => {
         res.send(wsSucc.data);
     }).catch((wsErr: any) => {

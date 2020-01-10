@@ -8,6 +8,7 @@ import { ContentLoader } from './elements/loader';
 import { createQueryString, loadScript } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
+import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { withRouter } from 'react-router-dom';
 import { withTranslation } from 'react-i18next';
@@ -149,15 +150,6 @@ function Inventory(props: any) {
     // #endregion
 
     useEffect(() => {
-        globalActions.setLoadPage(true);
-
-        // load scripts
-        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27', sectionRef);
-    }, []);
-
-    useEffect(() => {
         if (globalState.authUser) {
             fetch(NODE_SERVER + 'ERP/Inventories?timestamp=' + new Date().getTime(), {
                 method: 'GET',
@@ -188,6 +180,17 @@ function Inventory(props: any) {
                 });
         }
     }, [globalState.authUser]);
+
+    useEffect(() => {
+        globalActions.setLoadPage(true);
+
+        // load scripts
+        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27', sectionRef);
+        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27', sectionRef);
+
+        SessionStorage.clear();
+    }, []);
 
     useEffect(() => {
         resetInputs();

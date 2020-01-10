@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Redirect, withRouter } from 'react-router-dom';
-import { useGlobal } from '../utils/globalHooks';
+import { SessionStorage } from '../utils/sessionStorage';
 import { withTranslation } from 'react-i18next';
 
 function Home(props: any) {
@@ -9,6 +9,10 @@ function Home(props: any) {
             inventory: false,
             pallet: false
         });
+
+    useEffect(() => {
+        SessionStorage.clear();
+    }, []);
 
     if (redirect.inventory) {
         return <Redirect push to='/Inventory' />;

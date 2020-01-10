@@ -9,6 +9,7 @@ import { createQueryString } from '../utils/general';
 import { ContentLoader } from './elements/loader';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
+import { SessionStorage, SS_PALLET_KEY } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { withRouter, Route, Redirect, Switch } from 'react-router-dom';
@@ -33,35 +34,32 @@ function Index(props: any) {
     const { t } = useTranslation(),
         { history } = props,
         [globalState,] = useGlobal(),
+        hasSessionStorageItem = window.sessionStorage.getItem(SS_PALLET_KEY),
         [cargoMapCode, setCargoMapCode] = useState<InputConfig>({
             className: 'famo-input famo-text-10',
             isDisabled: false,
             isNumber: false,
             label: 'Mapa de carga',
             name: 'cargoMapCode',
-            value: ''
+            value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).cargoMapCode : ''
         }),
         [loadCargoMap, setLoadCargoMap] = useState<boolean>(false),
         [pallets, setPallets] = useState<Array<any>>(null),
         palletsHeader: Array<string> = [t('key_279')];
 
-    console.log(props);
-
     function barcodeScanner() {
         barcodeScan((result) => {
             setCargoMapCode(prevState => { return { ...prevState, value: result.text } });
-            getCargoMap();
+            getCargoMap(result.text);
         }, t);
     }
 
-    function getCargoMap() {
-        const auxCargoMapCode = cargoMapCode.value;
-
+    function getCargoMap(code: string) {
         setLoadCargoMap(true);
         setPallets(null);
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
-            cargoMapCode: auxCargoMapCode
+            cargoMapCode: code
         }), {
             method: 'GET',
             credentials: 'include'
@@ -70,7 +68,7 @@ function Index(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
                         .then(data => {
-                            setCargoMapCode(prevState => { return { ...prevState, stableValue: auxCargoMapCode } });
+                            setCargoMapCode(prevState => { return { ...prevState, valueSubmit: code } });
                             setPallets(data);
                         })
                         .catch(error => {
@@ -93,14 +91,23 @@ function Index(props: any) {
     }
 
     function editPallet(palletID?: number) {
-        history.push('/Pallet/Edit?cargoMapCode=' + cargoMapCode.stableValue + (palletID ? '&palletID=' + palletID : ''));
+        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ cargoMapCode: cargoMapCode.valueSubmit }));
+        history.push('/Pallet/Edit?cargoMapCode=' + cargoMapCode.valueSubmit + (palletID ? '&palletID=' + palletID : ''));
     }
+
+    useEffect(() => {
+        if (hasSessionStorageItem) {
+            getCargoMap(cargoMapCode.value);
+        }
+
+        SessionStorage.clear();
+    }, []);
 
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid' noValidate onSubmit={event => { event.preventDefault(); getCargoMap(); }}>
+                    <form className='famo-grid famo-form-grid' noValidate onSubmit={event => { event.preventDefault(); getCargoMap(cargoMapCode.value); }}>
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
                                 <span className='famo-text-11'>{cargoMapCode.label}</span>
@@ -119,7 +126,7 @@ function Index(props: any) {
                                         <span className='famo-text-12'>{t('key_681')}</span>
                                     </button>
                                 }
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadCargoMap} onClick={event => getCargoMap()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loadCargoMap} onClick={event => getCargoMap(cargoMapCode.value)}>
                                     <span className='famo-text-12'>{t('key_323')}</span>
                                 </button>
                             </div>
@@ -172,7 +179,7 @@ function Index(props: any) {
 
 function Edit(props: any) {
     const { t } = useTranslation(),
-        { location } = props,
+        { location, history } = props,
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         editPallet = query['palletID'],
@@ -233,6 +240,38 @@ function Edit(props: any) {
         setBoxes(boxes.filter(x => { return x.Code !== code; }));
     }
 
+    function saveBoxes() {
+        setClosePallet(true);
+
+        fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
+            cargoMapCode: query['cargoMapCode'],
+            palletID: !query['palletID'] ? '' : query['palletID']
+        }), {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(boxes.filter(x => { return x.isNew; }).map(x => { return x.Code; })),
+            credentials: 'include'
+        })
+            .then(wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    history.goBack();
+                }
+                else {
+                    httpErrorLog(wsSucc);
+                    alert(t('key_302'));
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                setClosePallet(false);
+            });
+    }
+
     useEffect(() => {
         if (editPallet) {
             globalActions.setLoadPage(true);
@@ -270,6 +309,8 @@ function Edit(props: any) {
                     globalActions.setLoadPage(false);
                 });
         }
+
+        SessionStorage.clear({ pallet: true });
     }, []);
 
     if (!query['cargoMapCode']) {
@@ -312,7 +353,7 @@ function Edit(props: any) {
                                 );
                             })}
                         </div>
-                        <div className='famo-grid famo-buttons'>
+                        <div className={'famo-grid famo-buttons' + (closePallet ? ' hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
                                     <button type='button' className='famo-button famo-normal-button' disabled={loadBox} onClick={event => setPalletBoxModal(true)}>
@@ -324,6 +365,17 @@ function Edit(props: any) {
                                         </button>
                                     }
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section className='famo-wrapper'>
+                    <div className='famo-grid'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-confirm-button' disabled={loadBox || closePallet} onClick={event => saveBoxes()}>
+                                    <span className='famo-text-12'>{t('key_220')}</span>
+                                </button>
                             </div>
                         </div>
                     </div>
