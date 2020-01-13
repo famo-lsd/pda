@@ -93,5 +93,35 @@ router.put('/Pallets/Boxes', (req, res) => {
         res.status(wsErr.response.status).send();
     });
 });
+router.post('/Pallets/Close', (req, res) => {
+    axios_1.default(http_1.authorize({
+        method: 'POST',
+        url: variablesRepo_1.WEB_API + 'api/Navision/Pallets/Close' + general_1.createQueryString(req.query),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(req.body)
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr) => {
+        log_1.default.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+router.post('/Pallets/Reopen', (req, res) => {
+    axios_1.default(http_1.authorize({
+        method: 'POST',
+        url: variablesRepo_1.WEB_API + 'api/Navision/Pallets/Reopen' + general_1.createQueryString(req.query),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(req.body)
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr) => {
+        log_1.default.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
 exports.default = router;
 //# sourceMappingURL=erp.js.map

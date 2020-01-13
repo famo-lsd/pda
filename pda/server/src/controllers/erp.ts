@@ -99,4 +99,36 @@ router.put('/Pallets/Boxes', (req: any, res: any) => {
     });
 });
 
+router.post('/Pallets/Close', (req: any, res: any) => {
+    axios(authorize({
+        method: 'POST',
+        url: WEB_API + 'api/Navision/Pallets/Close' + createQueryString(req.query),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(req.body)
+    }, req.session.token)).then((wsSucc: any) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr: any) => {
+        Log.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+
+router.post('/Pallets/Reopen', (req: any, res: any) => {
+    axios(authorize({
+        method: 'POST',
+        url: WEB_API + 'api/Navision/Pallets/Reopen' + createQueryString(req.query),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(req.body)
+    }, req.session.token)).then((wsSucc: any) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr: any) => {
+        Log.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+
 export default router;

@@ -31,7 +31,7 @@ function Inventory(props: any) {
         }),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [inventoryProductModal, setInventoryProductModal] = useState<boolean>(false),
-        [loadProduct, setLoadProduct] = useState<boolean>(false),
+        [productLoad, setProductLoad] = useState<boolean>(false),
         [product, setProduct] = useState(null),
         [productCode, setProductCode] = useState<InputConfig>({
             className: 'famo-input famo-text-10',
@@ -98,7 +98,7 @@ function Inventory(props: any) {
             productVariantCode = split[1];
         }
 
-        setLoadProduct(true);
+        setProductLoad(true);
         resetInputs();
 
         fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
@@ -134,7 +134,7 @@ function Inventory(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setLoadProduct(false);
+                setProductLoad(false);
             });
     }
 
@@ -199,7 +199,7 @@ function Inventory(props: any) {
     useEffect(() => {
         if (InputTools.areAllAnalyzed(productForm)) {
             if (InputTools.areAllValid(productForm)) {
-                setLoadProduct(true);
+                setProductLoad(true);
 
                 fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
                     documentCode: product.Code,
@@ -226,7 +226,7 @@ function Inventory(props: any) {
                         alert(t('key_416'));
                     })
                     .finally(() => {
-                        setLoadProduct(false);
+                        setProductLoad(false);
                     });
             }
             else {
@@ -248,7 +248,7 @@ function Inventory(props: any) {
                                 <span className='famo-text-11'>{inventoryCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...inventoryCode} isDisabled={loadProduct} set={setInventoryCode}>
+                                <Input {...inventoryCode} isDisabled={productLoad} set={setInventoryCode}>
                                     <option key=''></option>
                                     {inventories.map((x, i) => {
                                         return <option key={i} value={x.Code}>{x.Name}</option>
@@ -259,12 +259,12 @@ function Inventory(props: any) {
                     </form>
                 </div>
             </section>
-            {(product || loadProduct) &&
+            {(product || productLoad) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_339')} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!loadProduct} />
-                        <form className={'famo-grid famo-form-grid' + (loadProduct ? ' hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
+                        <ContentLoader hide={!productLoad} />
+                        <form className={'famo-grid famo-form-grid' + (productLoad ? ' hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
                             <div className='famo-row'>
                                 <div className='famo-cell famo-input-label'>
                                     <span className='famo-text-11'>{productCode.label}</span>
@@ -306,7 +306,7 @@ function Inventory(props: any) {
                                 </div>
                             </div>
                         </form>
-                        <div className={'famo-grid famo-buttons' + (loadProduct ? ' hide' : '')}>
+                        <div className={'famo-grid famo-buttons' + (productLoad ? ' hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
                                     <button type='button' className='famo-button famo-confirm-button' onClick={handleRegister}>
@@ -322,11 +322,11 @@ function Inventory(props: any) {
                 <div className='famo-grid'>
                     <div className='famo-row'>
                         <div className='famo-cell text-right'>
-                            <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => setInventoryProductModal(true)}>
+                            <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setInventoryProductModal(true)}>
                                 <span className='famo-text-12'>{t('key_807')}</span>
                             </button>
                             {!globalState.androidApp &&
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadProduct} onClick={event => barcodeScanner()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => barcodeScanner()}>
                                     <span className='famo-text-12'>{t('key_681')}</span>
                                 </button>
                             }
