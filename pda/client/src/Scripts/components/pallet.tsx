@@ -35,31 +35,31 @@ function Index(props: any) {
         { history } = props,
         [globalState,] = useGlobal(),
         hasSessionStorageItem = window.sessionStorage.getItem(SS_PALLET_KEY),
-        [cargoMapCode, setCargoMapCode] = useState<InputConfig>({
+        [shipmentCode, setShipmentCode] = useState<InputConfig>({
             className: 'famo-input famo-text-10',
             isDisabled: false,
             isNumber: false,
             label: 'Mapa de carga',
-            name: 'cargoMapCode',
-            value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).cargoMapCode : ''
+            name: 'shipmentCode',
+            value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : ''
         }),
-        [cargoMapLoad, setCargoMapLoad] = useState<boolean>(false),
+        [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
         [pallets, setPallets] = useState<Array<any>>(null),
         palletsHeader: Array<string> = [t('key_279')];
 
     function barcodeScanner() {
         barcodeScan((result) => {
-            setCargoMapCode(prevState => { return { ...prevState, value: result.text } });
-            getCargoMap(result.text);
+            setShipmentCode(prevState => { return { ...prevState, value: result.text } });
+            getShipment(result.text);
         }, t);
     }
 
-    function getCargoMap(code: string) {
-        setCargoMapLoad(true);
+    function getShipment(code: string) {
+        setShipmentLoad(true);
         setPallets(null);
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
-            cargoMapCode: code
+            shipmentCode: code
         }), {
             method: 'GET',
             credentials: 'include'
@@ -68,7 +68,7 @@ function Index(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
                         .then(data => {
-                            setCargoMapCode(prevState => { return { ...prevState, valueSubmit: code } });
+                            setShipmentCode(prevState => { return { ...prevState, valueSubmit: code } });
                             setPallets(data);
                         })
                         .catch(error => {
@@ -78,7 +78,7 @@ function Index(props: any) {
                 }
                 else {
                     httpErrorLog(wsSucc);
-                    alert('O código não corresponde a um mapa de carga.');
+                    alert(wsSucc.status === httpStatus.NOT_FOUND ? 'O código não corresponde a um mapa de carga.' : t('key_303'));
                 }
             })
             .catch(wsErr => {
@@ -86,18 +86,18 @@ function Index(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setCargoMapLoad(false);
+                setShipmentLoad(false);
             });
     }
 
     function editPallet(palletID?: number) {
-        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ cargoMapCode: cargoMapCode.valueSubmit }));
-        history.push('/Pallet/Edit?cargoMapCode=' + cargoMapCode.valueSubmit + (palletID ? '&palletID=' + palletID : ''));
+        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCode.valueSubmit }));
+        history.push('/Pallet/Edit?shipmentCode=' + shipmentCode.valueSubmit + (palletID ? '&palletID=' + palletID : ''));
     }
 
     useEffect(() => {
         if (hasSessionStorageItem) {
-            getCargoMap(cargoMapCode.value);
+            getShipment(shipmentCode.value);
         }
 
         SessionStorage.clear();
@@ -107,13 +107,13 @@ function Index(props: any) {
         <React.Fragment>
             <section className='famo-wrapper'>
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid' noValidate onSubmit={event => { event.preventDefault(); getCargoMap(cargoMapCode.value); }}>
+                    <form className='famo-grid famo-form-grid' noValidate onSubmit={event => { event.preventDefault(); getShipment(shipmentCode.value); }}>
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
-                                <span className='famo-text-11'>{cargoMapCode.label}</span>
+                                <span className='famo-text-11'>{shipmentCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...cargoMapCode} set={setCargoMapCode} />
+                                <Input {...shipmentCode} set={setShipmentCode} />
                             </div>
                         </div>
                         <input type='submit' className='hide' value='' />
@@ -122,11 +122,11 @@ function Index(props: any) {
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
                                 {globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={cargoMapLoad} onClick={event => barcodeScanner()}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => barcodeScanner()}>
                                         <span className='famo-text-12'>{t('key_681')}</span>
                                     </button>
                                 }
-                                <button type='button' className='famo-button famo-normal-button' disabled={cargoMapLoad} onClick={event => getCargoMap(cargoMapCode.value)}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => getShipment(shipmentCode.value)}>
                                     <span className='famo-text-12'>{t('key_323')}</span>
                                 </button>
                             </div>
@@ -134,12 +134,12 @@ function Index(props: any) {
                     </div>
                 </div>
             </section>
-            {(pallets || cargoMapLoad) &&
+            {(pallets || shipmentLoad) &&
                 <section className='famo-wrapper'>
                     <Title text='Paletes' />
                     <div className='famo-content'>
-                        <ContentLoader hide={!cargoMapLoad} />
-                        <div className={'famo-grid famo-content-grid pallets' + (cargoMapLoad ? ' hide' : '')}>
+                        <ContentLoader hide={!shipmentLoad} />
+                        <div className={'famo-grid famo-content-grid pallets' + (shipmentLoad ? ' hide' : '')}>
                             <div className='famo-row famo-header-row'>
                                 {palletsHeader.map((x, i) => {
                                     return (
@@ -166,7 +166,7 @@ function Index(props: any) {
                 <div className='famo-grid'>
                     <div className='famo-row'>
                         <div className='famo-cell text-right'>
-                            <button type='button' className='famo-button famo-normal-button' disabled={cargoMapLoad} onClick={event => editPallet()}>
+                            <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => editPallet()}>
                                 <span className='famo-text-12'>Criar palete</span>
                             </button>
                         </div>
@@ -183,7 +183,7 @@ function Edit(props: any) {
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
-        [isPalletOpen, setIsPalletOpen] = useState<boolean>(),
+        [isPalletOpen, setIsPalletOpen] = useState<boolean>(true),
         [boxes, setBoxes] = useState<Array<PalletBox>>([]),
         [boxLoad, setBoxLoad] = useState<boolean>(false),
         [palletSave, setPalletSave] = useState<boolean>(false),
@@ -194,19 +194,20 @@ function Edit(props: any) {
 
     function barcodeScanner() {
         barcodeScan((result) => {
-            getBox(result.text);
+            getShipmentBox(result.text);
         }, t);
     }
 
-    function getBox(code: string) {
+    function getShipmentBox(code: string) {
         if (boxes.some(x => { return x.Code === code; })) {
             alert('A palete já tem uma embalagem com este código.');
         }
         else {
             setBoxLoad(true);
 
-            fetch(NODE_SERVER + 'ERP/Boxes' + createQueryString({
-                code: code
+            fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
+                shipmentCode: query.shipmentCode,
+                boxCode: code
             }), {
                 method: 'GET',
                 credentials: 'include'
@@ -226,7 +227,16 @@ function Edit(props: any) {
                     }
                     else {
                         httpErrorLog(wsSucc);
-                        alert('O código não corresponde a uma embalagem.');
+
+                        if (wsSucc.status === httpStatus.NOT_FOUND) {
+                            alert('O código da embalagem não está associado ao envio.');
+                        }
+                        else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                            alert('Esta embalagem está associada a uma palete fechada.');
+                        }
+                        else {
+                            alert(t('key_303'));
+                        }
                     }
                 })
                 .catch(wsErr => {
@@ -247,7 +257,7 @@ function Edit(props: any) {
         setPalletSave(true);
 
         fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
-            cargoMapCode: query.cargoMapCode,
+            shipmentCode: query.shipmentCode,
             palletID: !palletID ? '' : palletID
         }), {
             method: 'PUT',
@@ -261,19 +271,14 @@ function Edit(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
                         .then(data => {
-                            palletID = data;
+                            palletID = data.palletID;
                         })
                         .catch(error => {
                             promiseErrorLog(error);
                             alert(t('key_416'));
                         });
 
-                    boxes.forEach(x => {
-                        if (x.isNew) {
-                            x.isNew = false;
-                        }
-                    });
-                    setBoxes(boxes);
+                    setBoxes(boxes.map(x => { return { ...x, isNew: false }; }));
                 }
                 else {
                     httpErrorLog(wsSucc);
@@ -297,7 +302,7 @@ function Edit(props: any) {
             setPalletStatusChange(true);
 
             fetch(NODE_SERVER + 'ERP/Pallets/' + (isPalletOpen ? 'Close' : 'Reopen') + createQueryString({
-                cargoMapCode: query.cargoMapCode,
+                shipmentCode: query.shipmentCode,
                 palletID: !palletID ? '' : palletID
             }), {
                 method: 'POST',
@@ -332,7 +337,7 @@ function Edit(props: any) {
             globalActions.setLoadPage(true);
 
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
-                cargoMapCode: query.cargoMapCode,
+                shipmentCode: query.shipmentCode,
                 palletID: query.palletID
             }), {
                 method: 'GET',
@@ -356,7 +361,13 @@ function Edit(props: any) {
                     }
                     else {
                         httpErrorLog(wsSucc);
-                        alert(t('key_303'));
+
+                        if (wsSucc.status === httpStatus.NOT_FOUND) {
+                            history.replace('/Pallet');
+                        }
+                        else {
+                            alert(t('key_303'));
+                        }
                     }
                 })
                 .catch(wsErr => {
@@ -371,7 +382,7 @@ function Edit(props: any) {
         SessionStorage.clear({ pallet: true });
     }, []);
 
-    if (!query['cargoMapCode']) {
+    if (!query.shipmentCode) {
         return <Redirect to='/Pallet' />;
     }
     else {
@@ -416,11 +427,11 @@ function Edit(props: any) {
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
                                         <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => setPalletBoxModal(true)}>
-                                            <span className='famo-text-12'>Adicionar embalagem (manual)</span>
+                                            <span className='famo-text-12'>Adicionar (manual)</span>
                                         </button>
                                         {globalState.androidApp &&
                                             <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => barcodeScanner()}>
-                                                <span className='famo-text-12'>Adicionar embalagem (leitor cód. barras)</span>
+                                                <span className='famo-text-12'>Adicionar (leitor cód. barras)</span>
                                             </button>
                                         }
                                     </div>
@@ -454,7 +465,7 @@ function Edit(props: any) {
                         </div>
                     </div>
                 </section>
-                <Modal contentType={ModalContentType.palletBox} visible={palletBoxModal} setVisible={setPalletBoxModal} confirm={getBox} />
+                <Modal contentType={ModalContentType.palletBox} visible={palletBoxModal} setVisible={setPalletBoxModal} confirm={getShipmentBox} />
             </React.Fragment>
         );
     }

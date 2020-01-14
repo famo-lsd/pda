@@ -126,7 +126,7 @@ function Inventory(props: any) {
                 }
                 else {
                     httpErrorLog(wsSucc);
-                    alert(t('key_809'));
+                    alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_809') : t('key_303'));
                 }
             })
             .catch(wsErr => {
@@ -185,9 +185,11 @@ function Inventory(props: any) {
         globalActions.setLoadPage(true);
 
         // load scripts
-        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27', sectionRef);
-        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27', sectionRef);
+        if (Object.keys(window['numeral'].locales).length === 1) {
+            loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
+            loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27', sectionRef);
+            loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27', sectionRef);
+        }
 
         SessionStorage.clear();
     }, []);
@@ -318,14 +320,14 @@ function Inventory(props: any) {
                     </div>
                 </section>
             }
-            {inventoryCode && <section className='famo-wrapper'>
+            {inventoryCode.value && <section className='famo-wrapper'>
                 <div className='famo-grid'>
                     <div className='famo-row'>
                         <div className='famo-cell text-right'>
                             <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setInventoryProductModal(true)}>
                                 <span className='famo-text-12'>{t('key_807')}</span>
                             </button>
-                            {!globalState.androidApp &&
+                            {globalState.androidApp &&
                                 <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => barcodeScanner()}>
                                     <span className='famo-text-12'>{t('key_681')}</span>
                                 </button>

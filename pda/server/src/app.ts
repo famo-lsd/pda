@@ -66,6 +66,9 @@ app.use('/ERP', erp);
 app.use('/Log', log);
 app.use('/Platform', platform);
 
+// static
+app.use(express.static('public'));
+
 // start server
 app.listen(3030, () => {
     console.log('Start server...');

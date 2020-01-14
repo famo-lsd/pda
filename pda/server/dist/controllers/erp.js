@@ -87,7 +87,7 @@ router.put('/Pallets/Boxes', (req, res) => {
         },
         data: JSON.stringify(req.body)
     }, req.session.token)).then((wsSucc) => {
-        res.send(wsSucc.data);
+        res.send({ palletID: wsSucc.data });
     }).catch((wsErr) => {
         log_1.default.promiseError(wsErr);
         res.status(wsErr.response.status).send();
@@ -116,6 +116,17 @@ router.post('/Pallets/Reopen', (req, res) => {
             'Content-Type': 'application/json',
         },
         data: JSON.stringify(req.body)
+    }, req.session.token)).then((wsSucc) => {
+        res.send(wsSucc.data);
+    }).catch((wsErr) => {
+        log_1.default.promiseError(wsErr);
+        res.status(wsErr.response.status).send();
+    });
+});
+router.get('/Shipments/Boxes', (req, res) => {
+    axios_1.default(http_1.authorize({
+        method: 'GET',
+        url: variablesRepo_1.WEB_API + 'api/Navision/Shipments/Boxes' + general_1.createQueryString(req.query)
     }, req.session.token)).then((wsSucc) => {
         res.send(wsSucc.data);
     }).catch((wsErr) => {
