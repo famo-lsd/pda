@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Instalação (tutorial):
 - Instalar Node.js/npm;
 - Instalar Memurai (Redis para Windows):
@@ -10,7 +9,3 @@ Instalação (tutorial):
 
 <!-- Fase de teste:
 - Criar ligação entre o servidor e os dashboards online (pm2 link qg3s24k0yewed3l volxnuwi1teipfm); -->
-=======
-Notas:
-- Instalar Memurai (Redis para Windows);
->>>>>>> parent of efc9996... [DEV] Trabalho do dia:
