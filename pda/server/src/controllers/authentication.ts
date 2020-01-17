@@ -55,7 +55,7 @@ router.post('/SignIn', (req: any, res: any) => {
 });
 
 router.get('/AutoSignIn', (req: any, res: any) => {
-    signIn(req, res, 'userti', 'teste');
+    signIn(req, res, 'nodejs', 'nodejs');
 });
 
 router.get('/SignOut', (req: any, res: any) => {

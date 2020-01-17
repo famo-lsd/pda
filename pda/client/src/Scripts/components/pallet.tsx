@@ -39,7 +39,7 @@ function Index(props: any) {
             className: 'famo-input famo-text-10',
             isDisabled: false,
             isNumber: false,
-            label: 'Mapa de carga',
+            label: t('key_822'),
             name: 'shipmentCode',
             value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : ''
         }),
@@ -78,7 +78,7 @@ function Index(props: any) {
                 }
                 else {
                     httpErrorLog(wsSucc);
-                    alert(wsSucc.status === httpStatus.NOT_FOUND ? 'O código não corresponde a um mapa de carga.' : t('key_303'));
+                    alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
                 }
             })
             .catch(wsErr => {
@@ -167,7 +167,7 @@ function Index(props: any) {
                     <div className='famo-row'>
                         <div className='famo-cell text-right'>
                             <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => editPallet()}>
-                                <span className='famo-text-12'>Criar palete</span>
+                                <span className='famo-text-12'>{t('key_817')}</span>
                             </button>
                         </div>
                     </div>
@@ -182,6 +182,7 @@ function Edit(props: any) {
         { location, history } = props,
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
+        [palletID, setPalletID] = useState<any>(query.palletID),
         boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
         [isPalletOpen, setIsPalletOpen] = useState<boolean>(true),
         [boxes, setBoxes] = useState<Array<PalletBox>>([]),
@@ -189,8 +190,6 @@ function Edit(props: any) {
         [palletSave, setPalletSave] = useState<boolean>(false),
         [palletStatusChange, setPalletStatusChange] = useState<boolean>(false),
         [palletBoxModal, setPalletBoxModal] = useState<boolean>(false);
-
-    let palletID = query.palletID;
 
     function barcodeScanner() {
         barcodeScan((result) => {
@@ -200,7 +199,7 @@ function Edit(props: any) {
 
     function getShipmentBox(code: string) {
         if (boxes.some(x => { return x.Code === code; })) {
-            alert('A palete já tem uma embalagem com este código.');
+            alert(t('key_814'));
         }
         else {
             setBoxLoad(true);
@@ -229,10 +228,10 @@ function Edit(props: any) {
                         httpErrorLog(wsSucc);
 
                         if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            alert('O código da embalagem não está associado ao envio.');
+                            alert(t('key_824'));
                         }
                         else if (wsSucc.status === httpStatus.FORBIDDEN) {
-                            alert('Esta embalagem está associada a uma palete fechada.');
+                            alert(t('key_828'));
                         }
                         else {
                             alert(t('key_303'));
@@ -271,7 +270,7 @@ function Edit(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
                         .then(data => {
-                            palletID = data.palletID;
+                            setPalletID(data.palletID);
                         })
                         .catch(error => {
                             promiseErrorLog(error);
@@ -296,7 +295,7 @@ function Edit(props: any) {
 
     function setPalletStatus() {
         if (isPalletOpen && boxes.some(x => { return x.isNew })) {
-            alert('Existem embalagens não associadas à palete.');
+            alert(t('key_821'));
         }
         else {
             setPalletStatusChange(true);
@@ -314,7 +313,7 @@ function Edit(props: any) {
             })
                 .then(wsSucc => {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        alert(isPalletOpen ? 'A palete foi fechada com sucesso.' : 'A palete foi reaberta com sucesso.');
+                        alert(isPalletOpen ? t('key_812') : t('key_813'));
                         setIsPalletOpen(!isPalletOpen);
                     }
                     else {
@@ -389,7 +388,7 @@ function Edit(props: any) {
         return (
             <React.Fragment>
                 <section className='famo-wrapper'>
-                    <Title text='Embalagens' />
+                    <Title text={t('key_820')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!palletSave} />
                         <div className={'famo-grid famo-content-grid pallet-boxes' + (palletSave ? ' hide' : '')}>
@@ -427,11 +426,11 @@ function Edit(props: any) {
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
                                         <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => setPalletBoxModal(true)}>
-                                            <span className='famo-text-12'>Adicionar (manual)</span>
+                                            <span className='famo-text-12'>{t('key_815') + ' (' + t('key_807').toLowerCase() + ')'}</span>
                                         </button>
                                         {globalState.androidApp &&
                                             <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => barcodeScanner()}>
-                                                <span className='famo-text-12'>Adicionar (leitor cód. barras)</span>
+                                                <span className='famo-text-12'>{t('key_815') + ' (' + t('key_681').toLowerCase() + ')'}</span>
                                             </button>
                                         }
                                     </div>
@@ -458,7 +457,7 @@ function Edit(props: any) {
                                     : (
                                         <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
                                             <span className={'fas fa-spinner fa-spin' + (!palletStatusChange ? ' hide' : '')}></span>
-                                            <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>Reabrir</span>
+                                            <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>{t('key_827')}</span>
                                         </button>
                                     )}
                             </div>

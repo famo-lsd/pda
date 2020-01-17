@@ -25,7 +25,7 @@ function Modal(props: any) {
             className: 'famo-input famo-text-10',
             isDisabled: false,
             isNumber: false,
-            label: 'Embalagem',
+            label: t('key_819'),
             name: 'boxCode',
             value: '',
             noData: false,

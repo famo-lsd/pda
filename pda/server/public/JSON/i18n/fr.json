@@ -795,5 +795,22 @@
     "key_808": "Le champ a un format non valide.",
     "key_809": "Le code ne correspond pas à un produit en stock.",
     "key_810": "Enregistrer",
-    "key_811": "Retour"
+    "key_811": "Retour",
+    "key_812": "La palette a été fermée avec succès.",
+    "key_813": "La palette a été rouverte avec succès.",
+    "key_814": "La palette a déjà un colis avec ce code.",
+    "key_815": "Ajouter",
+    "key_816": "Ajouter un colis",
+    "key_817": "Créer une palette",
+    "key_818": "Disponible",
+    "key_819": "Colis",
+    "key_820": "Colis",
+    "key_821": "Il existe des colis non associés à la palette.",
+    "key_822": "Carte de chargement",
+    "key_823": "Non disponible",
+    "key_824": "Le code du colis n'est pas associé á l'expedition.",
+    "key_825": "Le code ne correspond pas à une carte de chargement.",
+    "key_826": "Palettes",
+    "key_827": "Rouvrir",
+    "key_828": "Cet emballage est associé à une palette fermée."
 }

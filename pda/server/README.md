@@ -1,11 +1,8 @@
-Instalação (tutorial):
+Instalação em Windows Server:
 - Instalar Node.js/npm;
-- Instalar Memurai (Redis para Windows):
-    - Configurar para a porta 3035.
-<!-- - Criar uma variável de sistema PM2_HOME com o atributo c:\etc\.pm2; -->
+- Instalar Redis para Windows (https://github.com/tporadowski/redis/releases);
 - Instalar pm2 (npm install -g pm2);
-
-
-
-<!-- Fase de teste:
-- Criar ligação entre o servidor e os dashboards online (pm2 link qg3s24k0yewed3l volxnuwi1teipfm); -->
+    - Credencias da conta pm2: servicedesk@famo.pt/servicedesk;
+- Criar uma variável de sistema PM2_HOME com o valor C:\etc\.pm2;
+- Executar a release "Server" do projeto GitHub.
+- Criar uma tarefa para que sempre que o servidor inicie, o servidor Node também inicie.

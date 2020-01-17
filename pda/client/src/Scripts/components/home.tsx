@@ -10,7 +10,7 @@ function Home(props: any) {
             inventory: false,
             pallet: false
         }),
-        buttons: Array<any> = [{ label: t('key_806'), key: 'inventory', image: 'btn-inventario.png' }, { label: 'Paletes', key: 'pallet', image: 'btn-palete.png' }];
+        buttons: Array<any> = [{ label: t('key_806'), key: 'inventory', image: 'btn-inventario.png' }, { label: t('key_826'), key: 'pallet', image: 'btn-palete.png' }];
 
     useEffect(() => {
         SessionStorage.clear();

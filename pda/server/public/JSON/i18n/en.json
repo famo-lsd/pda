@@ -795,5 +795,22 @@
     "key_808": "Format of the field is invalid.",
     "key_809": "Code does not match with an inventory product.",
     "key_810": "Register",
-    "key_811": "Back"
+    "key_811": "Back",
+    "key_812": "Pallet was closed successfully.",
+    "key_813": "Pallet was reopened successfully.",
+    "key_814": "Pallet already has a packaging with this code.",
+    "key_815": "Add",
+    "key_816": "Add package",
+    "key_817": "Create pallet",
+    "key_818": "Available",
+    "key_819": "Package",
+    "key_820": "Packages",
+    "key_821": "Some packages are not linked to pallet.",
+    "key_822": "Loading map",
+    "key_823": "Not available",
+    "key_824": "Packaging code is not linked to this sending.",
+    "key_825": "Code does not correspond to a loading map.",
+    "key_826": "Pallets",
+    "key_827": "Reopened",
+    "key_828": "This packaging is associated with a closed pallet."
 }

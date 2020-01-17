@@ -54,7 +54,7 @@ router.post('/SignIn', (req, res) => {
     signIn(req, res);
 });
 router.get('/AutoSignIn', (req, res) => {
-    signIn(req, res, 'userti', 'teste');
+    signIn(req, res, 'nodejs', 'nodejs');
 });
 router.get('/SignOut', (req, res) => {
     const sessionID = req.sessionID;

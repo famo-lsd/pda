@@ -795,5 +795,22 @@
     "key_808": "El campo tiene un formato inválido.",
     "key_809": "El código no corresponde a un producto del inventario.",
     "key_810": "Registrar",
-    "key_811": "Volver"
+    "key_811": "Volver",
+    "key_812": "El palet fue cerrado con éxito.",
+    "key_813": "El palet fue reabierto con éxito.",
+    "key_814": "El palet ya tiene un embalaje con este código.",
+    "key_815": "Adicionar",
+    "key_816": "Adicionar embalaje",
+    "key_817": "Crear palet",
+    "key_818": "Disponible",
+    "key_819": "Embalaje",
+    "key_820": "Embalajes",
+    "key_821": "Existen embalajes no asociadas al palet.",
+    "key_822": "Plano de carga",
+    "key_823": "No disponible",
+    "key_824": "El código del embalaje no está asociado al envío.",
+    "key_825": "El código no corresponde a un plano de carga.",
+    "key_826": "Palets",
+    "key_827": "Reabrir",
+    "key_828": "Este embalaje está asociado con un palet cerrado."
 }
