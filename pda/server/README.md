@@ -1,6 +1,6 @@
 Instalação em Windows Server:
 - Instalar Node.js/npm;
-- Instalar Redis para Windows (https://github.com/tporadowski/redis/releases);
+- Instalar Redis para Windows (https://github.com/tporadowski/redis/releases) na porta 3035;
 - Instalar pm2 (npm install -g pm2);
     - Credencias da conta pm2: servicedesk@famo.pt/servicedesk;
 - Criar uma variável de sistema PM2_HOME com o valor C:\etc\.pm2;
