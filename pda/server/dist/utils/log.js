@@ -53,7 +53,7 @@ class Log {
             + req.url
             + '\n';
         if (!fs_1.default.existsSync(trackingFolder)) {
-            fs_1.default.mkdirSync(trackingFolder);
+            fs_1.default.mkdirSync(trackingFolder, { recursive: true });
         }
         fs_1.default.appendFile(logFile, message, (err) => {
             if (err) {
