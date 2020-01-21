@@ -5,7 +5,6 @@
     "allowJs": false,
     "checkJs": false,
     "sourceMap": true,
-    "inlineSources": true,
     "outDir": "./dist",
     "removeComments": true,
     "noImplicitAny": false,

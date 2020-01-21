@@ -7,7 +7,6 @@ import erp from './controllers/erp';
 import express from 'express';
 import helmet from 'helmet';
 import log from './controllers/log';
-import path from 'path';
 import platform from './controllers/platform';
 import redis from 'redis';
 import session from 'express-session';
