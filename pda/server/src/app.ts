@@ -67,7 +67,7 @@ app.use('/Log', log);
 app.use('/Platform', platform);
 
 // static
-app.use(express.static(__dirname + 'public'));
+app.use(express.static(__dirname + '/public'));
 
 // start server
 app.listen(3030, () => {
