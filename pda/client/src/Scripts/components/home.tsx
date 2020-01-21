@@ -39,7 +39,7 @@ function Home(props: any) {
                                             </div>
                                             <div className='famo-row'>
                                                 <div className='famo-cell famo-sidebar-item-img text-center'>
-                                                    <img src={NODE_SERVER + '/Images/' + x.image} alt={x.label} />
+                                                    <img src={NODE_SERVER + 'Images/' + x.image} alt={x.label} />
                                                 </div>
                                             </div>
                                         </div>
