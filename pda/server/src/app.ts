@@ -67,7 +67,7 @@ app.use('/Log', log);
 app.use('/Platform', platform);
 
 // static
-app.use('Images', express.static('./public/Images')); // adicionar caminho
+app.use('/images',express.static('./public/Images')); // adicionar caminho
 
 // start server
 app.listen(3030, () => {
