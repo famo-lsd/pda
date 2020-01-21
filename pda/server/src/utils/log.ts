@@ -72,7 +72,7 @@ export default class Log {
                 + '\n';
 
         if (!fs.existsSync(trackingFolder)) {
-            fs.mkdirSync(trackingFolder);
+            fs.mkdirSync(trackingFolder, { recursive: true });
         }
 
         fs.appendFile(logFile, message, (err: any) => {
