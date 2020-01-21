@@ -56,6 +56,12 @@
     <splash density="port-xhdpi" src="resources/android/splash/720x1280.png" />
     <splash density="port-xxhdpi" src="resources/android/splash/960x1600.png" />
     <splash density="port-xxxhdpi" src="resources/android/splash/1280x1920.png" />
+    <splash density="ldpi" src="resources/android/splash/200x320.png" />
+    <splash density="mdpi" src="resources/android/splash/320x480.png" />
+    <splash density="hdpi" src="resources/android/splash/480x800.png" />
+    <splash density="xhdpi" src="resources/android/splash/720x1280.png" />
+    <splash density="xxhdpi" src="resources/android/splash/960x1600.png" />
+    <splash density="xxxhdpi" src="resources/android/splash/1280x1920.png" />
     <preference name="loglevel" value="DEBUG" />
     <preference name="HeaderColor" value="#ffffff" />
 </widget>
