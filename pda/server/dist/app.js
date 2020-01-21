@@ -51,7 +51,7 @@ app.use('/Authentication', authentication_1.default);
 app.use('/ERP', erp_1.default);
 app.use('/Log', log_1.default);
 app.use('/Platform', platform_1.default);
-app.use('/images', express_1.default.static('./public/Images'));
+app.use(express_1.default.static(__dirname.replace('dist', 'public')));
 app.listen(3030, () => {
     console.log('Start server...');
 });
