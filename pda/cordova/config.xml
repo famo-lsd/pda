@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="famo.pda" version="1.0.0" 
     xmlns="http://www.w3.org/ns/widgets" 
+    xmlns:android="http://schemas.android.com/apk/res/android" 
     xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>FAMO - PDA</name>
     <description>
@@ -47,6 +48,9 @@
         <splash density="xhdpi" src="resources/android/splash/720x1280.png" />
         <splash density="xxhdpi" src="resources/android/splash/960x1600.png" />
         <splash density="xxxhdpi" src="resources/android/splash/1280x1920.png" />
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <application android:usesCleartextTraffic="true" />
+        </edit-config>
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />

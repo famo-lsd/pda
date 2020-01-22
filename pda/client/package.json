@@ -29,7 +29,7 @@
     "react:eject": "react-scripts eject",
     "build:cordova": "npm run react:build && npm run delete:cordova && npm run copy:cordova",
     "build:cordova:android": "npm run build:cordova && cd ../cordova && cordova run android",
-    "build:cordova:release:android": "npm run build:cordova && cd ../cordova && cordova build --release android",
+    "build:cordova:release:android": "npm run build:cordova && cd ../cordova && cordova build android --release -- --keystore=famo-keystore.jks --storePassword=tiFamo112 --alias=famo_key --password=tiFamo112",
     "build:cordova:browser": "npm run build:cordova && cd ../cordova && cordova run browser",
     "copy:cordova": "xcopy /s build ..\\cordova\\www",
     "delete:cordova": "rimraf ../cordova/www/*",

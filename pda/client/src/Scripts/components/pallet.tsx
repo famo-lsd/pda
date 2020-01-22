@@ -439,31 +439,35 @@ function Edit(props: any) {
                         }
                     </div>
                 </section>
-                <section className='famo-wrapper'>
-                    <div className='famo-grid'>
-                        <div className='famo-row'>
-                            <div className='famo-cell text-right'>
-                                {isPalletOpen ? (
-                                    <React.Fragment>
-                                        <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => savePallet()}>
-                                            <span className='famo-text-12'>{t('key_220')}</span>
-                                        </button>
-                                        <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
-                                            <span className={'fas fa-spinner fa-spin' + (!palletStatusChange ? ' hide' : '')}></span>
-                                            <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>{t('key_200')}</span>
-                                        </button>
-                                    </React.Fragment>
-                                )
-                                    : (
-                                        <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
-                                            <span className={'fas fa-spinner fa-spin' + (!palletStatusChange ? ' hide' : '')}></span>
-                                            <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>{t('key_827')}</span>
-                                        </button>
-                                    )}
+                {boxes.length > 0 &&
+                    <section className='famo-wrapper'>
+                        <div className='famo-grid'>
+                            <div className='famo-row'>
+                                <div className='famo-cell text-right'>
+                                    {isPalletOpen ? (
+                                        <React.Fragment>
+                                            {boxes.some(x => { return x.isNew; }) &&
+                                                <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => savePallet()}>
+                                                    <span className='famo-text-12'>{t('key_220')}</span>
+                                                </button>
+                                            }
+                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
+                                                <span className={'fas fa-spinner fa-spin' + (!palletStatusChange ? ' hide' : '')}></span>
+                                                <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>{t('key_200')}</span>
+                                            </button>
+                                        </React.Fragment>
+                                    )
+                                        : (
+                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
+                                                <span className={'fas fa-spinner fa-spin' + (!palletStatusChange ? ' hide' : '')}></span>
+                                                <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>{t('key_827')}</span>
+                                            </button>
+                                        )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                }
                 <Modal contentType={ModalContentType.palletBox} visible={palletBoxModal} setVisible={setPalletBoxModal} confirm={getShipmentBox} />
             </React.Fragment>
         );

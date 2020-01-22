@@ -16,7 +16,7 @@ export function barcodeScan(callback: Function, t: Function) {
             saveHistory: false,
             prompt: '',
             resultDisplayDuration: 0,
-            formats: 'CODE_39',
+            formats: 'CODE_39,CODE_128',
             orientation: 'unset',
             disableAnimations: true,
             disableSuccessBeep: false,
