@@ -70,6 +70,6 @@ app.use('/Platform', platform);
 app.use(express.static(__dirname.replace('dist', 'public')));
 
 // start server
-app.listen(3030, () => {
+app.listen(9070, () => {
     console.log('Start server...');
 });

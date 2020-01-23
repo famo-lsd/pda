@@ -52,7 +52,7 @@ app.use('/ERP', erp_1.default);
 app.use('/Log', log_1.default);
 app.use('/Platform', platform_1.default);
 app.use(express_1.default.static(__dirname.replace('dist', 'public')));
-app.listen(3030, () => {
+app.listen(9070, () => {
     console.log('Start server...');
 });
 //# sourceMappingURL=app.js.map

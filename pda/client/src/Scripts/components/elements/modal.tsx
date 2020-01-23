@@ -83,9 +83,12 @@ function Modal(props: any) {
             if (InputTools.areAllValid(contentForm)) {
                 switch (contentType as ModalContentType) {
                     case ModalContentType.inventoryProduct:
-                    case ModalContentType.palletBox:
                         confirm(contentForm[0].value);
                         setVisible(false);
+                        break;
+                    case ModalContentType.palletBox:
+                        confirm(contentForm[0].value);
+                        InputTools.resetValues(contentForm, setContentForm);
                         break;
                 }
             }

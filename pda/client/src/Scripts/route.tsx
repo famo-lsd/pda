@@ -22,14 +22,14 @@ interface AutoRouteBodyState {
 function Routing(props: any) {
     if (!(window as any).cordova) {
         return (
-            <BrowserRouter>
+            <BrowserRouter basename='/'>
                 <AutoRouteBody {...props} />
             </BrowserRouter>
         );
     }
     else {
         return (
-            <HashRouter>
+            <HashRouter basename='/'>
                 <AutoRouteBody {...props} />
             </HashRouter>
         );
