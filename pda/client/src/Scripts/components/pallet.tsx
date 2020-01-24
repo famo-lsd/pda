@@ -41,7 +41,8 @@ function Index(props: any) {
             isNumber: false,
             label: t('key_822'),
             name: 'shipmentCode',
-            value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : ''
+            value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : '',
+            ref: React.createRef()
         }),
         [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
         [pallets, setPallets] = useState<Array<any>>(null),
@@ -52,6 +53,11 @@ function Index(props: any) {
             setShipmentCode(prevState => { return { ...prevState, value: result.text } });
             getShipment(result.text);
         }, t);
+    }
+
+    function cleanShipmentCode() {
+        setShipmentCode(prevState => { return { ...prevState, value: '' } });
+        shipmentCode.ref.current.focus();
     }
 
     function getShipment(code: string) {
@@ -121,6 +127,11 @@ function Index(props: any) {
                     <div className='famo-grid famo-buttons'>
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
+                                {!globalState.androidApp &&
+                                    <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => cleanShipmentCode()}>
+                                        <span className='famo-text-12'>{t('key_829')}</span>
+                                    </button>
+                                }
                                 {globalState.androidApp &&
                                     <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => barcodeScanner()}>
                                         <span className='famo-text-12'>{t('key_681')}</span>
@@ -185,6 +196,7 @@ function Edit(props: any) {
         [palletID, setPalletID] = useState<any>(query.palletID),
         boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
         [isPalletOpen, setIsPalletOpen] = useState<boolean>(true),
+        [isShipped, setIsShipped] = useState<boolean>(false),
         [boxes, setBoxes] = useState<Array<PalletBox>>([]),
         [boxLoad, setBoxLoad] = useState<boolean>(false),
         [palletSave, setPalletSave] = useState<boolean>(false),
@@ -346,6 +358,9 @@ function Edit(props: any) {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                         wsSucc.json()
                             .then(data => {
+                                // Check if pallet has some shipped boxes.
+                                setIsShipped(data.some(x => { return x.IsShipped }));
+
                                 // Check if pallet is open.
                                 setIsPalletOpen(data.some(x => { return x.IsPalletOpen }));
 
@@ -421,7 +436,7 @@ function Edit(props: any) {
                                 );
                             })}
                         </div>
-                        {isPalletOpen &&
+                        {!isShipped && isPalletOpen &&
                             <div className={'famo-grid famo-buttons' + (palletSave ? ' hide' : '')}>
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
@@ -439,7 +454,7 @@ function Edit(props: any) {
                         }
                     </div>
                 </section>
-                {boxes.length > 0 &&
+                {!isShipped && boxes.length > 0 &&
                     <section className='famo-wrapper'>
                         <div className='famo-grid'>
                             <div className='famo-row'>

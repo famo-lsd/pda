@@ -3,11 +3,11 @@ import httpStatus from 'http-status';
 import Inventory from './components/inventory';
 import Pallet from './components/pallet';
 import PropTypes from 'prop-types';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import SignIn from './components/signIn';
 import { AppLoader } from './components/elements/loader';
 import { autoSignIn } from './utils/authentication';
-import { BrowserRouter, HashRouter, Route, Redirect, Switch } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Route, Redirect, Switch, useHistory } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
 import { isAndroidApp } from './utils/platform';
 import { NODE_SERVER } from './utils/variablesRepo';
@@ -82,7 +82,9 @@ PrivateRoute.propTypes = {
 
 function AutoRouteBody(props: any) {
     const { t } = props,
-        [globalState, globalActions] = useGlobal();
+        history = useHistory(),
+        [globalState, globalActions] = useGlobal(),
+        [backButton, setBackButton] = useState<boolean>(false);
 
     useEffect(() => {
         fetch(NODE_SERVER + 'Authentication/Session/User', {
@@ -110,6 +112,10 @@ function AutoRouteBody(props: any) {
             });
     }, []);
 
+    useEffect(() => {
+        setBackButton(history.location.pathname === '/' ? false : true);
+    }, [history.location.pathname]);
+
     return (
         <section className='famo-body'>
             <Switch>
@@ -118,6 +124,9 @@ function AutoRouteBody(props: any) {
                 <Route path='/Pallet' render={() => { return <Pallet />; }} />
             </Switch>
             <AppLoader hide={globalState.authUser && !globalState.loadPage} />
+            {!globalState.androidApp && backButton && <button type='button' className={'famo-button famo-normal-button pda-back-button' + (globalState.authUser && !globalState.loadPage ? '' : ' hide')} onClick={event => history.goBack()}>
+                <span className='fas fa-arrow-left'></span>
+            </button>}
         </section>
     );
 }
