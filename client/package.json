@@ -1,0 +1,69 @@
+{
+  "name": "pda-client",
+  "homepage": "./",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "classnames": "^2.2.6",
+    "http-status": "^1.4.1",
+    "i18next": "^19.0.1",
+    "i18next-xhr-backend": "^3.2.2",
+    "numeral": "^2.0.6",
+    "query-string": "^6.9.0",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "react-i18next": "^11.2.5",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "^3.3.0",
+    "use-global-hook": "^0.1.12"
+  },
+  "scripts": {
+    "copy:baseFunctions": "xcopy /s /y ..\\..\\..\\TFS\\DOTNET\\Development\\FAMO.CODE\\FAMO.CODE\\Content\\src\\baseFunctions.less src\\Content\\src",
+    "copy:baseVariables": "xcopy /s /y ..\\..\\..\\TFS\\DOTNET\\Development\\FAMO.CODE\\FAMO.CODE\\Content\\src\\baseVariables.less src\\Content\\src",
+    "copy:less": "npm run copy:baseFunctions && npm run copy:baseVariables",
+    "lint": "eslint src/Scripts/**/*",
+    "react:config": "npm run lint && less-watch-compiler --config less.config.json",
+    "react:start": "npm run react:config && react-scripts start",
+    "react:build": "npm run react:config && react-scripts build",
+    "react:test": "react-scripts test",
+    "react:eject": "react-scripts eject",
+    "build:cordova": "npm run react:build && npm run delete:cordova && npm run copy:cordova",
+    "build:cordova:android": "npm run build:cordova && cd ../cordova && cordova run android",
+    "build:cordova:release:android": "npm run build:cordova && cd ../cordova && cordova build android --release -- --keystore=famo-keystore.jks --storePassword=tiFamo112 --alias=famo_key --password=tiFamo112",
+    "build:cordova:browser": "npm run build:cordova && cd ../cordova && cordova run browser",
+    "copy:cordova": "xcopy /s build ..\\cordova\\www",
+    "delete:cordova": "rimraf ../cordova/www/*",
+    "watch:cordova:android": "watch \"npm run build:cordova:android\" src/Scripts src/Content/src",
+    "watch:cordova:browser": "watch \"npm run build:cordova:browser\" src/Scripts src/Content/src"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/jest": "24.0.23",
+    "@types/node": "12.12.14",
+    "@types/react": "16.9.14",
+    "@types/react-dom": "16.9.4",
+    "@types/use-global-hook": "^0.1.2",
+    "@typescript-eslint/eslint-plugin": "^2.10.0",
+    "@typescript-eslint/parser": "^2.10.0",
+    "eslint": "^6.7.2",
+    "less": "^3.10.3",
+    "less-watch-compiler": "^1.14.1",
+    "rimraf": "^3.0.0",
+    "typescript": "3.7.3",
+    "watch": "^1.0.2"
+  }
+}
