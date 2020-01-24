@@ -27,7 +27,8 @@ function Inventory(props: any) {
             isNumber: false,
             label: t('key_806'),
             name: 'inventoryCode',
-            value: ''
+            value: '',
+            ref: React.createRef()
         }),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [inventoryProductModal, setInventoryProductModal] = useState<boolean>(false),
@@ -72,6 +73,7 @@ function Inventory(props: any) {
             label: t('key_347'),
             name: 'quantity',
             value: '',
+            ref: React.createRef(),
             noData: false,
             wrongFormat: false,
             invalidValue: false,

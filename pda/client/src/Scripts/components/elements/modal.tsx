@@ -17,6 +17,7 @@ function Modal(props: any) {
             label: t('key_87'),
             name: 'productCode',
             value: '',
+            ref: React.createRef(),
             noData: false,
             analyze: false,
             analyzeForm: false
@@ -28,6 +29,7 @@ function Modal(props: any) {
             label: t('key_819'),
             name: 'boxCode',
             value: '',
+            ref: React.createRef(),
             noData: false,
             analyze: false,
             analyzeForm: false
@@ -83,12 +85,18 @@ function Modal(props: any) {
             if (InputTools.areAllValid(contentForm)) {
                 switch (contentType as ModalContentType) {
                     case ModalContentType.inventoryProduct:
+                    case ModalContentType.palletBox:
                         confirm(contentForm[0].value);
+                        break;
+                }
+
+                switch (contentType as ModalContentType) {
+                    case ModalContentType.inventoryProduct:
                         setVisible(false);
                         break;
                     case ModalContentType.palletBox:
-                        confirm(contentForm[0].value);
                         InputTools.resetValues(contentForm, setContentForm);
+                        contentForm[0].ref.current.focus();
                         break;
                 }
             }

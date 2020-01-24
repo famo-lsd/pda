@@ -20,20 +20,26 @@ interface AutoRouteBodyState {
 }
 
 function Routing(props: any) {
-    if (!(window as any).cordova) {
-        return (
-            <BrowserRouter basename='/'>
-                <AutoRouteBody {...props} />
-            </BrowserRouter>
-        );
-    }
-    else {
-        return (
-            <HashRouter basename='/'>
-                <AutoRouteBody {...props} />
-            </HashRouter>
-        );
-    }
+    // if (!(window as any).cordova) {
+    //     return (
+    //         <BrowserRouter basename='/'>
+    //             <AutoRouteBody {...props} />
+    //         </BrowserRouter>
+    //     );
+    // }
+    // else {
+    //     return (
+    //         <HashRouter basename='/'>
+    //             <AutoRouteBody {...props} />
+    //         </HashRouter>
+    //     );
+    // }
+
+    return (
+        <HashRouter basename='/'>
+            <AutoRouteBody {...props} />
+        </HashRouter>
+    );
 }
 
 function RouteBody() {

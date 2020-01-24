@@ -4,14 +4,14 @@
     "module": "CommonJS",
     "allowJs": false,
     "checkJs": false,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "removeComments": true,
+    "esModuleInterop": true,
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "strictNullChecks": false,
-    "esModuleInterop": true
+    "outDir": "./dist",
+    "removeComments": true,
+    "sourceMap": true,
+    "strictNullChecks": false
   },
   "include": [
     "src/**/*"

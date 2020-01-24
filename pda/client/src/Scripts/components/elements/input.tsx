@@ -10,6 +10,7 @@ export interface InputConfig {
     name: string;
     value: string;
     valueSubmit?: string;
+    ref?: any;
     noData?: boolean;
     wrongFormat?: boolean;
     invalidValue?: boolean;
@@ -18,12 +19,11 @@ export interface InputConfig {
     analyzeForm?: boolean;
 }
 
-function Input(props: any) {
+const Input = React.forwardRef((props: any, ref: any) => {
     const { t } = useTranslation(),
         { className, isDisabled, isNumber, name, value, noData, wrongFormat, invalidValue, invalidMessage, analyze, set, children } = props,
         [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
-        hasChildren = React.Children.count(children) > 0,
-        ref: React.RefObject<any> = React.createRef();
+        hasChildren = React.Children.count(children) > 0;
 
     // #region Events
     function handleKeyDown(event) {
@@ -59,7 +59,7 @@ function Input(props: any) {
 
     useEffect(() => {
         setLocalState({ noData: noData, wrongFormat: wrongFormat, invalidValue: invalidValue });
-    }, [noData, wrongFormat, invalidValue])
+    }, [noData, wrongFormat, invalidValue]);
 
     return (
         <React.Fragment>
@@ -83,7 +83,7 @@ function Input(props: any) {
                 </React.Fragment>
             }
         </React.Fragment>);
-}
+});
 
 // #region Tools
 export class InputTools {
