@@ -11,6 +11,7 @@ export interface InputConfig {
     value: string;
     valueSubmit?: string;
     ref?: any;
+    autoFocus?: boolean;
     noData?: boolean;
     wrongFormat?: boolean;
     invalidValue?: boolean;
@@ -21,7 +22,7 @@ export interface InputConfig {
 
 const Input = React.forwardRef((props: any, ref: any) => {
     const { t } = useTranslation(),
-        { className, isDisabled, isNumber, name, value, noData, wrongFormat, invalidValue, invalidMessage, analyze, set, children } = props,
+        { className, isDisabled, isNumber, name, value, autoFocus, noData, wrongFormat, invalidValue, invalidMessage, analyze, set, children } = props,
         [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
         hasChildren = React.Children.count(children) > 0;
 
@@ -61,9 +62,10 @@ const Input = React.forwardRef((props: any, ref: any) => {
         setLocalState({ noData: noData, wrongFormat: wrongFormat, invalidValue: invalidValue });
     }, [noData, wrongFormat, invalidValue]);
 
+
     return (
         <React.Fragment>
-            {!hasChildren ? <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })} /> : (
+            {!hasChildren ? <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })} /> : (
                 <select className={className + (localState.noData ? ' famo-input-error' : '')} name={name} ref={ref} disabled={isDisabled} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })}>
                     {children}
                 </select>

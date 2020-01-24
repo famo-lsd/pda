@@ -30,6 +30,7 @@ function Modal(props: any) {
             name: 'boxCode',
             value: '',
             ref: React.createRef(),
+            autoFocus: true,
             noData: false,
             analyze: false,
             analyzeForm: false
@@ -73,6 +74,20 @@ function Modal(props: any) {
     // #endregion
 
     useEffect(() => {
+        if (visibility) {
+            switch (contentType as ModalContentType) {
+                case ModalContentType.palletBox:
+                    const input = contentForm[0];
+
+                    if (input.autoFocus) {
+                        input.ref.current.focus();
+                    }
+                    break;
+            }
+        }
+    }, [visibility]);
+
+    useEffect(() => {
         setVisibility(visible);
 
         if (!visible) {
@@ -95,15 +110,20 @@ function Modal(props: any) {
                         setVisible(false);
                         break;
                     case ModalContentType.palletBox:
+                        const input = contentForm[0];
+
                         InputTools.resetValues(contentForm, setContentForm);
-                        contentForm[0].ref.current.focus();
+                        if (input.autoFocus) {
+                            input.ref.current.focus();
+                        }
+
                         break;
                 }
             }
 
             InputTools.resetValidations(contentForm, setContentForm);
         }
-    }, contentForm)
+    }, contentForm);
 
     return (
         <section className={'w3-modal famo-modal' + (visibility ? ' w3-show' : '')} onClick={event => setVisible(false)}>

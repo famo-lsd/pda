@@ -42,7 +42,8 @@ function Index(props: any) {
             label: t('key_822'),
             name: 'shipmentCode',
             value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : '',
-            ref: React.createRef()
+            ref: React.createRef(),
+            autoFocus: true
         }),
         [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
         [pallets, setPallets] = useState<Array<any>>(null),
