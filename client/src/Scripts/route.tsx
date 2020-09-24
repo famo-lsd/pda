@@ -1,3 +1,4 @@
+import Expedition from './components/expedition';
 import Home from './components/home';
 import httpStatus from 'http-status';
 import Inventory from './components/inventory';
@@ -122,6 +123,7 @@ function AutoRouteBody(props: any) {
                 <Route exact path='/' render={() => { return <Home />; }} />
                 <Route path='/Inventory' render={() => { return <Inventory />; }} />
                 <Route path='/Pallet' render={() => { return <Pallet />; }} />
+                <Route path='/Expedition' render={() => { return <Expedition />; }} />
             </Switch>
             <AppLoader hide={globalState.authUser && !globalState.loadPage} />
             {!globalState.androidApp && backButton && <button type='button' className={'famo-button famo-normal-button pda-back-button' + (globalState.authUser && !globalState.loadPage ? '' : ' hide')} onClick={event => history.goBack()}>

@@ -148,7 +148,7 @@ function Index(props: any) {
             </section>
             {(pallets || shipmentLoad) &&
                 <section className='famo-wrapper'>
-                    <Title text='Paletes' />
+                    <Title text={t('key_826')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!shipmentLoad} />
                         <div className={'famo-grid famo-content-grid pallets' + (shipmentLoad ? ' hide' : '')}>

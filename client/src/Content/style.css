@@ -1,9 +1,3 @@
-/*.applyTextSettings(@font_family, @font_size, @color) {
-    font-family: @font_family !important;
-    font-size: @font_size !important;
-    line-height: @line_height !important;
-    color: @color;
-}*/
 .famo-text-5,
 .famo-text-13 {
   font-size: 18px !important;

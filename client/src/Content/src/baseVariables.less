@@ -1,5 +1,5 @@
 ﻿//** VARIAVEIS
-//## Global
+//## Global (cor)
 @base_color: #000000;
 @base_color_lighten_1: lighten(@base_color, 20%);
 @base_color_lighten_2: lighten(@base_color, 25%);
@@ -21,11 +21,13 @@
 @color_10: #637c77; // Pagina erro
 @w3_color_1: #cccccc;
 
+//## Global (outros)
 @base_line_height: 1em;
 @border_radius: 5px;
-@box_shadow_w: 3px;
 @box_shadow: 0px 0px @box_shadow_w @base_color_lighten_4;
+@box_shadow_w: 3px;
 @line_height: 1.375em;
+@one_divided_by_three: 33.33333333% ;
 @scroll_bar_size: 17px;
 
 //## SignIn
@@ -35,12 +37,13 @@
 @famo_body_content_pad: 15px;
 @famo_body_sidebar_pad: 15px;
 @famo_body_sidebar_w: 250px;
-@famo_bootstrap_col_w: 33.33333333%;
+@famo_bootstrap_col_w: @one_divided_by_three;
 @famo_button_icon_margin: 10px;
 @famo_checkbox_radio_w_h: 20px;
 @famo_content_fa_button_w: 40px;
 @famo_content_loader_w: 40px;
 @famo_footer_h: 40px;
+@famo_group_pad_l: 25px;
 @famo_header_h: 60px;
 @famo_header_pad: 5px;
 @famo_header_code_logo_h: 30px;
@@ -52,6 +55,8 @@
 @famo_input_h: 30px;
 @famo_input_label_w: 160px;
 @famo_input_pad: 4px;
+@famo_modal_desktop_pad: 100px;
+@famo_modal_mobile_pad: 70px;
 @famo_navbar_min_h: 40px;
 @famo_ns_item_border_lb: 5px solid transparent;
 @famo_slideshow_pad: 15px;

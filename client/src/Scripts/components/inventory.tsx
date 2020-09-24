@@ -152,38 +152,6 @@ function Inventory(props: any) {
     // #endregion
 
     useEffect(() => {
-        if (globalState.authUser) {
-            fetch(NODE_SERVER + 'ERP/Inventories?timestamp=' + new Date().getTime(), {
-                method: 'GET',
-                credentials: 'include'
-            })
-                .then(wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        wsSucc.json()
-                            .then(data => {
-                                setInventories(data);
-                            })
-                            .catch(error => {
-                                promiseErrorLog(error);
-                                alert(t('key_416'));
-                            });
-                    }
-                    else {
-                        httpErrorLog(wsSucc);
-                        alert(t('key_303'));
-                    }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
-                    alert(t('key_416'));
-                })
-                .finally(() => {
-                    globalActions.setLoadPage(false);
-                });
-        }
-    }, [globalState.authUser]);
-
-    useEffect(() => {
         globalActions.setLoadPage(true);
 
         // load scripts
@@ -192,6 +160,34 @@ function Inventory(props: any) {
             loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27', sectionRef);
             loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27', sectionRef);
         }
+
+        fetch(NODE_SERVER + 'ERP/Inventories' + createQueryString({}), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    wsSucc.json()
+                        .then(data => {
+                            setInventories(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+                    alert(t('key_303'));
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                globalActions.setLoadPage(false);
+            });
 
         SessionStorage.clear();
     }, []);

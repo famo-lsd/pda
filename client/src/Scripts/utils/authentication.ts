@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import { createQueryString } from './general';
 import { httpErrorLog, promiseErrorLog } from './log';
 import { isAndroidApp } from './platform';
 import { NODE_SERVER } from './variablesRepo';
@@ -43,7 +44,7 @@ export default class Authentication {
     }
 
     static autoSignIn = async () => {
-        return fetch(NODE_SERVER + 'Authentication/AutoSignIn?timestamp=' + new Date().getTime(), {
+        return fetch(NODE_SERVER + 'Authentication/AutoSignIn' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'
         });

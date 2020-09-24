@@ -1,5 +1,5 @@
-import React from 'react';
 import globalHook, { Store } from 'use-global-hook';
+import React from 'react';
 
 interface GlobalState {
     androidApp: boolean;

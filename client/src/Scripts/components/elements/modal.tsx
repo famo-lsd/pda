@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
 import Input, { InputConfig, InputTools } from './input';
+import React, { useEffect, useState } from 'react';
 import { withTranslation } from 'react-i18next';
 
 export enum ModalContentType {

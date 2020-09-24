@@ -1,11 +1,11 @@
 export const SS_PALLET_KEY = 'SS_PALLET';
 
-interface SessionStoConfig {
+interface SessionStorageConfig {
     pallet?: boolean;
 }
 
 export class SessionStorage {
-    public static clear(config?: SessionStoConfig) {
+    public static clear(config?: SessionStorageConfig) {
         if (!config) {
             window.sessionStorage.clear();
         }

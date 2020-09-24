@@ -8,9 +8,14 @@ function Home(props: any) {
     const { t } = props,
         [redirect, setRedirection] = useState<any>({
             inventory: false,
-            pallet: false
+            pallet: false,
+            expedition: false
         }),
-        buttons: Array<any> = [{ label: t('key_806'), key: 'inventory', image: 'btn-inventario.png' }, { label: t('key_826'), key: 'pallet', image: 'btn-palete.png' }];
+        buttons: Array<any> = [
+            { label: t('key_806'), key: 'inventory', image: 'btn-inventario.png' },
+            { label: t('key_826'), key: 'pallet', image: 'btn-palete.png' },
+            { label: 'Expedição', key: 'expedition', image: 'btn-expedicao.png' }
+        ];
 
     useEffect(() => {
         SessionStorage.clear();
@@ -22,6 +27,9 @@ function Home(props: any) {
     else if (redirect.pallet) {
         return <Redirect push to='/Pallet' />;
     }
+    else if (redirect.expedition) {
+        return <Redirect push to='/Expedition' />;
+    }
     else {
         return (
             <div className='container'>
@@ -31,14 +39,14 @@ function Home(props: any) {
                             <div key={i} className='col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2'>
                                 <section className='famo-wrapper' onClick={event => setRedirection(prevState => { return { ...prevState, [x.key]: true }; })}>
                                     <div className='famo-content'>
-                                        <div className='famo-grid famo-sidebar-main-item'>
+                                        <div className='famo-grid famo-menu-item'>
                                             <div className='famo-row'>
-                                                <div className='famo-cell famo-sidebar-item-label text-center'>
+                                                <div className='famo-cell famo-menu-item-label text-center'>
                                                     <span className='famo-text-19' title={x.label}>{x.label}</span>
                                                 </div>
                                             </div>
                                             <div className='famo-row'>
-                                                <div className='famo-cell famo-sidebar-item-img text-center'>
+                                                <div className='famo-cell famo-menu-item-img text-center'>
                                                     <img src={NODE_SERVER + 'Images/' + x.image} alt={x.label} />
                                                 </div>
                                             </div>
