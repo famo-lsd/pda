@@ -145,11 +145,9 @@ function Inventory(props: any) {
         InputTools.resetValues(productForm, setProductForm);
     }
 
-    // #region Events
-    function handleRegister(event) {
+    function register(event) {
         InputTools.analyze(productForm, setProductForm);
     }
-    // #endregion
 
     useEffect(() => {
         globalActions.setLoadPage(true);
@@ -309,7 +307,7 @@ function Inventory(props: any) {
                         <div className={'famo-grid famo-buttons' + (productLoad ? ' hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    <button type='button' className='famo-button famo-confirm-button' onClick={handleRegister}>
+                                    <button type='button' className='famo-button famo-confirm-button' onClick={register}>
                                         <span className='famo-text-12'>{t('key_810')}</span>
                                     </button>
                                 </div>

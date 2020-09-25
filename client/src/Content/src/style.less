@@ -1,43 +1,79 @@
 @import "baseStyle.less";
 
-.pda-back-button {
-    padding: 15px;
-    border-radius: 50%;
-    position: fixed;
-    left: 15px;
-    bottom: 50px;
-    z-index: 100;
+@media all {
+    .pda-back-button {
+        padding: 15px;
+        border-radius: 50%;
+        position: fixed;
+        left: 15px;
+        bottom: 35px;
+        z-index: 100;
 
-    .fas {
-        .applyIcon(26px, 1em, white);
+        .fas {
+            .applyIcon(26px, 1em, white);
+        }
+    }
+
+    .pda-app-loader {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0px;
+        left: 0px;
+        background-color: #f2f2f2;
+
+        .famo-loader {
+            width: 45px;
+            margin: auto;
+        }
+    }
+
+    .pallets,
+    .shipments {
+        .famo-row:not(.famo-header-row) {
+            cursor: pointer;
+        }
+    }
+
+    .pallet-boxes {
+        .applyCol(1, @width: 100px);
+        .applyCol(3, @width: @famo_content_fa_button_w);
+
+        .button-delete-box .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+        }
+    }
+
+    .shipments {
+        .applyCol(1, @width: 130px);
+        .applyCol(3, @width: 100px);
+    }
+
+    .expedition-products {
+        .applyCol(1, @width: 85px);
+        .applyCol(2, @width: 85px);
+        .applyCol(4, @width: 80px);
     }
 }
 
-.pda-app-loader {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0px;
-    left: 0px;
-    background-color: #f2f2f2;
+//** ECRAS MUITO GRANDES
+@media screen and (max-width: (1200px - 1px)) {}
 
-    .famo-loader {
-        width: 45px;
-        margin: auto;
+//** ECRAS GRANDES
+@media screen and (max-width: (992px - 1px)) {}
+
+//** ECRAS MEDIOS
+@media screen and (max-width: (768px - 1px)) {}
+
+//** ECRAS PEQUENOS
+@media screen and (max-width: (576px - 1px)) {
+    .shipments {
+        .applyCol(1, @width: 55%);
+        .applyCol(2, none);
+        .applyCol(3, @width: 45%);
     }
-}
 
-.pallets {
-    .famo-row:not(.famo-header-row) {
-        cursor: pointer;
-    }
-}
-
-.pallet-boxes {
-    .applyCol(1, @width: 100px);
-    .applyCol(3, @width: @famo_content_fa_button_w);
-
-    .button-delete-box .fas {
-        .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+    .expedition-details .col-xl-5 {
+        display: none;
     }
 }
