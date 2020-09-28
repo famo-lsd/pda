@@ -27,7 +27,7 @@
     "react:start:stg": "npm run react:config && cross-env REACT_APP_NODE_SERVER=http://cpu-244.famo.pt:9070/ react-scripts start",
     "react:start": "npm run react:config && react-scripts start",
     "react:build:dev": "npm run react:config && cross-env REACT_APP_NODE_SERVER=http://localhost:9070/ react-scripts build",
-    "react:build:stg": "npm run react:config && cross-env REACT_APP_NODE_SERVER=http://cpu-244.famo.pt:9070/ react-scripts build",
+    "react:build:stg": "npm run react:config && cross-env REACT_APP_NODE_SERVER=http://192.168.3.108:9070/ react-scripts build",
     "react:build": "npm run react:config && react-scripts build",
     "react:test": "react-scripts test",
     "react:eject": "react-scripts eject",

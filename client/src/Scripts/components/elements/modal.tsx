@@ -11,29 +11,29 @@ function Modal(props: any) {
     const { contentType, visible, setVisible, confirm, t } = props,
         [visibility, setVisibility] = useState(visible),
         [productCode, setProductCode] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: false,
-            isNumber: false,
+            ref: React.createRef(),
             label: t('key_87'),
+            className: 'famo-input famo-text-10',
             name: 'productCode',
             value: '',
-            ref: React.createRef(),
-            noData: false,
+            isNumber: false,
+            isDisabled: false,
             analyze: false,
-            analyzeForm: false
+            localAnalyze: false,
+            noData: false
         }),
         [palletBoxCode, setPalletBoxCode] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: false,
-            isNumber: false,
+            ref: React.createRef(),
             label: t('key_819'),
+            className: 'famo-input famo-text-10',
             name: 'boxCode',
             value: '',
-            ref: React.createRef(),
             autoFocus: true,
-            noData: false,
+            isNumber: false,
+            isDisabled: false,
             analyze: false,
-            analyzeForm: false
+            localAnalyze: false,
+            noData: false
         }),
         contentForm: Array<InputConfig> = (() => {
             switch (contentType as ModalContentType) {
@@ -96,8 +96,8 @@ function Modal(props: any) {
     }, [visible]);
 
     useEffect(() => {
-        if (InputTools.areAllAnalyzed(contentForm)) {
-            if (InputTools.areAllValid(contentForm)) {
+        if (InputTools.areAnalyzed(contentForm)) {
+            if (InputTools.areValid(contentForm)) {
                 switch (contentType as ModalContentType) {
                     case ModalContentType.inventoryProduct:
                     case ModalContentType.palletBox:

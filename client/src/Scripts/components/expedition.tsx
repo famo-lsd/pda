@@ -2,13 +2,15 @@ import httpStatus from 'http-status';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
+import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
+import Input, { InputConfig } from './elements/input';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { Route, Redirect, Switch, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
-import { useTranslation, withTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 interface Shipment {
     Code: string;
@@ -24,6 +26,10 @@ interface ShipmentProduct {
     ProductDescription: string;
     BoxesNum: number;
     Status: number;
+}
+
+interface Box {
+    Code: string;
 }
 
 function Expedition() {
@@ -121,13 +127,132 @@ function Index(props: any) {
 function Edit(props: any) {
     const { t } = useTranslation(),
         { location } = props,
-        [, globalActions] = useGlobal(),
+        [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         shipmentCode = query.shipmentCode,
-        [totalBoxes, setTotalBoxes] = useState<number>(0),
+        [boxCode, setBoxCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: t('key_819'),
+            className: 'famo-input famo-text-10',
+            name: 'boxCode',
+            value: '',
+            autoFocus: true,
+            isNumber: false,
+            isDisabled: false
+        }),
+        [boxLoad, setBoxLoad] = useState<boolean>(false),
+        [boxes, setBoxes] = useState<Array<Box>>([]),
         mainHeader: Array<string> = [t('key_179'), t('key_54'), t('key_138'), 'Box\'s'],
-        readyToLoadHeader: Array<string> = [t('key_819')],
+        readyToLoadHeader: Array<string> = [t('key_819'), ''],
         [shipmentProducts, setShipmentProducts] = useState<Array<ShipmentProduct>>([]);
+
+    function cleanBoxCode() {
+        setBoxCode(prevState => { return { ...prevState, value: '' } });
+        boxCode.ref.current.focus();
+    }
+
+    function addBox() {
+        if (boxCode.value.startsWith('PL')) {
+            const matchPalletCode = boxCode.value.match(/(?<=PL).*(?=\/)/g);
+
+            setBoxLoad(true);
+
+            fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
+                shipmentCode: query.shipmentCode,
+                palletID: matchPalletCode ? parseInt(matchPalletCode[0]) : -1
+            }), {
+                method: 'GET',
+                credentials: 'include'
+            })
+                .then(wsSucc => {
+                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                        wsSucc.json()
+                            .then(data => {
+                                (data as Array<Box>).forEach(x => {
+                                    if (boxes.some(y => { return y.Code !== x.Code; })) {
+                                        setBoxes([x, ...boxes]);
+                                    }
+                                });
+                            })
+                            .catch(error => {
+                                promiseErrorLog(error);
+                                alert(t('key_416'));
+                            });
+                    }
+                    else {
+                        httpErrorLog(wsSucc);
+
+                        if (wsSucc.status === httpStatus.NOT_FOUND) {
+                            alert('A palete não está associada ao envio.')
+                        }
+                        else {
+                            alert(t('key_303'));
+                        }
+                    }
+                })
+                .catch(wsErr => {
+                    promiseErrorLog(wsErr);
+                    alert(t('key_416'));
+                })
+                .finally(() => {
+                    setBoxLoad(false);
+                });
+        }
+        else {
+            if (boxes.some(x => { return x.Code === boxCode.value; })) {
+                alert('A embalagem já está pronta a carregar.');
+            }
+            else {
+                setBoxLoad(true);
+
+                fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
+                    shipmentCode: query.shipmentCode,
+                    boxCode: boxCode.value
+                }), {
+                    method: 'GET',
+                    credentials: 'include'
+                })
+                    .then(wsSucc => {
+                        if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                            wsSucc.json()
+                                .then(data => {
+                                    setBoxes([(data as Box), ...boxes]);
+                                })
+                                .catch(error => {
+                                    promiseErrorLog(error);
+                                    alert(t('key_416'));
+                                });
+                        }
+                        else {
+                            httpErrorLog(wsSucc);
+
+                            if (wsSucc.status === httpStatus.NOT_FOUND) {
+                                alert('A embalagem não está associada ao envio.');
+                            }
+                            else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                                alert(t('key_828'));
+                            }
+                            else {
+                                alert(t('key_303'));
+                            }
+                        }
+                    })
+                    .catch(wsErr => {
+                        promiseErrorLog(wsErr);
+                        alert(t('key_416'));
+                    })
+                    .finally(() => {
+                        setBoxLoad(false);
+                    });
+            }
+        }
+    }
+
+    function deleteBox(code: string) {
+        if (window.confirm('Tem a certeza que pretende eliminar a embalagem?')) {
+            setBoxes(boxes.filter(x => { return x.Code !== code; }));
+        }
+    }
 
     useEffect(() => {
         globalActions.setLoadPage(true);
@@ -165,6 +290,35 @@ function Edit(props: any) {
 
     return (
         <React.Fragment>
+            <section className='famo-wrapper'>
+                <div className='famo-content'>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); addBox(); }}>
+                        <div className='famo-row'>
+                            <div className='famo-cell famo-input-label'>
+                                <span className='famo-text-11'>{t('key_819')}</span>
+                            </div>
+                            <div className='famo-cell'>
+                                <Input {...boxCode} set={setBoxCode} />
+                            </div>
+                        </div>
+                        <input type='submit' className='hide' value='' />
+                    </form>
+                    <div className='famo-grid famo-buttons'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                {!globalState.androidApp &&
+                                    <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => cleanBoxCode()}>
+                                        <span className='famo-text-12'>{t('key_829')}</span>
+                                    </button>
+                                }
+                                <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => addBox()}>
+                                    <span className='famo-text-12'>{t('key_815')}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             <section className='container famo-wrapper expedition-details'>
                 <div className='row'>
                     <div className='col-12 col-xl-5'>
@@ -213,7 +367,8 @@ function Edit(props: any) {
                                 <span className='famo-text-13'>Pronto p/carregar</span>
                             </div>
                             <div className='famo-content'>
-                                <div className='famo-grid famo-content-grid expedition-packages'>
+                                <ContentLoader hide={!boxLoad} />
+                                <div className={'famo-grid famo-content-grid expedition-boxes' + (boxLoad ? ' hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {readyToLoadHeader.map((x, i) => {
                                             return (
@@ -223,6 +378,20 @@ function Edit(props: any) {
                                             );
                                         })}
                                     </div>
+                                    {boxes.map((x, i) => {
+                                        return (
+                                            <div key={i} className='famo-row famo-body-row'>
+                                                <div className='famo-cell famo-col-1'>
+                                                    <span className='famo-text-10'>{x.Code}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-2'>
+                                                    <button type='button' className='famo-button famo-cancel-button button-delete-box' onClick={event => deleteBox(x.Code)}>
+                                                        <span className='fas fa-trash-alt'></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </section>

@@ -3,21 +3,21 @@ import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/numeral';
 import { useTranslation } from 'react-i18next';
 
 export interface InputConfig {
-    className: string;
-    isDisabled: boolean;
-    isNumber: boolean;
+    ref?: any;
     label: string;
+    className: string;
     name: string;
     value: string;
-    valueSubmit?: string;
-    ref?: any;
+    valueSubmitted?: string;
     autoFocus?: boolean;
+    isNumber: boolean;
+    isDisabled: boolean;
+    analyze?: boolean;
+    localAnalyze?: boolean;
     noData?: boolean;
     wrongFormat?: boolean;
     invalidValue?: boolean;
     invalidMessage?: string;
-    analyze?: boolean;
-    analyzeForm?: boolean;
 }
 
 const Input = React.forwardRef((props: any, ref: any) => {
@@ -36,25 +36,25 @@ const Input = React.forwardRef((props: any, ref: any) => {
 
     useEffect(() => {
         if (!isDisabled && analyze) {
-            let valueLt = value;
+            let localValue = value;
 
             set(prevState => { return { ...prevState, noData: false, wrongFormat: false, invalidValue: false } });
 
-            if (!valueLt) {
+            if (!localValue) {
                 set(prevState => { return { ...prevState, noData: true, wrongFormat: false, invalidValue: false } });
             }
-            else if (isNumber && valueLt) {
-                valueLt = convertNumeralToJS(valueLt);
+            else if (isNumber && localValue) {
+                localValue = convertNumeralToJS(localValue);
 
-                if (isNaN(valueLt)) {
+                if (isNaN(localValue)) {
                     set(prevState => { return { ...prevState, noData: false, wrongFormat: true, invalidValue: false } });
                 }
-                else if (parseFloat(valueLt) <= 0) {
+                else if (parseFloat(localValue) <= 0) {
                     set(prevState => { return { ...prevState, noData: false, wrongFormat: false, invalidValue: true } });
                 }
             }
 
-            set(prevState => { return { ...prevState, analyzeForm: true } });
+            set(prevState => { return { ...prevState, localAnalyze: true } });
         }
     }, [analyze]);
 
@@ -97,11 +97,11 @@ export class InputTools {
         });
     }
 
-    public static areAllAnalyzed(inputs: Array<InputConfig>): boolean {
-        return !inputs.filter(x => { return !x.isDisabled; }).some(x => { return !x.analyzeForm; });
+    public static areAnalyzed(inputs: Array<InputConfig>): boolean {
+        return !inputs.filter(x => { return !x.isDisabled; }).some(x => { return !x.localAnalyze; });
     }
 
-    public static areAllValid(inputs: Array<InputConfig>): boolean {
+    public static areValid(inputs: Array<InputConfig>): boolean {
         return !inputs.filter(x => { return !x.isDisabled; }).some(x => { return x.noData || x.wrongFormat || x.invalidValue });
     }
 
@@ -111,30 +111,30 @@ export class InputTools {
 
     public static popUpAlerts(inputs: Array<InputConfig>, t: Function) {
         if (inputs.some(x => { return x.noData; })) {
-            InputAlert.noDataAlert(t);
+            InputAlert.noData(t);
         }
 
         if (inputs.some(x => { return x.wrongFormat; })) {
-            InputAlert.wrongFormatAlert(inputs.filter(x => { return x.wrongFormat; }).map(x => { return x.label; }), t);
+            InputAlert.wrongFormat(inputs.filter(x => { return x.wrongFormat; }).map(x => { return x.label; }), t);
         }
 
         if (inputs.some(x => { return x.invalidValue; })) {
-            InputAlert.invalidValuesAlert(inputs.filter(x => { return x.invalidValue; }).map(x => { return x.label; }), t);
+            InputAlert.invalidValue(inputs.filter(x => { return x.invalidValue; }).map(x => { return x.label; }), t);
         }
-    }
-
-    public static resetValues(inputs: Array<InputConfig>, setInputs: Array<any>) {
-        inputs.forEach((x, i) => {
-            if (!x.isDisabled) {
-                setInputs[i](prevState => { return { ...prevState, value: '', noData: false, wrongFormat: false, invalidValue: false, analyze: false, analyzeForm: false } });
-            }
-        });
     }
 
     public static resetValidations(inputs: Array<InputConfig>, setInputs: Array<any>) {
         inputs.forEach((x, i) => {
             if (!x.isDisabled) {
-                setInputs[i](prevState => { return { ...prevState, analyze: false, analyzeForm: false } });
+                setInputs[i](prevState => { return { ...prevState, analyze: false, localAnalyze: false } });
+            }
+        });
+    }
+
+    public static resetValues(inputs: Array<InputConfig>, setInputs: Array<any>) {
+        inputs.forEach((x, i) => {
+            if (!x.isDisabled) {
+                setInputs[i](prevState => { return { ...prevState, value: '', noData: false, wrongFormat: false, invalidValue: false, analyze: false, selfAnalyze: false } });
             }
         });
     }
@@ -143,7 +143,7 @@ export class InputTools {
 
 // #region Alert
 export class InputAlert {
-    public static invalidValuesAlert(inputs: Array<string>, t: Function) {
+    public static invalidValue(inputs: Array<string>, t: Function) {
         let message = t('key_192');
 
         for (let i = 0, len = inputs.length; i < len; i++) {
@@ -160,11 +160,11 @@ export class InputAlert {
         alert(message);
     }
 
-    public static noDataAlert(t: Function) {
+    public static noData(t: Function) {
         alert(t('key_197'));
     }
 
-    public static wrongFormatAlert(inputs: Array<string>, t: Function) {
+    public static wrongFormat(inputs: Array<string>, t: Function) {
         let message = t('key_191');
 
         for (let i = 0, len = inputs.length; i < len; i++) {

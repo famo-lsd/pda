@@ -63,7 +63,22 @@
     width: 105px;
   }
   .expedition-products .famo-col-4 {
-    width: 100px;
+    width: 70px;
+  }
+  .expedition-products .famo-body-row .famo-cell-3 span {
+    display: inline-block;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    word-break: break-word;
+  }
+  .expedition-boxes .famo-col-2 {
+    width: 60px;
+  }
+  .expedition-boxes .button-delete-box .fas {
+    font-size: 14px !important;
+    line-height: 1em !important;
+    color: #ffffff;
   }
 }
 @media screen and (max-width: 575px) {

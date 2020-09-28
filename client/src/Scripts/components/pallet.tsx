@@ -14,7 +14,7 @@ import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { withRouter, Route, Redirect, Switch } from 'react-router-dom';
 
-interface PalletBox {
+interface Box {
     Code: string;
     OrderCode: string;
     isNew: boolean;
@@ -36,14 +36,14 @@ function Index(props: any) {
         [globalState,] = useGlobal(),
         hasSessionStorageItem = window.sessionStorage.getItem(SS_PALLET_KEY),
         [shipmentCode, setShipmentCode] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: false,
-            isNumber: false,
+            ref: React.createRef(),
             label: t('key_822'),
+            className: 'famo-input famo-text-10',
             name: 'shipmentCode',
             value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : '',
-            ref: React.createRef(),
-            autoFocus: true
+            autoFocus: true,
+            isNumber: false,
+            isDisabled: false
         }),
         [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
         [pallets, setPallets] = useState<Array<any>>(null),
@@ -75,7 +75,7 @@ function Index(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
                         .then(data => {
-                            setShipmentCode(prevState => { return { ...prevState, valueSubmit: code } });
+                            setShipmentCode(prevState => { return { ...prevState, valueSubmitted: code } });
                             setPallets(data);
                         })
                         .catch(error => {
@@ -98,8 +98,8 @@ function Index(props: any) {
     }
 
     function editPallet(palletID?: number) {
-        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCode.valueSubmit }));
-        history.push('/Pallet/Edit?shipmentCode=' + shipmentCode.valueSubmit + (palletID ? '&palletID=' + palletID : ''));
+        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCode.valueSubmitted }));
+        history.push('/Pallet/Edit?shipmentCode=' + shipmentCode.valueSubmitted + (palletID ? '&palletID=' + palletID : ''));
     }
 
     useEffect(() => {
@@ -198,7 +198,7 @@ function Edit(props: any) {
         boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
         [isPalletOpen, setIsPalletOpen] = useState<boolean>(true),
         [isShipped, setIsShipped] = useState<boolean>(false),
-        [boxes, setBoxes] = useState<Array<PalletBox>>([]),
+        [boxes, setBoxes] = useState<Array<Box>>([]),
         [boxLoad, setBoxLoad] = useState<boolean>(false),
         [palletSave, setPalletSave] = useState<boolean>(false),
         [palletStatusChange, setPalletStatusChange] = useState<boolean>(false),
@@ -206,11 +206,11 @@ function Edit(props: any) {
 
     function barcodeScanner() {
         barcodeScan((result) => {
-            getShipmentBox(result.text);
+            addBox(result.text);
         }, t);
     }
 
-    function getShipmentBox(code: string) {
+    function addBox(code: string) {
         if (boxes.some(x => { return x.Code === code; })) {
             alert(t('key_814'));
         }
@@ -229,7 +229,7 @@ function Edit(props: any) {
                         wsSucc.json()
                             .then(data => {
                                 // Add property isNew.
-                                (data as PalletBox).isNew = true;
+                                (data as Box).isNew = true;
                                 setBoxes([...boxes, data]);
                             })
                             .catch(error => {
@@ -241,7 +241,7 @@ function Edit(props: any) {
                         httpErrorLog(wsSucc);
 
                         if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            alert(t('key_824'));
+                            alert('A embalagem não está associada ao envio.');
                         }
                         else if (wsSucc.status === httpStatus.FORBIDDEN) {
                             alert(t('key_828'));
@@ -262,7 +262,9 @@ function Edit(props: any) {
     }
 
     function deleteBox(code: string) {
-        setBoxes(boxes.filter(x => { return x.Code !== code; }));
+        if (window.confirm('Tem a certeza que pretende eliminar a embalagem?')) {
+            setBoxes(boxes.filter(x => { return x.Code !== code; }));
+        }
     }
 
     function savePallet() {
@@ -270,7 +272,7 @@ function Edit(props: any) {
 
         fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
             shipmentCode: query.shipmentCode,
-            palletID: !palletID ? '' : palletID
+            palletID: !palletID ? -1 : palletID
         }), {
             method: 'PUT',
             headers: {
@@ -313,10 +315,10 @@ function Edit(props: any) {
         else {
             setPalletStatusChange(true);
 
-            fetch(NODE_SERVER + 'ERP/Pallets/' + (isPalletOpen ? 'Close' : 'Reopen') + createQueryString({
+            fetch(NODE_SERVER + 'ERP/Pallets/' + (isPalletOpen ? 'Close' : 'Reopen') + createQueryString(isPalletOpen ? {
                 shipmentCode: query.shipmentCode,
-                palletID: !palletID ? '' : palletID
-            }), {
+                palletID: !palletID ? -1 : palletID
+            } : { palletID: !palletID ? -1 : palletID }), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -366,7 +368,7 @@ function Edit(props: any) {
                                 setIsPalletOpen(data.some(x => { return x.IsPalletOpen }));
 
                                 // Add property isNew.
-                                (data as Array<PalletBox>).forEach(x => { x.isNew = false; });
+                                (data as Array<Box>).forEach(x => { x.isNew = false; });
                                 setBoxes(data);
                             })
                             .catch(error => {
@@ -484,7 +486,7 @@ function Edit(props: any) {
                         </div>
                     </section>
                 }
-                <Modal contentType={ModalContentType.palletBox} visible={palletBoxModal} setVisible={setPalletBoxModal} confirm={getShipmentBox} />
+                <Modal contentType={ModalContentType.palletBox} visible={palletBoxModal} setVisible={setPalletBoxModal} confirm={addBox} />
             </React.Fragment>
         );
     }

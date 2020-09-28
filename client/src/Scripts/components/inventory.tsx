@@ -22,64 +22,64 @@ function Inventory(props: any) {
     const { t } = props,
         [globalState, globalActions] = useGlobal(),
         [inventoryCode, setInventoryCode] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: false,
-            isNumber: false,
+            ref: React.createRef(),
             label: t('key_806'),
+            className: 'famo-input famo-text-10',
             name: 'inventoryCode',
             value: '',
-            ref: React.createRef()
+            isNumber: false,
+            isDisabled: false
         }),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [inventoryProductModal, setInventoryProductModal] = useState<boolean>(false),
         [productLoad, setProductLoad] = useState<boolean>(false),
         [product, setProduct] = useState(null),
         [productCode, setProductCode] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: true,
-            isNumber: false,
             label: t('key_87'),
+            className: 'famo-input famo-text-10',
             name: 'productCode',
-            value: ''
+            value: '',
+            isNumber: false,
+            isDisabled: true
         }),
         [productVariantCode, setProductVariantCode] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: true,
-            isNumber: false,
             label: t('key_464'),
+            className: 'famo-input famo-text-10',
             name: 'productVariantCode',
-            value: ''
+            value: '',
+            isNumber: false,
+            isDisabled: true
         }),
         [productDescription, setProductDescription] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: true,
-            isNumber: false,
             label: t('key_138'),
+            className: 'famo-input famo-text-10',
             name: 'productDescription',
-            value: ''
+            value: '',
+            isNumber: false,
+            isDisabled: true
         }),
         [locationCode, setLocationCode] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: true,
-            isNumber: false,
             label: t('key_751'),
+            className: 'famo-input famo-text-10',
             name: 'locationCode',
-            value: ''
+            value: '',
+            isNumber: false,
+            isDisabled: true
         }),
         [quantity, setQuantity] = useState<InputConfig>({
-            className: 'famo-input famo-text-10',
-            isDisabled: false,
-            isNumber: true,
+            ref: React.createRef(),
             label: t('key_347'),
+            className: 'famo-input famo-text-10',
             name: 'quantity',
             value: '',
-            ref: React.createRef(),
+            isNumber: true,
+            isDisabled: false,
+            analyze: false,
+            localAnalyze: false,
             noData: false,
             wrongFormat: false,
             invalidValue: false,
-            invalidMessage: t('key_13'),
-            analyze: false,
-            analyzeForm: false
+            invalidMessage: t('key_13')
         }),
         productForm: Array<InputConfig> = [productCode, productVariantCode, productDescription, locationCode, quantity],
         setProductForm: Array<any> = [setProductCode, setProductVariantCode, setProductDescription, setLocationCode, setQuantity],
@@ -145,7 +145,7 @@ function Inventory(props: any) {
         InputTools.resetValues(productForm, setProductForm);
     }
 
-    function register(event) {
+    function changeQuantity(event) {
         InputTools.analyze(productForm, setProductForm);
     }
 
@@ -195,8 +195,8 @@ function Inventory(props: any) {
     }, [inventoryCode]);
 
     useEffect(() => {
-        if (InputTools.areAllAnalyzed(productForm)) {
-            if (InputTools.areAllValid(productForm)) {
+        if (InputTools.areAnalyzed(productForm)) {
+            if (InputTools.areValid(productForm)) {
                 setProductLoad(true);
 
                 fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
@@ -233,7 +233,6 @@ function Inventory(props: any) {
 
             InputTools.resetValidations(productForm, setProductForm);
         }
-
     }, productForm);
 
     return (
@@ -307,7 +306,7 @@ function Inventory(props: any) {
                         <div className={'famo-grid famo-buttons' + (productLoad ? ' hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    <button type='button' className='famo-button famo-confirm-button' onClick={register}>
+                                    <button type='button' className='famo-button famo-confirm-button' onClick={changeQuantity}>
                                         <span className='famo-text-12'>{t('key_810')}</span>
                                     </button>
                                 </div>

@@ -52,7 +52,19 @@
     .expedition-products {
         .applyCol(1, @width: 85px);
         .applyCol(2, @width: 85px);
-        .applyCol(4, @width: 80px);
+        .applyCol(4, @width: 50px);
+
+        .famo-body-row .famo-cell-3 span {
+            .applyWordWrapping();
+        }
+    }
+
+    .expedition-boxes {
+        .applyCol(2, @width: @famo_content_fa_button_w);
+
+        .button-delete-box .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+        }
     }
 }
 
