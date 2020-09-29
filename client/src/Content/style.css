@@ -19,7 +19,7 @@
     z-index: 100;
   }
   .pda-back-button .fas {
-    font-size: 26px !important;
+    font-size: 24px !important;
     line-height: 1em !important;
     color: white;
   }
@@ -54,18 +54,19 @@
     width: 150px;
   }
   .shipments .famo-col-3 {
-    width: 120px;
+    width: 95px;
   }
   .expedition-products .famo-col-1 {
-    width: 105px;
+    width: 95px;
   }
   .expedition-products .famo-col-2 {
-    width: 105px;
+    width: 100px;
   }
   .expedition-products .famo-col-4 {
-    width: 70px;
+    width: 95px;
   }
-  .expedition-products .famo-body-row .famo-cell-3 span {
+  .expedition-products .famo-body-row .famo-col-2 span,
+  .expedition-products .famo-body-row .famo-col-3 span {
     display: inline-block;
     overflow-wrap: break-word;
     word-wrap: break-word;

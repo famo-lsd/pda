@@ -14,6 +14,10 @@ import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { withRouter, Route, Redirect, Switch } from 'react-router-dom';
 
+interface Pallet {
+    ID: number;
+}
+
 interface Box {
     Code: string;
     OrderCode: string;
@@ -46,13 +50,13 @@ function Index(props: any) {
             isDisabled: false
         }),
         [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
-        [pallets, setPallets] = useState<Array<any>>(null),
-        palletsHeader: Array<string> = [t('key_279')];
+        palletsHeader: Array<string> = [t('key_279')],
+        [pallets, setPallets] = useState<Array<Pallet>>(null);
 
     function barcodeScanner() {
         barcodeScan((result) => {
             setShipmentCode(prevState => { return { ...prevState, value: result.text } });
-            getShipment(result.text);
+            getPallets(result.text);
         }, t);
     }
 
@@ -61,12 +65,12 @@ function Index(props: any) {
         shipmentCode.ref.current.focus();
     }
 
-    function getShipment(code: string) {
+    function getPallets(shipmentCode: string) {
         setShipmentLoad(true);
         setPallets(null);
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
-            shipmentCode: code
+            shipmentCode: shipmentCode
         }), {
             method: 'GET',
             credentials: 'include'
@@ -75,7 +79,7 @@ function Index(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     wsSucc.json()
                         .then(data => {
-                            setShipmentCode(prevState => { return { ...prevState, valueSubmitted: code } });
+                            setShipmentCode(prevState => { return { ...prevState, valueSubmitted: shipmentCode } });
                             setPallets(data);
                         })
                         .catch(error => {
@@ -104,7 +108,7 @@ function Index(props: any) {
 
     useEffect(() => {
         if (hasSessionStorageItem) {
-            getShipment(shipmentCode.value);
+            getPallets(shipmentCode.value);
         }
 
         SessionStorage.clear();
@@ -114,7 +118,7 @@ function Index(props: any) {
         <React.Fragment>
             <section className='famo-wrapper'>
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid' noValidate onSubmit={event => { event.preventDefault(); getShipment(shipmentCode.value); }}>
+                    <form className='famo-grid famo-form-grid' noValidate onSubmit={event => { event.preventDefault(); getPallets(shipmentCode.value); }}>
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
                                 <span className='famo-text-11'>{shipmentCode.label}</span>
@@ -128,17 +132,15 @@ function Index(props: any) {
                     <div className='famo-grid famo-buttons'>
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
-                                {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => cleanShipmentCode()}>
-                                        <span className='famo-text-12'>{t('key_829')}</span>
-                                    </button>
-                                }
                                 {globalState.androidApp &&
                                     <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => barcodeScanner()}>
                                         <span className='famo-text-12'>{t('key_681')}</span>
                                     </button>
                                 }
-                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => getShipment(shipmentCode.value)}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => cleanShipmentCode()}>
+                                    <span className='famo-text-12'>{t('key_829')}</span>
+                                </button>
+                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => getPallets(shipmentCode.value)}>
                                     <span className='famo-text-12'>{t('key_323')}</span>
                                 </button>
                             </div>

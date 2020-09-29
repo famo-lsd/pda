@@ -10,7 +10,7 @@
         z-index: 100;
 
         .fas {
-            .applyIcon(26px, 1em, white);
+            .applyIcon(24px, 1em, white);
         }
     }
 
@@ -46,16 +46,21 @@
 
     .shipments {
         .applyCol(1, @width: 130px);
-        .applyCol(3, @width: 100px);
+        .applyCol(3, @width: 75px);
     }
 
     .expedition-products {
-        .applyCol(1, @width: 85px);
-        .applyCol(2, @width: 85px);
-        .applyCol(4, @width: 50px);
+        .applyCol(1, @width: 75px);
+        .applyCol(2, @width: 80px);
+        .applyCol(4, @width: 75px);
 
-        .famo-body-row .famo-cell-3 span {
-            .applyWordWrapping();
+        .famo-body-row {
+            .famo-col-2,
+            .famo-col-3 {
+                span {
+                    .applyWordWrapping();
+                }
+            }
         }
     }
 

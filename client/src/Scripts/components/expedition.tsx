@@ -141,10 +141,10 @@ function Edit(props: any) {
             isDisabled: false
         }),
         [boxLoad, setBoxLoad] = useState<boolean>(false),
-        [boxes, setBoxes] = useState<Array<Box>>([]),
-        mainHeader: Array<string> = [t('key_179'), t('key_54'), t('key_138'), 'Box\'s'],
-        readyToLoadHeader: Array<string> = [t('key_819'), ''],
-        [shipmentProducts, setShipmentProducts] = useState<Array<ShipmentProduct>>([]);
+        mainHeader: Array<string> = [t('key_179'), t('key_54'), t('key_138'), t('key_820')],
+        readyToLoadHeader: Array<string> = [t('key_820'), ''],
+        [shipmentProducts, setShipmentProducts] = useState<Array<ShipmentProduct>>(null),
+        [boxes, setBoxes] = useState<Array<Box>>(null);
 
     function cleanBoxCode() {
         setBoxCode(prevState => { return { ...prevState, value: '' } });
@@ -195,11 +195,12 @@ function Edit(props: any) {
                     alert(t('key_416'));
                 })
                 .finally(() => {
+                    cleanBoxCode();
                     setBoxLoad(false);
                 });
         }
         else {
-            if (boxes.some(x => { return x.Code === boxCode.value; })) {
+            if (boxes && boxes.some(x => { return x.Code === boxCode.value; })) {
                 alert('A embalagem já está pronta a carregar.');
             }
             else {
@@ -230,6 +231,15 @@ function Edit(props: any) {
                                 alert('A embalagem não está associada ao envio.');
                             }
                             else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                                wsSucc.json()
+                                    .then(data => {
+                                        console.log(data);
+                                    })
+                                    .catch(error => {
+                                        promiseErrorLog(error);
+                                        alert(t('key_416'));
+                                    });
+
                                 alert(t('key_828'));
                             }
                             else {
@@ -242,6 +252,7 @@ function Edit(props: any) {
                         alert(t('key_416'));
                     })
                     .finally(() => {
+                        cleanBoxCode();
                         setBoxLoad(false);
                     });
             }
@@ -293,6 +304,30 @@ function Edit(props: any) {
             <section className='famo-wrapper'>
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); addBox(); }}>
+                        {!globalState.androidApp &&
+                            <div className='famo-row'>
+                                <div className='famo-cell famo-input-label'>
+                                    <span className='famo-text-11'>{t('key_822')}</span>
+                                </div>
+                                <div className='famo-cell'>
+                                    <div className='famo-input'>
+                                        <span className='famo-text-10'>{query.shipmentCode}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        {!globalState.androidApp && shipmentProducts &&
+                            <div className='famo-row'>
+                                <div className='famo-cell famo-input-label'>
+                                    <span className='famo-text-11'>{t('key_820')}</span>
+                                </div>
+                                <div className='famo-cell'>
+                                    <div className='famo-input'>
+                                        <span className='famo-text-10 famo-color-green'>{shipmentProducts.reduce((total, x) => { return x.Status === 1 ? total + x.BoxesNum : total; }, 0)}</span><span className='famo-text-10'>/{shipmentProducts.reduce((total, x) => { return total + x.BoxesNum; }, 0)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
                                 <span className='famo-text-11'>{t('key_819')}</span>
@@ -306,14 +341,14 @@ function Edit(props: any) {
                     <div className='famo-grid famo-buttons'>
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => cleanBoxCode()}>
+                                    <span className='famo-text-12'>{t('key_829')}</span>
+                                </button>
                                 {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => cleanBoxCode()}>
-                                        <span className='famo-text-12'>{t('key_829')}</span>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => addBox()}>
+                                        <span className='famo-text-12'>{t('key_815')}</span>
                                     </button>
                                 }
-                                <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => addBox()}>
-                                    <span className='famo-text-12'>{t('key_815')}</span>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -337,7 +372,7 @@ function Edit(props: any) {
                                             );
                                         })}
                                     </div>
-                                    {shipmentProducts.filter(x => {
+                                    {shipmentProducts && shipmentProducts.filter(x => {
                                         return x.Status === 0;
                                     }).map((x, i) => {
                                         return (
@@ -373,12 +408,12 @@ function Edit(props: any) {
                                         {readyToLoadHeader.map((x, i) => {
                                             return (
                                                 <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
-                                                    <span className='famo-text-11'>{x}</span>
+                                                    <span className='famo-text-11'>{x + (i === 0 ? (' (' + (boxes ? boxes.length : 0) + ')') : '')}</span>
                                                 </div>
                                             );
                                         })}
                                     </div>
-                                    {boxes.map((x, i) => {
+                                    {boxes && boxes.map((x, i) => {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
                                                 <div className='famo-cell famo-col-1'>
@@ -412,7 +447,7 @@ function Edit(props: any) {
                                             );
                                         })}
                                     </div>
-                                    {shipmentProducts.filter(x => {
+                                    {shipmentProducts && shipmentProducts.filter(x => {
                                         return x.Status === 1;
                                     }).map((x, i) => {
                                         return (
