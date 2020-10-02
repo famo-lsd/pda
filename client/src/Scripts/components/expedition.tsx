@@ -60,9 +60,9 @@ function Index(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(wsSucc => {
+            .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    wsSucc.json()
+                    await wsSucc.json()
                         .then(data => {
                             setShipments(data);
                         })
@@ -102,7 +102,7 @@ function Index(props: any) {
                                 );
                             })}
                         </div>
-                        {shipments && shipments.map((x, i) => {
+                        {shipments.map((x, i) => {
                             return (
                                 <div key={i} className='famo-row famo-body-row' onClick={event => editExpedition(x.Code)}>
                                     <div className='famo-cell famo-col-1'>
@@ -126,10 +126,11 @@ function Index(props: any) {
 
 function Edit(props: any) {
     const { t } = useTranslation(),
-        { location } = props,
+        { location, history } = props,
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         shipmentCode = query.shipmentCode,
+        [shipment, setShipment] = useState<Shipment>(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
             label: t('key_819'),
@@ -140,14 +141,15 @@ function Edit(props: any) {
             isNumber: false,
             isDisabled: false
         }),
-        [boxLoad, setBoxLoad] = useState<boolean>(false),
         mainHeader: Array<string> = [t('key_179'), t('key_54'), t('key_138'), t('key_820')],
+        [shipmentProducts, setShipmentProducts] = useState<Array<ShipmentProduct>>([]),
         readyToLoadHeader: Array<string> = [t('key_820'), ''],
-        [shipmentProducts, setShipmentProducts] = useState<Array<ShipmentProduct>>(null),
-        [boxes, setBoxes] = useState<Array<Box>>(null);
+        [boxes, setBoxes] = useState<Array<Box>>([]),
+        [loadBox, setLoadBox] = useState<boolean>(false),
+        [saveBoxes, setSaveBoxes] = useState<boolean>(false);
 
     function cleanBoxCode() {
-        setBoxCode(prevState => { return { ...prevState, value: '' } });
+        setBoxCode(x => { return { ...x, value: '' }; });
         boxCode.ref.current.focus();
     }
 
@@ -155,7 +157,7 @@ function Edit(props: any) {
         if (boxCode.value.startsWith('PL')) {
             const matchPalletCode = boxCode.value.match(/(?<=PL).*(?=\/)/g);
 
-            setBoxLoad(true);
+            setLoadBox(true);
 
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
                 shipmentCode: query.shipmentCode,
@@ -164,9 +166,9 @@ function Edit(props: any) {
                 method: 'GET',
                 credentials: 'include'
             })
-                .then(wsSucc => {
+                .then(async wsSucc => {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        wsSucc.json()
+                        await wsSucc.json()
                             .then(data => {
                                 (data as Array<Box>).forEach(x => {
                                     if (boxes.some(y => { return y.Code !== x.Code; })) {
@@ -181,13 +183,7 @@ function Edit(props: any) {
                     }
                     else {
                         httpErrorLog(wsSucc);
-
-                        if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            alert('A palete não está associada ao envio.')
-                        }
-                        else {
-                            alert(t('key_303'));
-                        }
+                        alert(wsSucc.status === httpStatus.NOT_FOUND ? 'A palete não está associada ao envio.' : t('key_303'));
                     }
                 })
                 .catch(wsErr => {
@@ -196,7 +192,7 @@ function Edit(props: any) {
                 })
                 .finally(() => {
                     cleanBoxCode();
-                    setBoxLoad(false);
+                    setLoadBox(false);
                 });
         }
         else {
@@ -204,7 +200,7 @@ function Edit(props: any) {
                 alert('A embalagem já está pronta a carregar.');
             }
             else {
-                setBoxLoad(true);
+                setLoadBox(true);
 
                 fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
                     shipmentCode: query.shipmentCode,
@@ -213,9 +209,9 @@ function Edit(props: any) {
                     method: 'GET',
                     credentials: 'include'
                 })
-                    .then(wsSucc => {
+                    .then(async wsSucc => {
                         if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                            wsSucc.json()
+                            await wsSucc.json()
                                 .then(data => {
                                     setBoxes([(data as Box), ...boxes]);
                                 })
@@ -231,16 +227,19 @@ function Edit(props: any) {
                                 alert('A embalagem não está associada ao envio.');
                             }
                             else if (wsSucc.status === httpStatus.FORBIDDEN) {
-                                wsSucc.json()
+                                await wsSucc.json()
                                     .then(data => {
-                                        console.log(data);
+                                        if (data.forbidType === 'box') {
+                                            alert('A embalagem já foi carregada.');
+                                        }
+                                        else if (data.forbidType === 'pallet') {
+                                            alert(t('key_828'));
+                                        }
                                     })
                                     .catch(error => {
                                         promiseErrorLog(error);
                                         alert(t('key_416'));
                                     });
-
-                                alert(t('key_828'));
                             }
                             else {
                                 alert(t('key_303'));
@@ -253,7 +252,7 @@ function Edit(props: any) {
                     })
                     .finally(() => {
                         cleanBoxCode();
-                        setBoxLoad(false);
+                        setLoadBox(false);
                     });
             }
         }
@@ -265,18 +264,25 @@ function Edit(props: any) {
         }
     }
 
-    useEffect(() => {
-        globalActions.setLoadPage(true);
+    function saveShipment() {
+        setSaveBoxes(true);
 
-        fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
-            method: 'GET',
+        fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
+            shipmentCode: query.shipmentCode
+        }), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(boxes.map(x => { return x.Code; })),
             credentials: 'include'
         })
-            .then(wsSucc => {
+            .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    wsSucc.json()
+                    await wsSucc.json()
                         .then(data => {
                             setShipmentProducts(data);
+                            setBoxes([]);
                         })
                         .catch(error => {
                             promiseErrorLog(error);
@@ -285,7 +291,7 @@ function Edit(props: any) {
                 }
                 else {
                     httpErrorLog(wsSucc);
-                    alert(t('key_303'));
+                    alert(t('key_302'));
                 }
             })
             .catch(wsErr => {
@@ -293,8 +299,73 @@ function Edit(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                globalActions.setLoadPage(false);
+                cleanBoxCode();
+                setSaveBoxes(false);
             });
+    }
+
+    useEffect(() => {
+        setBoxCode(x => { return { ...x, isDisabled: saveBoxes }; });
+    }, [saveBoxes])
+
+    useEffect(() => {
+        globalActions.setLoadPage(true);
+
+        const a = 1,
+            fetchShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCode }), {
+                method: 'GET',
+                credentials: 'include'
+            })
+                .then(async wsSucc => {
+                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                        await wsSucc.json()
+                            .then(data => {
+                                setShipment(data);
+                            })
+                            .catch(error => {
+                                promiseErrorLog(error);
+                                alert(t('key_416'));
+                            });
+                    }
+                    else {
+                        httpErrorLog(wsSucc);
+
+                        alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
+                        history.replace('/Expedition');
+                    }
+                })
+                .catch(wsErr => {
+                    promiseErrorLog(wsErr);
+                    alert(t('key_416'));
+                }),
+            fetchShipmentProducts = fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
+                method: 'GET',
+                credentials: 'include'
+            })
+                .then(async wsSucc => {
+                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                        await wsSucc.json()
+                            .then(data => {
+                                setShipmentProducts(data);
+                            })
+                            .catch(error => {
+                                promiseErrorLog(error);
+                                alert(t('key_416'));
+                            });
+                    }
+                    else {
+                        httpErrorLog(wsSucc);
+                        alert(t('key_303'));
+                    }
+                })
+                .catch(wsErr => {
+                    promiseErrorLog(wsErr);
+                    alert(t('key_416'));
+                });
+
+        Promise.all([fetchShipment, fetchShipmentProducts]).finally(() => {
+            globalActions.setLoadPage(false);
+        });
 
         SessionStorage.clear();
     }, []);
@@ -305,28 +376,38 @@ function Edit(props: any) {
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); addBox(); }}>
                         {!globalState.androidApp &&
-                            <div className='famo-row'>
-                                <div className='famo-cell famo-input-label'>
-                                    <span className='famo-text-11'>{t('key_822')}</span>
-                                </div>
-                                <div className='famo-cell'>
-                                    <div className='famo-input'>
-                                        <span className='famo-text-10'>{query.shipmentCode}</span>
+                            <React.Fragment>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_822')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <div className='famo-input'>
+                                            <span className='famo-text-10'>{query.shipmentCode}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        }
-                        {!globalState.androidApp && shipmentProducts &&
-                            <div className='famo-row'>
-                                <div className='famo-cell famo-input-label'>
-                                    <span className='famo-text-11'>{t('key_820')}</span>
-                                </div>
-                                <div className='famo-cell'>
-                                    <div className='famo-input'>
-                                        <span className='famo-text-10 famo-color-green'>{shipmentProducts.reduce((total, x) => { return x.Status === 1 ? total + x.BoxesNum : total; }, 0)}</span><span className='famo-text-10'>/{shipmentProducts.reduce((total, x) => { return total + x.BoxesNum; }, 0)}</span>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_138')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <div className='famo-input'>
+                                            <span className={'famo-text-10 ' + (shipment && shipment.Description ? '' : 'famo-color-yellow')}>{shipment && shipment.Description ? shipment.Description : t('key_237')}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_820')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <div className='famo-input'>
+                                            <span className='famo-text-10 famo-color-green'>{shipmentProducts.reduce((total, x) => { return x.Status === 1 ? total + x.BoxesNum : total; }, 0)}</span><span className='famo-text-10'>/{shipmentProducts.reduce((total, x) => { return total + x.BoxesNum; }, 0)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </React.Fragment>
                         }
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
@@ -341,11 +422,11 @@ function Edit(props: any) {
                     <div className='famo-grid famo-buttons'>
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => cleanBoxCode()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => cleanBoxCode()}>
                                     <span className='famo-text-12'>{t('key_829')}</span>
                                 </button>
                                 {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={boxLoad} onClick={event => addBox()}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => addBox()}>
                                         <span className='famo-text-12'>{t('key_815')}</span>
                                     </button>
                                 }
@@ -362,7 +443,8 @@ function Edit(props: any) {
                                 <span className='famo-text-13'>Em falta</span>
                             </div>
                             <div className='famo-content'>
-                                <div className='famo-grid famo-content-grid expedition-products'>
+                                <ContentLoader hide={!saveBoxes} />
+                                <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {mainHeader.map((x, i) => {
                                             return (
@@ -372,7 +454,7 @@ function Edit(props: any) {
                                             );
                                         })}
                                     </div>
-                                    {shipmentProducts && shipmentProducts.filter(x => {
+                                    {shipmentProducts.filter(x => {
                                         return x.Status === 0;
                                     }).map((x, i) => {
                                         return (
@@ -402,18 +484,27 @@ function Edit(props: any) {
                                 <span className='famo-text-13'>Pronto p/carregar</span>
                             </div>
                             <div className='famo-content'>
-                                <ContentLoader hide={!boxLoad} />
-                                <div className={'famo-grid famo-content-grid expedition-boxes' + (boxLoad ? ' hide' : '')}>
+                                <ContentLoader hide={!loadBox && !saveBoxes} />
+                                <div className={'famo-grid ' + (!loadBox && !saveBoxes ? '' : 'hide')}>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell text-left'>
+                                            <button type='button' className='famo-button famo-normal-button famo-confirm-button' disabled={loadBox || saveBoxes || boxes.length === 0} onClick={event => saveShipment()}>
+                                                <span className='famo-text-12'>{t('key_220')}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={'famo-grid famo-content-grid expedition-boxes ' + (!loadBox && !saveBoxes ? '' : 'hide')}>
                                     <div className='famo-row famo-header-row'>
                                         {readyToLoadHeader.map((x, i) => {
                                             return (
                                                 <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
-                                                    <span className='famo-text-11'>{x + (i === 0 ? (' (' + (boxes ? boxes.length : 0) + ')') : '')}</span>
+                                                    <span className='famo-text-11'>{x + (i === 0 ? (' (' + boxes.length + ')') : '')}</span>
                                                 </div>
                                             );
                                         })}
                                     </div>
-                                    {boxes && boxes.map((x, i) => {
+                                    {boxes.map((x, i) => {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
                                                 <div className='famo-cell famo-col-1'>
@@ -437,7 +528,8 @@ function Edit(props: any) {
                                 <span className='famo-text-13'>Carregado</span>
                             </div>
                             <div className='famo-content'>
-                                <div className='famo-grid famo-content-grid expedition-products'>
+                                <ContentLoader hide={!saveBoxes} />
+                                <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {mainHeader.map((x, i) => {
                                             return (
@@ -447,7 +539,7 @@ function Edit(props: any) {
                                             );
                                         })}
                                     </div>
-                                    {shipmentProducts && shipmentProducts.filter(x => {
+                                    {shipmentProducts.filter(x => {
                                         return x.Status === 1;
                                     }).map((x, i) => {
                                         return (

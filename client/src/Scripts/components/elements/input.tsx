@@ -38,23 +38,23 @@ const Input = React.forwardRef((props: any, ref: any) => {
         if (!isDisabled && analyze) {
             let localValue = value;
 
-            set(prevState => { return { ...prevState, noData: false, wrongFormat: false, invalidValue: false } });
+            set(x => { return { ...x, noData: false, wrongFormat: false, invalidValue: false }; });
 
             if (!localValue) {
-                set(prevState => { return { ...prevState, noData: true, wrongFormat: false, invalidValue: false } });
+                set(x => { return { ...x, noData: true, wrongFormat: false, invalidValue: false }; });
             }
             else if (isNumber && localValue) {
                 localValue = convertNumeralToJS(localValue);
 
                 if (isNaN(localValue)) {
-                    set(prevState => { return { ...prevState, noData: false, wrongFormat: true, invalidValue: false } });
+                    set(x => { return { ...x, noData: false, wrongFormat: true, invalidValue: false }; });
                 }
                 else if (parseFloat(localValue) <= 0) {
-                    set(prevState => { return { ...prevState, noData: false, wrongFormat: false, invalidValue: true } });
+                    set(x => { return { ...x, noData: false, wrongFormat: false, invalidValue: true }; });
                 }
             }
 
-            set(prevState => { return { ...prevState, localAnalyze: true } });
+            set(x => { return { ...x, localAnalyze: true }; });
         }
     }, [analyze]);
 
@@ -65,20 +65,20 @@ const Input = React.forwardRef((props: any, ref: any) => {
 
     return (
         <React.Fragment>
-            {!hasChildren ? <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })} /> : (
-                <select className={className + (localState.noData ? ' famo-input-error' : '')} name={name} ref={ref} disabled={isDisabled} onChange={event => set(prevState => { return { ...prevState, value: ref.current.value } })}>
+            {!hasChildren ? <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(x => { return { ...x, value: ref.current.value }; })} /> : (
+                <select className={className + (localState.noData ? ' famo-input-error' : '')} name={name} ref={ref} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: ref.current.value }; })}>
                     {children}
                 </select>
             )}
             {!hasChildren &&
                 <React.Fragment>
                     {!isDisabled &&
-                        <div className={'famo-input-message' + (localState.wrongFormat ? '' : ' hide')}>
+                        <div className={'famo-input-message ' + (localState.wrongFormat ? '' : 'hide')}>
                             <span className='famo-text-15'>{t('key_808')}</span>
                         </div>
                     }
                     {(invalidMessage && !isDisabled) &&
-                        <div className={'famo-input-message' + (localState.invalidValue ? '' : ' hide')}>
+                        <div className={'famo-input-message ' + (localState.invalidValue ? '' : 'hide')}>
                             <span className='famo-text-15'>{invalidMessage}</span>
                         </div>
                     }
@@ -92,7 +92,7 @@ export class InputTools {
     public static analyze(inputs: Array<InputConfig>, setInputs: Array<any>) {
         inputs.forEach((x, i) => {
             if (!x.isDisabled) {
-                setInputs[i](prevState => { return { ...prevState, analyze: true } });
+                setInputs[i](x => { return { ...x, analyze: true } });
             }
         });
     }
@@ -126,7 +126,7 @@ export class InputTools {
     public static resetValidations(inputs: Array<InputConfig>, setInputs: Array<any>) {
         inputs.forEach((x, i) => {
             if (!x.isDisabled) {
-                setInputs[i](prevState => { return { ...prevState, analyze: false, localAnalyze: false } });
+                setInputs[i](x => { return { ...x, analyze: false, localAnalyze: false }; });
             }
         });
     }
@@ -134,7 +134,7 @@ export class InputTools {
     public static resetValues(inputs: Array<InputConfig>, setInputs: Array<any>) {
         inputs.forEach((x, i) => {
             if (!x.isDisabled) {
-                setInputs[i](prevState => { return { ...prevState, value: '', noData: false, wrongFormat: false, invalidValue: false, analyze: false, selfAnalyze: false } });
+                setInputs[i](x => { return { ...x, value: '', noData: false, wrongFormat: false, invalidValue: false, analyze: false, selfAnalyze: false }; });
             }
         });
     }

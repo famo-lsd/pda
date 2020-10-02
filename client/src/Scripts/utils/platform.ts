@@ -9,9 +9,9 @@ export function isAndroidApp(authUser: any, globalActions: any, t: any) {
         method: 'GET',
         credentials: 'include'
     })
-        .then(wsSucc => {
+        .then(async wsSucc => {
             if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                wsSucc.json()
+                await wsSucc.json()
                     .then(data => {
                         setNumeralLocale(authUser.Language.Code);
                         globalActions.setAndroidApp(data);

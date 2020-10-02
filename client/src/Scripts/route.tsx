@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 import SignIn from './components/signIn';
 import { AppLoader } from './components/elements/loader';
 import { autoSignIn } from './utils/authentication';
-import { BrowserRouter, HashRouter, Route, Redirect, Switch, useHistory } from 'react-router-dom';
+import { HashRouter, Route, Redirect, Switch, useHistory } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
 import { isAndroidApp } from './utils/platform';
 import { NODE_SERVER } from './utils/variablesRepo';
@@ -18,42 +18,6 @@ import '../Content/style.css';
 
 interface AutoRouteBodyState {
     isAuthenticated: boolean;
-}
-
-function Routing(props: any) {
-    // if (!(window as any).cordova) {
-    //     return (
-    //         <BrowserRouter basename='/'>
-    //             <AutoRouteBody {...props} />
-    //         </BrowserRouter>
-    //     );
-    // }
-    // else {
-    //     return (
-    //         <HashRouter basename='/'>
-    //             <AutoRouteBody {...props} />
-    //         </HashRouter>
-    //     );
-    // }
-
-    return (
-        <HashRouter basename='/'>
-            <AutoRouteBody {...props} />
-        </HashRouter>
-    );
-}
-
-function RouteBody() {
-    const [globalState,] = useGlobal();
-
-    return (
-        <Switch>
-            <PrivateRoute exact path='/' component={Home} />
-            <Route exact path='/SignIn' render={routeProps => {
-                return globalState.authUser ? (<Redirect to={{ pathname: '/' }} />) : (<SignIn {...routeProps} />);
-            }} />
-        </Switch>
-    );
 }
 
 function PrivateRoute({ component: Component, ...rest }) {
@@ -79,7 +43,20 @@ function PrivateRoute({ component: Component, ...rest }) {
 
 PrivateRoute.propTypes = {
     component: PropTypes.elementType
-};
+}
+
+function RouteBody() {
+    const [globalState,] = useGlobal();
+
+    return (
+        <Switch>
+            <PrivateRoute exact path='/' component={Home} />
+            <Route exact path='/SignIn' render={routeProps => {
+                return globalState.authUser ? (<Redirect to={{ pathname: '/' }} />) : (<SignIn {...routeProps} />);
+            }} />
+        </Switch>
+    );
+}
 
 function AutoRouteBody(props: any) {
     const { t } = props,
@@ -92,9 +69,9 @@ function AutoRouteBody(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(wsSucc => {
+            .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    wsSucc.json()
+                    await wsSucc.json()
                         .then(data => {
                             isAndroidApp(data, globalActions, t);
                         }).catch(error => {
@@ -126,10 +103,33 @@ function AutoRouteBody(props: any) {
                 <Route path='/Expedition' render={() => { return <Expedition />; }} />
             </Switch>
             <AppLoader hide={globalState.authUser && !globalState.loadPage} />
-            {!globalState.androidApp && backButton && <button type='button' className={'famo-button famo-normal-button pda-back-button' + (globalState.authUser && !globalState.loadPage ? '' : ' hide')} onClick={event => history.goBack()}>
+            {!globalState.androidApp && backButton && <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (globalState.authUser && !globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>
                 <span className='fas fa-arrow-left'></span>
             </button>}
         </section>
+    );
+}
+
+function Routing(props: any) {
+    // if (!(window as any).cordova) {
+    //     return (
+    //         <BrowserRouter basename='/'>
+    //             <AutoRouteBody {...props} />
+    //         </BrowserRouter>
+    //     );
+    // }
+    // else {
+    //     return (
+    //         <HashRouter basename='/'>
+    //             <AutoRouteBody {...props} />
+    //         </HashRouter>
+    //     );
+    // }
+
+    return (
+        <HashRouter basename='/'>
+            <AutoRouteBody {...props} />
+        </HashRouter>
     );
 }
 

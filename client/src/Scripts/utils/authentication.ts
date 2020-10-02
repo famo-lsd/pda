@@ -6,9 +6,9 @@ import { NODE_SERVER } from './variablesRepo';
 
 export function autoSignIn(globalActions: any, t: any) {
     Authentication.autoSignIn()
-        .then(wsSucc => {
+        .then(async wsSucc => {
             if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                wsSucc.json()
+                await wsSucc.json()
                     .then(data => {
                         isAndroidApp(data, globalActions, t);
                     })

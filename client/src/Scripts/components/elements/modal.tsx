@@ -126,7 +126,7 @@ function Modal(props: any) {
     }, contentForm);
 
     return (
-        <section className={'w3-modal famo-modal' + (visibility ? ' w3-show' : '')} onClick={event => setVisible(false)}>
+        <section className={'w3-modal famo-modal ' + (visibility ? 'w3-show' : '')} onClick={event => setVisible(false)}>
             <div className='w3-modal-content famo-modal-content' onClick={event => event.stopPropagation()}>
                 {(() => {
                     switch (contentType as ModalContentType) {

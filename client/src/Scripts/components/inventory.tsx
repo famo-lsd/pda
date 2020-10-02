@@ -18,6 +18,14 @@ interface ItemJournal {
     Name: string;
 }
 
+interface ItemJournalLine {
+    Code: string;
+    ProductCode: string;
+    ProductVariantCode: string;
+    ProductDescription: string;
+    LocationCode: string;
+}
+
 function Inventory(props: any) {
     const { t } = props,
         [globalState, globalActions] = useGlobal(),
@@ -33,7 +41,7 @@ function Inventory(props: any) {
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [inventoryProductModal, setInventoryProductModal] = useState<boolean>(false),
         [productLoad, setProductLoad] = useState<boolean>(false),
-        [product, setProduct] = useState(null),
+        [product, setProduct] = useState<ItemJournalLine>(),
         [productCode, setProductCode] = useState<InputConfig>({
             label: t('key_87'),
             className: 'famo-input famo-text-10',
@@ -111,15 +119,15 @@ function Inventory(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(wsSucc => {
+            .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    wsSucc.json()
+                    await wsSucc.json()
                         .then(data => {
                             setProduct(data);
-                            setProductCode(prevState => { return { ...prevState, value: data.ProductCode } });
-                            setProductVariantCode(prevState => { return { ...prevState, value: data.ProductVariantCode } });
-                            setProductDescription(prevState => { return { ...prevState, value: data.ProductDescription } });
-                            setLocationCode(prevState => { return { ...prevState, value: data.LocationCode } });
+                            setProductCode(x => { return { ...x, value: data.ProductCode }; });
+                            setProductVariantCode(x => { return { ...x, value: data.ProductVariantCode }; });
+                            setProductDescription(x => { return { ...x, value: data.ProductDescription }; });
+                            setLocationCode(x => { return { ...x, value: data.LocationCode }; });
                         })
                         .catch(error => {
                             promiseErrorLog(error);
@@ -163,9 +171,9 @@ function Inventory(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(wsSucc => {
+            .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    wsSucc.json()
+                    await wsSucc.json()
                         .then(data => {
                             setInventories(data);
                         })
@@ -261,7 +269,7 @@ function Inventory(props: any) {
                     <Title text={t('key_339')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!productLoad} />
-                        <form className={'famo-grid famo-form-grid' + (productLoad ? ' hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
+                        <form className={'famo-grid famo-form-grid ' + (productLoad ? 'hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
                             <div className='famo-row'>
                                 <div className='famo-cell famo-input-label'>
                                     <span className='famo-text-11'>{productCode.label}</span>
@@ -303,7 +311,7 @@ function Inventory(props: any) {
                                 </div>
                             </div>
                         </form>
-                        <div className={'famo-grid famo-buttons' + (productLoad ? ' hide' : '')}>
+                        <div className={'famo-grid famo-buttons ' + (productLoad ? 'hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
                                     <button type='button' className='famo-button famo-confirm-button' onClick={changeQuantity}>
@@ -315,22 +323,23 @@ function Inventory(props: any) {
                     </div>
                 </section>
             }
-            {inventoryCode.value && <section className='famo-wrapper'>
-                <div className='famo-grid'>
-                    <div className='famo-row'>
-                        <div className='famo-cell text-right'>
-                            <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setInventoryProductModal(true)}>
-                                <span className='famo-text-12'>{t('key_807')}</span>
-                            </button>
-                            {globalState.androidApp &&
-                                <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => barcodeScanner()}>
-                                    <span className='famo-text-12'>{t('key_681')}</span>
+            {inventoryCode.value &&
+                <section className='famo-wrapper'>
+                    <div className='famo-grid'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setInventoryProductModal(true)}>
+                                    <span className='famo-text-12'>{t('key_807')}</span>
                                 </button>
-                            }
+                                {globalState.androidApp &&
+                                    <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => barcodeScanner()}>
+                                        <span className='famo-text-12'>{t('key_681')}</span>
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>}
+                </section>}
             <Modal contentType={ModalContentType.inventoryProduct} visible={inventoryProductModal} setVisible={setInventoryProductModal} confirm={getInventoryProduct} />
         </React.Fragment>
     );

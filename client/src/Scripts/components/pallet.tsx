@@ -51,23 +51,23 @@ function Index(props: any) {
         }),
         [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
         palletsHeader: Array<string> = [t('key_279')],
-        [pallets, setPallets] = useState<Array<Pallet>>(null);
+        [pallets, setPallets] = useState<Array<Pallet>>([]);
 
     function barcodeScanner() {
         barcodeScan((result) => {
-            setShipmentCode(prevState => { return { ...prevState, value: result.text } });
+            setShipmentCode(x => { return { ...x, value: result.text }; });
             getPallets(result.text);
         }, t);
     }
 
     function cleanShipmentCode() {
-        setShipmentCode(prevState => { return { ...prevState, value: '' } });
+        setShipmentCode(x => { return { ...x, value: '' }; });
         shipmentCode.ref.current.focus();
     }
 
     function getPallets(shipmentCode: string) {
         setShipmentLoad(true);
-        setPallets(null);
+        setPallets([]);
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
             shipmentCode: shipmentCode
@@ -75,11 +75,11 @@ function Index(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(wsSucc => {
+            .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    wsSucc.json()
+                    await wsSucc.json()
                         .then(data => {
-                            setShipmentCode(prevState => { return { ...prevState, valueSubmitted: shipmentCode } });
+                            setShipmentCode(x => { return { ...x, valueSubmitted: shipmentCode }; });
                             setPallets(data);
                         })
                         .catch(error => {
@@ -148,12 +148,12 @@ function Index(props: any) {
                     </div>
                 </div>
             </section>
-            {(pallets || shipmentLoad) &&
+            {(pallets.length > 0 || shipmentLoad) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_826')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!shipmentLoad} />
-                        <div className={'famo-grid famo-content-grid pallets' + (shipmentLoad ? ' hide' : '')}>
+                        <div className={'famo-grid famo-content-grid pallets ' + (shipmentLoad ? 'hide' : '')}>
                             <div className='famo-row famo-header-row'>
                                 {palletsHeader.map((x, i) => {
                                     return (
@@ -163,7 +163,7 @@ function Index(props: any) {
                                     );
                                 })}
                             </div>
-                            {pallets && pallets.map((x, i) => {
+                            {pallets.map((x, i) => {
                                 return (
                                     <div key={i} className='famo-row famo-body-row' onClick={event => editPallet(x.ID)}>
                                         <div className='famo-cell famo-col-1'>
@@ -176,17 +176,18 @@ function Index(props: any) {
                     </div>
                 </section>
             }
-            {pallets && <section className='famo-wrapper'>
-                <div className='famo-grid'>
-                    <div className='famo-row'>
-                        <div className='famo-cell text-right'>
-                            <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => editPallet()}>
-                                <span className='famo-text-12'>{t('key_817')}</span>
-                            </button>
+            {pallets.length > 0 &&
+                <section className='famo-wrapper'>
+                    <div className='famo-grid'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => editPallet()}>
+                                    <span className='famo-text-12'>{t('key_817')}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>}
+                </section>}
         </React.Fragment >
     );
 }
@@ -197,9 +198,9 @@ function Edit(props: any) {
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         [palletID, setPalletID] = useState<any>(query.palletID),
-        boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
         [isPalletOpen, setIsPalletOpen] = useState<boolean>(true),
         [isShipped, setIsShipped] = useState<boolean>(false),
+        boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [boxLoad, setBoxLoad] = useState<boolean>(false),
         [palletSave, setPalletSave] = useState<boolean>(false),
@@ -226,9 +227,9 @@ function Edit(props: any) {
                 method: 'GET',
                 credentials: 'include'
             })
-                .then(wsSucc => {
+                .then(async wsSucc => {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        wsSucc.json()
+                        await wsSucc.json()
                             .then(data => {
                                 // Add property isNew.
                                 (data as Box).isNew = true;
@@ -246,7 +247,19 @@ function Edit(props: any) {
                             alert('A embalagem não está associada ao envio.');
                         }
                         else if (wsSucc.status === httpStatus.FORBIDDEN) {
-                            alert(t('key_828'));
+                            await wsSucc.json()
+                                .then(data => {
+                                    if (data.forbidType === 'box') {
+                                        alert('A embalagem já foi carregada.');
+                                    }
+                                    else if (data.forbidType === 'pallet') {
+                                        alert(t('key_828'));
+                                    }
+                                })
+                                .catch(error => {
+                                    promiseErrorLog(error);
+                                    alert(t('key_416'));
+                                });
                         }
                         else {
                             alert(t('key_303'));
@@ -283,9 +296,9 @@ function Edit(props: any) {
             body: JSON.stringify(boxes.filter(x => { return x.isNew; }).map(x => { return x.Code; })),
             credentials: 'include'
         })
-            .then(wsSucc => {
+            .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    wsSucc.json()
+                    await wsSucc.json()
                         .then(data => {
                             setPalletID(data.palletID);
                         })
@@ -359,9 +372,9 @@ function Edit(props: any) {
                 method: 'GET',
                 credentials: 'include'
             })
-                .then(wsSucc => {
+                .then(async wsSucc => {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        wsSucc.json()
+                        await wsSucc.json()
                             .then(data => {
                                 // Check if pallet has some shipped boxes.
                                 setIsShipped(data.some(x => { return x.IsShipped }));
@@ -381,12 +394,8 @@ function Edit(props: any) {
                     else {
                         httpErrorLog(wsSucc);
 
-                        if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            history.replace('/Pallet');
-                        }
-                        else {
-                            alert(t('key_303'));
-                        }
+                        alert(wsSucc.status === httpStatus.NOT_FOUND ? 'A palete não está associada ao envio.' : t('key_303'));
+                        history.replace('/Pallet');
                     }
                 })
                 .catch(wsErr => {
@@ -411,7 +420,7 @@ function Edit(props: any) {
                     <Title text={t('key_820')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!palletSave} />
-                        <div className={'famo-grid famo-content-grid pallet-boxes' + (palletSave ? ' hide' : '')}>
+                        <div className={'famo-grid famo-content-grid pallet-boxes ' + (palletSave ? 'hide' : '')}>
                             <div className='famo-row famo-header-row'>
                                 {boxesHeader.map((x, i) => {
                                     return (
@@ -442,7 +451,7 @@ function Edit(props: any) {
                             })}
                         </div>
                         {!isShipped && isPalletOpen &&
-                            <div className={'famo-grid famo-buttons' + (palletSave ? ' hide' : '')}>
+                            <div className={'famo-grid famo-buttons ' + (palletSave ? 'hide' : '')}>
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
                                         <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => setPalletBoxModal(true)}>
@@ -459,7 +468,7 @@ function Edit(props: any) {
                         }
                     </div>
                 </section>
-                {!isShipped && boxes.length > 0 &&
+                {boxes.length > 0 && !isShipped &&
                     <section className='famo-wrapper'>
                         <div className='famo-grid'>
                             <div className='famo-row'>
@@ -472,15 +481,15 @@ function Edit(props: any) {
                                                 </button>
                                             }
                                             <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
-                                                <span className={'fas fa-spinner fa-spin' + (!palletStatusChange ? ' hide' : '')}></span>
-                                                <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>{t('key_200')}</span>
+                                                <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? 'hide' : '')}></span>
+                                                <span className={'famo-text-12 ' + (palletStatusChange ? 'hide' : '')}>{t('key_200')}</span>
                                             </button>
                                         </React.Fragment>
                                     )
                                         : (
                                             <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
-                                                <span className={'fas fa-spinner fa-spin' + (!palletStatusChange ? ' hide' : '')}></span>
-                                                <span className={'famo-text-12' + (palletStatusChange ? ' hide' : '')}>{t('key_827')}</span>
+                                                <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? ' hide' : '')}></span>
+                                                <span className={'famo-text-12 ' + (palletStatusChange ? 'hide' : '')}>{t('key_827')}</span>
                                             </button>
                                         )}
                                 </div>

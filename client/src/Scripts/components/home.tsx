@@ -37,7 +37,7 @@ function Home(props: any) {
                     {buttons.map((x, i) => {
                         return (
                             <div key={i} className='col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2'>
-                                <section className='famo-wrapper' onClick={event => setRedirection(prevState => { return { ...prevState, [x.key]: true }; })}>
+                                <section className='famo-wrapper' onClick={event => setRedirection(y => { return { ...y, [x.key]: true } })}>
                                     <div className='famo-content'>
                                         <div className='famo-grid famo-menu-item'>
                                             <div className='famo-row'>

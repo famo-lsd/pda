@@ -11,7 +11,7 @@ function Title(props) {
     // #endregion
 
     return (
-        <div className={'famo-title' + (collapse ? ' collapsed' : '')}>
+        <div className={'famo-title ' + (collapse ? 'collapsed' : '')}>
             <span className='famo-text-13' onClick={handleClick}>{text}</span>
         </div>
     );

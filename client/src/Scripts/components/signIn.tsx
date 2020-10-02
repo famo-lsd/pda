@@ -46,7 +46,7 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     }
 
     hideInputMsg = hideFlag => {
-        return 'signin-error-input' + (hideFlag ? ' hide' : '');
+        return 'signin-error-input ' + (hideFlag ? 'hide' : '');
     }
 
     // #region Events
