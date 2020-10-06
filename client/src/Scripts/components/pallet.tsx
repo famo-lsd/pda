@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
-import Input, { InputConfig } from './elements/input';
-import Modal, { ModalContentType } from './elements/modal';
+import Input, { InputConfig, InputTools } from './elements/input';
+import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
@@ -53,18 +53,6 @@ function Index(props: any) {
         palletsHeader: Array<string> = [t('key_279')],
         [pallets, setPallets] = useState<Array<Pallet>>([]);
 
-    function barcodeScanner() {
-        barcodeScan((result) => {
-            setShipmentCode(x => { return { ...x, value: result.text }; });
-            getPallets(result.text);
-        }, t);
-    }
-
-    function cleanShipmentCode() {
-        setShipmentCode(x => { return { ...x, value: '' }; });
-        shipmentCode.ref.current.focus();
-    }
-
     function getPallets(shipmentCode: string) {
         setShipmentLoad(true);
         setPallets([]);
@@ -99,6 +87,18 @@ function Index(props: any) {
             .finally(() => {
                 setShipmentLoad(false);
             });
+    }
+
+    function barcodeScanner() {
+        barcodeScan((result) => {
+            setShipmentCode(x => { return { ...x, value: result.text }; });
+            getPallets(result.text);
+        }, t);
+    }
+
+    function cleanShipmentCode() {
+        setShipmentCode(x => { return { ...x, value: '' }; });
+        shipmentCode.ref.current.focus();
     }
 
     function editPallet(palletID?: number) {
@@ -205,13 +205,22 @@ function Edit(props: any) {
         [boxLoad, setBoxLoad] = useState<boolean>(false),
         [palletSave, setPalletSave] = useState<boolean>(false),
         [palletStatusChange, setPalletStatusChange] = useState<boolean>(false),
-        [palletBoxModal, setPalletBoxModal] = useState<boolean>(false);
-
-    function barcodeScanner() {
-        barcodeScan((result) => {
-            addBox(result.text);
-        }, t);
-    }
+        [boxModal, setBoxModal] = useState<boolean>(false),
+        [modalBoxCode, setModalBoxCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: t('key_819'),
+            className: 'famo-input famo-text-10',
+            name: 'boxCode',
+            value: '',
+            autoFocus: true,
+            isNumber: false,
+            isDisabled: false,
+            analyze: false,
+            localAnalyze: false,
+            noData: false
+        }),
+        boxModalForm: Array<InputConfig> = [modalBoxCode],
+        setBoxModalForm: Array<any> = [setModalBoxCode];
 
     function addBox(code: string) {
         if (boxes.some(x => { return x.Code === code; })) {
@@ -274,6 +283,12 @@ function Edit(props: any) {
                     setBoxLoad(false);
                 });
         }
+    }
+
+    function barcodeScanner() {
+        barcodeScan((result) => {
+            addBox(result.text);
+        }, t);
     }
 
     function deleteBox(code: string) {
@@ -361,6 +376,10 @@ function Edit(props: any) {
         }
     }
 
+    function submitBoxModal() {
+        InputTools.analyze(boxModalForm, setBoxModalForm);
+    }
+
     useEffect(() => {
         if (query.palletID) {
             globalActions.setLoadPage(true);
@@ -410,6 +429,27 @@ function Edit(props: any) {
         SessionStorage.clear({ pallet: true });
     }, []);
 
+    useEffect(() => {
+        if (!boxModal) {
+            InputTools.resetValues(boxModalForm, setBoxModalForm);
+        }
+        else {
+            modalBoxCode.ref.current.focus();
+        }
+    }, [boxModal]);
+
+    useEffect(() => {
+        if (InputTools.areAnalyzed(boxModalForm)) {
+            if (InputTools.areValid(boxModalForm)) {
+                addBox(modalBoxCode.value);
+                InputTools.resetValues(boxModalForm, setBoxModalForm);
+                modalBoxCode.ref.current.focus();
+            }
+
+            InputTools.resetValidations(boxModalForm, setBoxModalForm);
+        }
+    }, boxModalForm);
+
     if (!query.shipmentCode) {
         return <Redirect to='/Pallet' />;
     }
@@ -454,7 +494,7 @@ function Edit(props: any) {
                             <div className={'famo-grid famo-buttons ' + (palletSave ? 'hide' : '')}>
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
-                                        <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => setPalletBoxModal(true)}>
+                                        <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => setBoxModal(true)}>
                                             <span className='famo-text-12'>{t('key_815') + ' (' + t('key_807').toLowerCase() + ')'}</span>
                                         </button>
                                         {globalState.androidApp &&
@@ -497,7 +537,35 @@ function Edit(props: any) {
                         </div>
                     </section>
                 }
-                <Modal contentType={ModalContentType.palletBox} visible={palletBoxModal} setVisible={setPalletBoxModal} confirm={addBox} />
+                <Modal visible={boxModal} setVisible={setBoxModal} confirm={addBox}>
+                    <section className='famo-wrapper'>
+                        <div className='famo-content'>
+                            <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => submitBoxModal()}>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{modalBoxCode.label}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <Input {...modalBoxCode} set={setModalBoxCode} />
+                                    </div>
+                                </div>
+                                <input type='submit' className='hide' value='' />
+                            </form>
+                            <div className='famo-grid famo-buttons'>
+                                <div className='famo-row'>
+                                    <div className='famo-cell text-right'>
+                                        <button type='button' className='famo-button famo-confirm-button' onClick={event => submitBoxModal()}>
+                                            <span className='famo-text-12'>{t('key_701')}</span>
+                                        </button>
+                                        <button type="button" className="famo-button famo-cancel-button" onClick={event => setBoxModal(false)}>
+                                            <span className="famo-text-12">{t('key_484')}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </Modal>
             </React.Fragment>
         );
     }

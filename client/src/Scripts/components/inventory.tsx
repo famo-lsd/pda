@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools } from './elements/input';
-import Modal, { ModalContentType } from './elements/modal';
+import Modal from './elements/modal';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { barcodeScan } from '../utils/barcode';
@@ -39,7 +39,6 @@ function Inventory(props: any) {
             isDisabled: false
         }),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
-        [inventoryProductModal, setInventoryProductModal] = useState<boolean>(false),
         [productLoad, setProductLoad] = useState<boolean>(false),
         [product, setProduct] = useState<ItemJournalLine>(),
         [productCode, setProductCode] = useState<InputConfig>({
@@ -91,15 +90,29 @@ function Inventory(props: any) {
         }),
         productForm: Array<InputConfig> = [productCode, productVariantCode, productDescription, locationCode, quantity],
         setProductForm: Array<any> = [setProductCode, setProductVariantCode, setProductDescription, setLocationCode, setQuantity],
-        sectionRef: React.RefObject<any> = React.createRef();
+        sectionRef: React.RefObject<any> = React.createRef(),
+        [productModal, setProductModal] = useState<boolean>(false),
+        [modalProductCode, setModalProductCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: t('key_87'),
+            className: 'famo-input famo-text-10',
+            name: 'productCode',
+            value: '',
+            isNumber: false,
+            isDisabled: false,
+            analyze: false,
+            localAnalyze: false,
+            noData: false
+        }),
+        productModalForm: Array<InputConfig> = [modalProductCode],
+        setProductModalForm: Array<any> = [setModalProductCode];
 
-    function barcodeScanner() {
-        barcodeScan((result) => {
-            getInventoryProduct(result.text);
-        }, t);
+    function resetProductForm() {
+        InputTools.resetValues(productForm, setProductForm);
+        setProduct(null);
     }
 
-    function getInventoryProduct(code: string) {
+    function getProduct(code: string) {
         const split: Array<string> = code.split('/'),
             productCode = split[0];
         let productVariantCode = '';
@@ -108,8 +121,8 @@ function Inventory(props: any) {
             productVariantCode = split[1];
         }
 
+        resetProductForm();
         setProductLoad(true);
-        resetInputs();
 
         fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
             inventoryCode: inventoryCode.value,
@@ -148,13 +161,18 @@ function Inventory(props: any) {
             });
     }
 
-    function resetInputs() {
-        setProduct(null);
-        InputTools.resetValues(productForm, setProductForm);
+    function barcodeScanner() {
+        barcodeScan((result) => {
+            getProduct(result.text);
+        }, t);
     }
 
-    function changeQuantity(event) {
+    function changeQuantity() {
         InputTools.analyze(productForm, setProductForm);
+    }
+
+    function submitProductModal() {
+        InputTools.analyze(productModalForm, setProductModalForm);
     }
 
     useEffect(() => {
@@ -199,7 +217,7 @@ function Inventory(props: any) {
     }, []);
 
     useEffect(() => {
-        resetInputs();
+        resetProductForm();
     }, [inventoryCode]);
 
     useEffect(() => {
@@ -219,7 +237,7 @@ function Inventory(props: any) {
                 })
                     .then(wsSucc => {
                         if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                            resetInputs();
+                            resetProductForm();
                             alert(t('key_805'));
                         }
                         else {
@@ -242,6 +260,23 @@ function Inventory(props: any) {
             InputTools.resetValidations(productForm, setProductForm);
         }
     }, productForm);
+
+    useEffect(() => {
+        if (!productModal) {
+            InputTools.resetValues(productModalForm, setProductModalForm);
+        }
+    }, [productModal]);
+
+    useEffect(() => {
+        if (InputTools.areAnalyzed(productModalForm)) {
+            if (InputTools.areValid(productModalForm)) {
+                getProduct(modalProductCode.value);
+                setProductModal(false);
+            }
+
+            InputTools.resetValidations(productModalForm, setProductModalForm);
+        }
+    }, productModalForm);
 
     return (
         <React.Fragment>
@@ -314,7 +349,7 @@ function Inventory(props: any) {
                         <div className={'famo-grid famo-buttons ' + (productLoad ? 'hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    <button type='button' className='famo-button famo-confirm-button' onClick={changeQuantity}>
+                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => changeQuantity()}>
                                         <span className='famo-text-12'>{t('key_810')}</span>
                                     </button>
                                 </div>
@@ -328,7 +363,7 @@ function Inventory(props: any) {
                     <div className='famo-grid'>
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setInventoryProductModal(true)}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setProductModal(true)}>
                                     <span className='famo-text-12'>{t('key_807')}</span>
                                 </button>
                                 {globalState.androidApp &&
@@ -340,7 +375,35 @@ function Inventory(props: any) {
                         </div>
                     </div>
                 </section>}
-            <Modal contentType={ModalContentType.inventoryProduct} visible={inventoryProductModal} setVisible={setInventoryProductModal} confirm={getInventoryProduct} />
+            <Modal visible={productModal} setVisible={setProductModal}>
+                <section className='famo-wrapper'>
+                    <div className='famo-content'>
+                        <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => submitProductModal()}>
+                            <div className='famo-row'>
+                                <div className='famo-cell famo-input-label'>
+                                    <span className='famo-text-11'>{modalProductCode.label}</span>
+                                </div>
+                                <div className='famo-cell'>
+                                    <Input {...modalProductCode} set={setModalProductCode} />
+                                </div>
+                            </div>
+                            <input type='submit' className='hide' value='' />
+                        </form>
+                        <div className='famo-grid famo-buttons'>
+                            <div className='famo-row'>
+                                <div className='famo-cell text-right'>
+                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => submitProductModal()}>
+                                        <span className='famo-text-12'>{t('key_701')}</span>
+                                    </button>
+                                    <button type="button" className="famo-button famo-cancel-button" onClick={event => setProductModal(false)}>
+                                        <span className="famo-text-12">{t('key_484')}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </Modal>
         </React.Fragment>
     );
 }
