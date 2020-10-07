@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
@@ -12,6 +13,10 @@ import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 
+interface Box {
+    Code: string;
+}
+
 interface Shipment {
     Code: string;
     Description: string;
@@ -24,12 +29,18 @@ interface ShipmentProduct {
     OrderLine: number;
     ProductCode: string;
     ProductDescription: string;
-    BoxesNum: number;
+    PendingBoxes: number;
+    TotalBoxes: number;
     Status: number;
 }
 
-interface Box {
-    Code: string;
+interface ShipmentProductComponent {
+    ProductCode: string;
+    ProductDescription: string;
+    ComponentCode: string;
+    ComponentDescription: string;
+    BoxCode: string;
+    BoxPrinted: boolean;
 }
 
 function Expedition() {
@@ -141,21 +152,59 @@ function Edit(props: any) {
             isNumber: false,
             isDisabled: false
         }),
-        mainHeader: Array<string> = [t('key_179'), t('key_54'), t('key_138'), t('key_820')],
-        [shipmentProducts, setShipmentProducts] = useState<Array<ShipmentProduct>>([]),
-        readyToLoadHeader: Array<string> = [t('key_820'), ''],
+        productsHeader: Array<string> = [t('key_179'), t('key_54'), t('key_138'), t('key_820')],
+        [products, setProducts] = useState<Array<ShipmentProduct>>([]),
+        boxesHeader: Array<string> = [t('key_820'), ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [loadBox, setLoadBox] = useState<boolean>(false),
-        [saveBoxes, setSaveBoxes] = useState<boolean>(false);
+        [saveBoxes, setSaveBoxes] = useState<boolean>(false),
+        [componentsModal, setComponentsModal] = useState<boolean>(false),
+        componentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_819'), ''],
+        [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]);
 
     function cleanBoxCode() {
         setBoxCode(x => { return { ...x, value: '' }; });
         boxCode.ref.current.focus();
     }
 
+    function getProductComponents(orderCode: string, orderLine: number = null) {
+        fetch(NODE_SERVER + 'ERP/Shipments/Products/Components' + createQueryString({
+            orderCode: orderCode,
+            orderLine: orderLine
+        }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            setComponentsModal(true);
+                            setComponents(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+                    alert(t('key_303'));
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                setComponentsModal(true);
+            });
+    }
+
     function addBox() {
         if (boxCode.value.startsWith('PL')) {
-            const matchPalletCode = boxCode.value.match(/(?<=PL).*(?=\/)/g);
+            // const matchPalletCode = boxCode.value.match(/(?<=PL).*(?=\/)/g);
+            const matchPalletCode = boxCode.value.match(/.*/g);
 
             setLoadBox(true);
 
@@ -281,7 +330,7 @@ function Edit(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
                         .then(data => {
-                            setShipmentProducts(data);
+                            setProducts(data);
                             setBoxes([]);
                         })
                         .catch(error => {
@@ -311,33 +360,32 @@ function Edit(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        const a = 1,
-            fetchShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCode }), {
-                method: 'GET',
-                credentials: 'include'
-            })
-                .then(async wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        await wsSucc.json()
-                            .then(data => {
-                                setShipment(data);
-                            })
-                            .catch(error => {
-                                promiseErrorLog(error);
-                                alert(t('key_416'));
-                            });
-                    }
-                    else {
-                        httpErrorLog(wsSucc);
+        const fetchShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCode }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            setShipment(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
 
-                        alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
-                        history.replace('/Expedition');
-                    }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
-                    alert(t('key_416'));
-                }),
+                    alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
+                    history.replace('/Expedition');
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            }),
             fetchShipmentProducts = fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
                 method: 'GET',
                 credentials: 'include'
@@ -346,7 +394,7 @@ function Edit(props: any) {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                         await wsSucc.json()
                             .then(data => {
-                                setShipmentProducts(data);
+                                setProducts(data);
                             })
                             .catch(error => {
                                 promiseErrorLog(error);
@@ -403,7 +451,7 @@ function Edit(props: any) {
                                     </div>
                                     <div className='famo-cell'>
                                         <div className='famo-input'>
-                                            <span className='famo-text-10 famo-color-green'>{shipmentProducts.reduce((total, x) => { return x.Status === 1 ? total + x.BoxesNum : total; }, 0)}</span><span className='famo-text-10'>/{shipmentProducts.reduce((total, x) => { return total + x.BoxesNum; }, 0)}</span>
+                                            <span className='famo-text-10 famo-color-green'>{products.reduce((total, x) => { return x.Status === 1 ? total + x.TotalBoxes : total; }, 0)}</span><span className='famo-text-10'>/{products.reduce((total, x) => { return total + x.TotalBoxes; }, 0)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -446,7 +494,7 @@ function Edit(props: any) {
                                 <ContentLoader hide={!saveBoxes} />
                                 <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
-                                        {mainHeader.map((x, i) => {
+                                        {productsHeader.map((x, i) => {
                                             return (
                                                 <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
                                                     <span className='famo-text-11'>{x}</span>
@@ -454,13 +502,13 @@ function Edit(props: any) {
                                             );
                                         })}
                                     </div>
-                                    {shipmentProducts.filter(x => {
+                                    {products.filter(x => {
                                         return x.Status === 0;
                                     }).map((x, i) => {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
                                                 <div className='famo-cell famo-col-1'>
-                                                    <span className='famo-text-10'>{x.OrderCode}</span>
+                                                    <span className='famo-text-10' onClick={event => getProductComponents(x.OrderCode)}>{x.OrderCode}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
                                                     <span className='famo-text-10'>{x.ProductCode}</span>
@@ -469,7 +517,7 @@ function Edit(props: any) {
                                                     <span className='famo-text-10'>{x.ProductDescription}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-4'>
-                                                    <span className='famo-text-10'>{x.BoxesNum}</span>
+                                                    <span className='famo-text-10' onClick={event => getProductComponents(x.OrderCode, x.OrderLine)}>{x.TotalBoxes}</span>
                                                 </div>
                                             </div>
                                         );
@@ -496,7 +544,7 @@ function Edit(props: any) {
                                 </div>
                                 <div className={'famo-grid famo-content-grid expedition-boxes ' + (!loadBox && !saveBoxes ? '' : 'hide')}>
                                     <div className='famo-row famo-header-row'>
-                                        {readyToLoadHeader.map((x, i) => {
+                                        {boxesHeader.map((x, i) => {
                                             return (
                                                 <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
                                                     <span className='famo-text-11'>{x + (i === 0 ? (' (' + boxes.length + ')') : '')}</span>
@@ -531,7 +579,7 @@ function Edit(props: any) {
                                 <ContentLoader hide={!saveBoxes} />
                                 <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
-                                        {mainHeader.map((x, i) => {
+                                        {productsHeader.map((x, i) => {
                                             return (
                                                 <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
                                                     <span className='famo-text-11'>{x}</span>
@@ -539,7 +587,7 @@ function Edit(props: any) {
                                             );
                                         })}
                                     </div>
-                                    {shipmentProducts.filter(x => {
+                                    {products.filter(x => {
                                         return x.Status === 1;
                                     }).map((x, i) => {
                                         return (
@@ -554,7 +602,7 @@ function Edit(props: any) {
                                                     <span className='famo-text-10'>{x.ProductDescription}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-4'>
-                                                    <span className='famo-text-10'>{x.BoxesNum}</span>
+                                                    <span className='famo-text-10'>{x.TotalBoxes}</span>
                                                 </div>
                                             </div>
                                         );
@@ -565,6 +613,51 @@ function Edit(props: any) {
                     </div>
                 </div>
             </section>
+            <Modal visible={componentsModal} setVisible={setComponentsModal}>
+                {components.filter(x => { return x.length > 0; }).map((x, i) => {
+                    const productCode = x[0].ProductCode,
+                        productDescription = x[0].ProductDescription;
+
+                    return (
+                        <section key={i} className='famo-wrapper'>
+                            <div className='famo-title'>
+                                <span className='famo-text-13'>{productCode + ' - ' + productDescription}</span>
+                            </div>
+                            <div className='famo-content'>
+                                <div className='famo-grid famo-content-grid expedition-components'>
+                                    <div className='famo-row famo-header-row'>
+                                        {componentsHeader.map((y, l) => {
+                                            return (
+                                                <div key={l} className={'famo-cell famo-col-' + (l + 1)}>
+                                                    <span className='famo-text-11'>{y}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {x.map((y, l) => {
+                                        return (
+                                            <div key={l} className='famo-row famo-body-row'>
+                                                <div className='famo-cell famo-col-1'>
+                                                    <span className='famo-text-10'>{y.ComponentCode}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-2'>
+                                                    <span className='famo-text-10'>{y.ComponentDescription}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-3'>
+                                                    <span className='famo-text-10'>{y.BoxCode}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-4'>
+                                                    <span className={'fas ' + (y.BoxPrinted ? 'fa-check famo-color-green' : 'fa-times famo-color-red')}></span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </section>
+                    );
+                })}
+            </Modal>
         </React.Fragment>
     );
 }

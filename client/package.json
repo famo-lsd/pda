@@ -11,6 +11,7 @@
     "numeral": "^2.0.6",
     "query-string": "^6.13.2",
     "react": "^16.13.1",
+    "react-app-polyfill": "^1.0.6",
     "react-dom": "^16.13.1",
     "react-i18next": "^11.7.3",
     "react-router-dom": "^5.2.0",
@@ -47,13 +48,15 @@
   "browserslist": {
     "production": [
       ">0.2%",
+      "ie 11",
       "not dead",
       "not op_mini all"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      ">0.2%",
+      "ie 11",
+      "not dead",
+      "not op_mini all"
     ]
   },
   "devDependencies": {

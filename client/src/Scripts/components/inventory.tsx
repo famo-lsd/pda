@@ -175,6 +175,15 @@ function Inventory(props: any) {
         InputTools.analyze(productModalForm, setProductModalForm);
     }
 
+    function productModalCallback(visibility: boolean) {
+        if (!visibility) {
+            InputTools.resetValues(productModalForm, setProductModalForm);
+        }
+        else {
+            modalProductCode.ref.current.focus();
+        }
+    }
+
     useEffect(() => {
         globalActions.setLoadPage(true);
 
@@ -262,12 +271,6 @@ function Inventory(props: any) {
     }, productForm);
 
     useEffect(() => {
-        if (!productModal) {
-            InputTools.resetValues(productModalForm, setProductModalForm);
-        }
-    }, [productModal]);
-
-    useEffect(() => {
         if (InputTools.areAnalyzed(productModalForm)) {
             if (InputTools.areValid(productModalForm)) {
                 getProduct(modalProductCode.value);
@@ -297,6 +300,22 @@ function Inventory(props: any) {
                             </div>
                         </div>
                     </form>
+                    {inventoryCode.value &&
+                        <div className='famo-grid famo-buttons'>
+                            <div className='famo-row'>
+                                <div className='famo-cell text-right'>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setProductModal(true)}>
+                                        <span className='famo-text-12'>{t('key_807')}</span>
+                                    </button>
+                                    {globalState.androidApp &&
+                                        <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => barcodeScanner()}>
+                                            <span className='famo-text-12'>{t('key_681')}</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </section>
             {(product || productLoad) &&
@@ -358,24 +377,7 @@ function Inventory(props: any) {
                     </div>
                 </section>
             }
-            {inventoryCode.value &&
-                <section className='famo-wrapper'>
-                    <div className='famo-grid'>
-                        <div className='famo-row'>
-                            <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setProductModal(true)}>
-                                    <span className='famo-text-12'>{t('key_807')}</span>
-                                </button>
-                                {globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => barcodeScanner()}>
-                                        <span className='famo-text-12'>{t('key_681')}</span>
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </section>}
-            <Modal visible={productModal} setVisible={setProductModal}>
+            <Modal visible={productModal} setVisible={setProductModal} visibleCallback={productModalCallback}>
                 <section className='famo-wrapper'>
                     <div className='famo-content'>
                         <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => submitProductModal()}>

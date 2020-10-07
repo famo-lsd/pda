@@ -14,14 +14,14 @@ import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { withRouter, Route, Redirect, Switch } from 'react-router-dom';
 
-interface Pallet {
-    ID: number;
-}
-
 interface Box {
     Code: string;
     OrderCode: string;
     isNew: boolean;
+}
+
+interface Pallet {
+    ID: number;
 }
 
 function Pallet() {
@@ -49,13 +49,15 @@ function Index(props: any) {
             isNumber: false,
             isDisabled: false
         }),
+        [shipmentCodeSubmitted, setShipmentCodeSubmitted] = useState<string>(),
         [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
         palletsHeader: Array<string> = [t('key_279')],
-        [pallets, setPallets] = useState<Array<Pallet>>([]);
+        [pallets, setPallets] = useState<Array<Pallet>>(null);
 
     function getPallets(shipmentCode: string) {
+        let reqSuccess = false;
+
         setShipmentLoad(true);
-        setPallets([]);
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
             shipmentCode: shipmentCode
@@ -67,7 +69,9 @@ function Index(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
                         .then(data => {
-                            setShipmentCode(x => { return { ...x, valueSubmitted: shipmentCode }; });
+                            reqSuccess = true;
+
+                            setShipmentCodeSubmitted(shipmentCode);
                             setPallets(data);
                         })
                         .catch(error => {
@@ -86,6 +90,10 @@ function Index(props: any) {
             })
             .finally(() => {
                 setShipmentLoad(false);
+
+                if (!reqSuccess) {
+                    setPallets(null);
+                }
             });
     }
 
@@ -102,8 +110,8 @@ function Index(props: any) {
     }
 
     function editPallet(palletID?: number) {
-        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCode.valueSubmitted }));
-        history.push('/Pallet/Edit?shipmentCode=' + shipmentCode.valueSubmitted + (palletID ? '&palletID=' + palletID : ''));
+        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCodeSubmitted }));
+        history.push('/Pallet/Edit?shipmentCode=' + shipmentCodeSubmitted + (palletID ? '&palletID=' + palletID : ''));
     }
 
     useEffect(() => {
@@ -148,7 +156,7 @@ function Index(props: any) {
                     </div>
                 </div>
             </section>
-            {(pallets.length > 0 || shipmentLoad) &&
+            {(pallets || shipmentLoad) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_826')} />
                     <div className='famo-content'>
@@ -163,7 +171,7 @@ function Index(props: any) {
                                     );
                                 })}
                             </div>
-                            {pallets.map((x, i) => {
+                            {pallets && pallets.map((x, i) => {
                                 return (
                                     <div key={i} className='famo-row famo-body-row' onClick={event => editPallet(x.ID)}>
                                         <div className='famo-cell famo-col-1'>
@@ -173,21 +181,18 @@ function Index(props: any) {
                                 );
                             })}
                         </div>
-                    </div>
-                </section>
-            }
-            {pallets.length > 0 &&
-                <section className='famo-wrapper'>
-                    <div className='famo-grid'>
-                        <div className='famo-row'>
-                            <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => editPallet()}>
-                                    <span className='famo-text-12'>{t('key_817')}</span>
-                                </button>
+                        <div className={'famo-grid famo-buttons ' + (shipmentLoad ? 'hide' : '')}>
+                            <div className='famo-row'>
+                                <div className='famo-cell text-right'>
+                                    <button type='button' className='famo-button famo-normal-button' onClick={event => editPallet()}>
+                                        <span className='famo-text-12'>{t('key_817')}</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </section>}
+                </section>
+            }
         </React.Fragment >
     );
 }
@@ -380,6 +385,15 @@ function Edit(props: any) {
         InputTools.analyze(boxModalForm, setBoxModalForm);
     }
 
+    function boxModalCallback(visibility: boolean) {
+        if (!visibility) {
+            InputTools.resetValues(boxModalForm, setBoxModalForm);
+        }
+        else {
+            modalBoxCode.ref.current.focus();
+        }
+    }
+
     useEffect(() => {
         if (query.palletID) {
             globalActions.setLoadPage(true);
@@ -428,15 +442,6 @@ function Edit(props: any) {
 
         SessionStorage.clear({ pallet: true });
     }, []);
-
-    useEffect(() => {
-        if (!boxModal) {
-            InputTools.resetValues(boxModalForm, setBoxModalForm);
-        }
-        else {
-            modalBoxCode.ref.current.focus();
-        }
-    }, [boxModal]);
 
     useEffect(() => {
         if (InputTools.areAnalyzed(boxModalForm)) {
@@ -537,7 +542,7 @@ function Edit(props: any) {
                         </div>
                     </section>
                 }
-                <Modal visible={boxModal} setVisible={setBoxModal} confirm={addBox}>
+                <Modal visible={boxModal} setVisible={setBoxModal} visibleCallback={boxModalCallback}>
                     <section className='famo-wrapper'>
                         <div className='famo-content'>
                             <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => submitBoxModal()}>

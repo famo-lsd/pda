@@ -1,4 +1,16 @@
 @media all {
+  .famo-text-5,
+  .famo-text-13 {
+    font-size: 16px !important;
+  }
+  .famo-text-10,
+  .famo-text-11,
+  .famo-text-12 {
+    font-size: 14px !important;
+  }
+  .famo-input {
+    height: 34px;
+  }
   * > .famo-button:not(:first-child) {
     margin-left: 4px;
   }
@@ -83,6 +95,27 @@
     font-size: 14px !important;
     line-height: 1em !important;
     color: #ffffff;
+  }
+  .expedition-components .famo-col-1 {
+    width: 100px;
+  }
+  .expedition-components .famo-col-3 {
+    width: 95px;
+  }
+  .expedition-components .famo-col-4 {
+    width: 60px;
+  }
+  .expedition-components .famo-body-row .famo-col-1 span,
+  .expedition-components .famo-body-row .famo-col-2 span {
+    display: inline-block;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    word-break: break-word;
+  }
+  .expedition-components .fas {
+    font-size: 14px !important;
+    line-height: 1em !important;
   }
 }
 @media screen and (max-width: 575px) {

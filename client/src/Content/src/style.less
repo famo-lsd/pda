@@ -55,6 +55,7 @@
         .applyCol(4, @width: 75px);
 
         .famo-body-row {
+
             .famo-col-2,
             .famo-col-3 {
                 span {
@@ -71,6 +72,26 @@
 
         .button-delete-box .fas {
             .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+        }
+    }
+
+    .expedition-components {
+        .applyCol(1, @width: 80px);
+        .applyCol(3, @width: 75px);
+        .applyCol(4, @width: @famo_content_fa_button_w);
+
+        .famo-body-row {
+
+            .famo-col-1,
+            .famo-col-2 {
+                span {
+                    .applyWordWrapping();
+                }
+            }
+        }
+
+        .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height);
         }
     }
 }

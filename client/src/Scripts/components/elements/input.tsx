@@ -8,7 +8,6 @@ export interface InputConfig {
     className: string;
     name: string;
     value: string;
-    valueSubmitted?: string;
     autoFocus?: boolean;
     isNumber: boolean;
     isDisabled: boolean;
@@ -61,7 +60,6 @@ const Input = React.forwardRef((props: any, ref: any) => {
     useEffect(() => {
         setLocalState({ noData: noData, wrongFormat: wrongFormat, invalidValue: invalidValue });
     }, [noData, wrongFormat, invalidValue]);
-
 
     return (
         <React.Fragment>

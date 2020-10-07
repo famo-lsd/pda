@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const Modal = React.forwardRef((props: any) => {
-    const { visible, setVisible, children } = props,
+const Modal = React.forwardRef((props: any, ref: any) => {
+    const { visible, setVisible, visibleCallback, children } = props,
         { t } = useTranslation(),
         [visibility, setVisibility] = useState(visible);
 
@@ -14,6 +14,12 @@ const Modal = React.forwardRef((props: any) => {
     useEffect(() => {
         setVisibility(visible);
     }, [visible]);
+
+    useEffect(() => {
+        if (visibleCallback) {
+            visibleCallback(visibility);
+        }
+    }, [visibility]);
 
     return (
         <section className={'w3-modal famo-modal ' + (visibility ? 'w3-show' : '')} onClick={event => setVisible(false)}>
