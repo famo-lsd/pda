@@ -12,23 +12,23 @@ function Home(props: any) {
             expedition: false
         }),
         buttons: Array<any> = [
-            { label: t('key_806'), key: 'inventory', image: 'btn-inventario.png' },
+            { label: t('key_877'), key: 'expedition', image: 'btn-expedicao.png' },
             { label: t('key_826'), key: 'pallet', image: 'btn-palete.png' },
-            { label: 'Expedição', key: 'expedition', image: 'btn-expedicao.png' }
+            { label: t('key_806'), key: 'inventory', image: 'btn-inventario.png' }
         ];
 
     useEffect(() => {
         SessionStorage.clear();
     }, []);
 
-    if (redirect.inventory) {
-        return <Redirect push to='/Inventory' />;
+    if (redirect.expedition) {
+        return <Redirect push to='/Expedition' />;
     }
     else if (redirect.pallet) {
         return <Redirect push to='/Pallet' />;
     }
-    else if (redirect.expedition) {
-        return <Redirect push to='/Expedition' />;
+    else if (redirect.inventory) {
+        return <Redirect push to='/Inventory' />;
     }
     else {
         return (

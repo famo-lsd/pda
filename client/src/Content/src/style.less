@@ -1,6 +1,41 @@
-@import "baseStyle.less";
+@import "animations.less";
+@import "functions.less";
+@import "variables.less";
 
 @media all {
+
+    // All font-size properties of famo-text-* have an increment of 2px.
+    .famo-text-5,
+    .famo-text-13 {
+        font-size: 16px !important;
+    }
+
+    .famo-text-10,
+    .famo-text-11,
+    .famo-text-12 {
+        font-size: 14px !important;
+    }
+
+    .famo-input {
+        height: 34px;
+    }
+
+    .famo-button {
+        padding: 10px 15px;
+    }
+
+    *>.famo-button:not(:first-child) {
+        margin-left: @famo_button_margin_l;
+    }
+
+    .famo-body .famo-wrapper .famo-title span {
+        cursor: default;
+
+        &::before {
+            content: none;
+        }
+    }
+
     .pda-back-button {
         padding: 15px;
         border-radius: 50%;
@@ -10,7 +45,7 @@
         z-index: 100;
 
         .fas {
-            .applyIcon(24px, 1em, white);
+            .applyIcon(26px, 1em, white);
         }
     }
 
@@ -37,10 +72,10 @@
 
     .pallet-boxes {
         .applyCol(1, @width: 100px);
-        .applyCol(3, @width: @famo_content_fa_button_w);
+        .applyCol(3, @width: @famo_content_fa_button_w_lg);
 
         .button-delete-box .fas {
-            .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+            .applyIcon(@famo_icon_fs_content_lg, @base_line_height, @color_2);
         }
     }
 
@@ -50,9 +85,8 @@
     }
 
     .expedition-products {
-        .applyCol(1, @width: 75px);
-        .applyCol(2, @width: 80px);
-        .applyCol(4, @width: 75px);
+        .applyCol(1, @width: 100px);
+        .applyCol(3, @width: 60px);
 
         .famo-body-row {
 
@@ -63,22 +97,31 @@
                 }
             }
         }
+
+        .famo-button {
+            padding: 0px;
+            margin: 0px !important;
+
+            .fas {
+                .applyIcon(@famo_icon_fs_content_lg, @base_line_height, @base_color);
+            }
+        }
     }
 
     .expedition-boxes {
-        .applyCol(2, @width: @famo_content_fa_button_w);
+        .applyCol(2, @width: @famo_content_fa_button_w_lg);
 
         margin-top: 15px;
 
         .button-delete-box .fas {
-            .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+            .applyIcon(@famo_icon_fs_content_lg, @base_line_height, @color_2);
         }
     }
 
     .expedition-components {
-        .applyCol(1, @width: 80px);
-        .applyCol(3, @width: 75px);
-        .applyCol(4, @width: @famo_content_fa_button_w);
+        .applyCol(1, @width: 105px);
+        .applyCol(3, @width: 60px);
+        .applyCol(4, @width: 20px);
 
         .famo-body-row {
 
@@ -91,7 +134,7 @@
         }
 
         .fas {
-            .applyIcon(@famo_icon_fs_content, @base_line_height);
+            .applyIcon(@famo_icon_fs_content_lg, @base_line_height);
         }
     }
 }
@@ -100,7 +143,57 @@
 @media screen and (max-width: (1200px - 1px)) {}
 
 //** ECRAS GRANDES
-@media screen and (max-width: (992px - 1px)) {}
+@media screen and (max-width: (992px - 1px)) {
+
+    // Reset font-size properties.
+    .famo-text-5,
+    .famo-text-13 {
+        font-size: 14px !important;
+    }
+
+    .famo-text-10,
+    .famo-text-11,
+    .famo-text-12 {
+        font-size: 12px !important;
+    }
+
+    .famo-input {
+        height: 30px;
+    }
+
+    .famo-button {
+        padding: 5px 10px;
+    }
+
+    .pallet-boxes {
+        .applyCol(3, @width: @famo_content_fa_button_w);
+
+        .button-delete-box .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+        }
+    }
+
+    .expedition-products {
+        .famo-button .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height, @base_color);
+        }
+
+    }
+
+    .expedition-boxes {
+        .applyCol(2, @width: @famo_content_fa_button_w);
+
+        .button-delete-box .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+        }
+    }
+
+    .expedition-components {
+        .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height);
+        }
+    }
+}
 
 //** ECRAS MEDIOS
 @media screen and (max-width: (768px - 1px)) {}
@@ -115,5 +208,9 @@
 
     .expedition-details .col-xl-5 {
         display: none;
+    }
+
+    .expedition-components {
+        .applyCol(1, none);
     }
 }

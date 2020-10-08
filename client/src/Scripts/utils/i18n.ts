@@ -2,7 +2,7 @@ import i18n from 'i18next';
 import xhrBackend from 'i18next-xhr-backend';
 import { createQueryString } from './general';
 import { initReactI18next } from 'react-i18next';
-import { NODE_SERVER } from './variablesRepo';
+import { I18N_SERVER } from './variablesRepo';
 
 i18n
     .use(xhrBackend)
@@ -15,7 +15,7 @@ i18n
         react: {
         },
         backend: {
-            loadPath: NODE_SERVER + 'JSON/i18n/{{lng}}.json' + createQueryString({}),
+            loadPath: I18N_SERVER + 'JSON/i18n/{{lng}}.json' + createQueryString({}),
             crossDomain: true
         }
     });

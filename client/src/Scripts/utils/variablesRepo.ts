@@ -1,4 +1,3 @@
 export const LOG_APP_NAME = 'pda',
-    NODE_SERVER = process.env.REACT_APP_NODE_SERVER,
-    RDX_AUTH_USER = 'RDX_AUTH_USER',
-    RDX_LOAD_PAGE = 'RDX_LOAD_PAGE';
+    I18N_SERVER = process.env.REACT_APP_NODE_SERVER,
+    NODE_SERVER = window.location.protocol === 'file:' ? process.env.REACT_APP_NODE_SERVER : window.location.protocol + '//' + window.location.hostname + ':9070/';

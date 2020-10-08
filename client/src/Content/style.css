@@ -11,6 +11,9 @@
   .famo-input {
     height: 34px;
   }
+  .famo-button {
+    padding: 10px 15px;
+  }
   * > .famo-button:not(:first-child) {
     margin-left: 4px;
   }
@@ -20,8 +23,6 @@
   .famo-body .famo-wrapper .famo-title span::before {
     content: none;
   }
-}
-@media all {
   .pda-back-button {
     padding: 15px;
     border-radius: 50%;
@@ -31,7 +32,7 @@
     z-index: 100;
   }
   .pda-back-button .fas {
-    font-size: 24px !important;
+    font-size: 26px !important;
     line-height: 1em !important;
     color: white;
   }
@@ -55,10 +56,10 @@
     width: 120px;
   }
   .pallet-boxes .famo-col-3 {
-    width: 60px;
+    width: 65px;
   }
   .pallet-boxes .button-delete-box .fas {
-    font-size: 14px !important;
+    font-size: 16px !important;
     line-height: 1em !important;
     color: #ffffff;
   }
@@ -69,13 +70,10 @@
     width: 95px;
   }
   .expedition-products .famo-col-1 {
-    width: 95px;
+    width: 120px;
   }
-  .expedition-products .famo-col-2 {
-    width: 100px;
-  }
-  .expedition-products .famo-col-4 {
-    width: 95px;
+  .expedition-products .famo-col-3 {
+    width: 80px;
   }
   .expedition-products .famo-body-row .famo-col-2 span,
   .expedition-products .famo-body-row .famo-col-3 span {
@@ -85,25 +83,34 @@
     -ms-word-break: break-all;
     word-break: break-word;
   }
+  .expedition-products .famo-button {
+    padding: 0px;
+    margin: 0px !important;
+  }
+  .expedition-products .famo-button .fas {
+    font-size: 16px !important;
+    line-height: 1em !important;
+    color: #000000;
+  }
   .expedition-boxes {
     margin-top: 15px;
   }
   .expedition-boxes .famo-col-2 {
-    width: 60px;
+    width: 65px;
   }
   .expedition-boxes .button-delete-box .fas {
-    font-size: 14px !important;
+    font-size: 16px !important;
     line-height: 1em !important;
     color: #ffffff;
   }
   .expedition-components .famo-col-1 {
-    width: 100px;
+    width: 125px;
   }
   .expedition-components .famo-col-3 {
-    width: 95px;
+    width: 80px;
   }
   .expedition-components .famo-col-4 {
-    width: 60px;
+    width: 40px;
   }
   .expedition-components .famo-body-row .famo-col-1 span,
   .expedition-components .famo-body-row .famo-col-2 span {
@@ -112,6 +119,48 @@
     word-wrap: break-word;
     -ms-word-break: break-all;
     word-break: break-word;
+  }
+  .expedition-components .fas {
+    font-size: 16px !important;
+    line-height: 1em !important;
+  }
+}
+@media screen and (max-width: 991px) {
+  .famo-text-5,
+  .famo-text-13 {
+    font-size: 14px !important;
+  }
+  .famo-text-10,
+  .famo-text-11,
+  .famo-text-12 {
+    font-size: 12px !important;
+  }
+  .famo-input {
+    height: 30px;
+  }
+  .famo-button {
+    padding: 5px 10px;
+  }
+  .pallet-boxes .famo-col-3 {
+    width: 60px;
+  }
+  .pallet-boxes .button-delete-box .fas {
+    font-size: 14px !important;
+    line-height: 1em !important;
+    color: #ffffff;
+  }
+  .expedition-products .famo-button .fas {
+    font-size: 14px !important;
+    line-height: 1em !important;
+    color: #000000;
+  }
+  .expedition-boxes .famo-col-2 {
+    width: 60px;
+  }
+  .expedition-boxes .button-delete-box .fas {
+    font-size: 14px !important;
+    line-height: 1em !important;
+    color: #ffffff;
   }
   .expedition-components .fas {
     font-size: 14px !important;
@@ -129,6 +178,9 @@
     width: 45%;
   }
   .expedition-details .col-xl-5 {
+    display: none;
+  }
+  .expedition-components .famo-col-1 {
     display: none;
   }
 }

@@ -57,7 +57,7 @@ function Index(props: any) {
     const { t } = useTranslation(),
         { history } = props,
         [, globalActions] = useGlobal(),
-        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_820')],
+        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Box\'s'],
         [shipments, setShipments] = useState<Array<Shipment>>([]);
 
     function editExpedition(shipmentCode: string) {
@@ -101,7 +101,7 @@ function Index(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
-                <Title text='Mapas de carga' />
+                <Title text={t('key_878')} />
                 <div className='famo-content'>
                     <div className='famo-grid famo-content-grid shipments'>
                         <div className='famo-row famo-header-row'>
@@ -144,7 +144,7 @@ function Edit(props: any) {
         [shipment, setShipment] = useState<Shipment>(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
-            label: t('key_819'),
+            label: 'Box',
             className: 'famo-input famo-text-10',
             name: 'boxCode',
             value: '',
@@ -152,14 +152,14 @@ function Edit(props: any) {
             isNumber: false,
             isDisabled: false
         }),
-        productsHeader: Array<string> = [t('key_179'), t('key_54'), t('key_138'), t('key_820')],
+        productsHeader: Array<string> = [t('key_179'), t('key_54'), /*t('key_138'),*/ 'Box\'s'],
         [products, setProducts] = useState<Array<ShipmentProduct>>([]),
-        boxesHeader: Array<string> = [t('key_820'), ''],
+        boxesHeader: Array<string> = ['Box\'s', ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [loadBox, setLoadBox] = useState<boolean>(false),
         [saveBoxes, setSaveBoxes] = useState<boolean>(false),
         [componentsModal, setComponentsModal] = useState<boolean>(false),
-        componentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_819'), ''],
+        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Box', ''],
         [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]);
 
     function cleanBoxCode() {
@@ -167,7 +167,10 @@ function Edit(props: any) {
         boxCode.ref.current.focus();
     }
 
-    function getProductComponents(orderCode: string, orderLine: number = null) {
+    function getProductComponents(button: HTMLElement, orderCode: string, orderLine: number = null) {
+        button.querySelector('.fas').classList.remove('hide');
+        button.querySelector('span[class*="famo-text-"]').classList.add('hide');
+
         fetch(NODE_SERVER + 'ERP/Shipments/Products/Components' + createQueryString({
             orderCode: orderCode,
             orderLine: orderLine
@@ -198,19 +201,21 @@ function Edit(props: any) {
             })
             .finally(() => {
                 setComponentsModal(true);
+
+                button.querySelector('.fas').classList.add('hide');
+                button.querySelector('span[class*="famo-text-"]').classList.remove('hide');
             });
     }
 
     function addBox() {
         if (boxCode.value.startsWith('PL')) {
-            // const matchPalletCode = boxCode.value.match(/(?<=PL).*(?=\/)/g);
-            const matchPalletCode = boxCode.value.match(/.*/g);
+            const matchPalletCode = boxCode.value.match(/PL.*?\//g);
 
             setLoadBox(true);
 
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
                 shipmentCode: query.shipmentCode,
-                palletID: matchPalletCode ? parseInt(matchPalletCode[0]) : -1
+                palletID: matchPalletCode ? parseInt(matchPalletCode[0].replace('PL', '').replace('/', '')) : -1
             }), {
                 method: 'GET',
                 credentials: 'include'
@@ -232,7 +237,7 @@ function Edit(props: any) {
                     }
                     else {
                         httpErrorLog(wsSucc);
-                        alert(wsSucc.status === httpStatus.NOT_FOUND ? 'A palete não está associada ao envio.' : t('key_303'));
+                        alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
                     }
                 })
                 .catch(wsErr => {
@@ -246,7 +251,7 @@ function Edit(props: any) {
         }
         else {
             if (boxes && boxes.some(x => { return x.Code === boxCode.value; })) {
-                alert('A embalagem já está pronta a carregar.');
+                alert(t('key_874'));
             }
             else {
                 setLoadBox(true);
@@ -273,15 +278,15 @@ function Edit(props: any) {
                             httpErrorLog(wsSucc);
 
                             if (wsSucc.status === httpStatus.NOT_FOUND) {
-                                alert('A embalagem não está associada ao envio.');
+                                alert(t('key_872'));
                             }
                             else if (wsSucc.status === httpStatus.FORBIDDEN) {
                                 await wsSucc.json()
                                     .then(data => {
-                                        if (data.forbidType === 'box') {
-                                            alert('A embalagem já foi carregada.');
+                                        if (data.reason === 'box') {
+                                            alert(t('key_871'));
                                         }
-                                        else if (data.forbidType === 'pallet') {
+                                        else if (data.reason === 'pallet') {
                                             alert(t('key_828'));
                                         }
                                     })
@@ -308,7 +313,7 @@ function Edit(props: any) {
     }
 
     function deleteBox(code: string) {
-        if (window.confirm('Tem a certeza que pretende eliminar a embalagem?')) {
+        if (window.confirm(t('key_880'))) {
             setBoxes(boxes.filter(x => { return x.Code !== code; }));
         }
     }
@@ -420,83 +425,93 @@ function Edit(props: any) {
 
     return (
         <React.Fragment>
-            <section className='famo-wrapper'>
-                <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); addBox(); }}>
-                        {!globalState.androidApp &&
-                            <React.Fragment>
-                                <div className='famo-row'>
-                                    <div className='famo-cell famo-input-label'>
-                                        <span className='famo-text-11'>{t('key_822')}</span>
+            <section className='container famo-wrapper'>
+                <div className='row'>
+                    <div className='col-12 col-xl-8'>
+                        <section className='famo-wrapper'>
+                            <div className='famo-content'>
+                                <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); addBox(); }}>
+                                    {!globalState.androidApp &&
+                                        <React.Fragment>
+                                            <div className='famo-row'>
+                                                <div className='famo-cell famo-input-label'>
+                                                    <span className='famo-text-11'>{t('key_822')}</span>
+                                                </div>
+                                                <div className='famo-cell'>
+                                                    <div className='famo-input'>
+                                                        <span className='famo-text-10'>{query.shipmentCode}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className='famo-row'>
+                                                <div className='famo-cell famo-input-label'>
+                                                    <span className='famo-text-11'>{t('key_138')}</span>
+                                                </div>
+                                                <div className='famo-cell'>
+                                                    <div className='famo-input'>
+                                                        <span className={'famo-text-10 ' + (shipment && shipment.Description ? '' : 'famo-color-yellow')}>{shipment && shipment.Description ? shipment.Description : t('key_237')}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </React.Fragment>
+                                    }
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>Box</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <Input {...boxCode} set={setBoxCode} />
+                                        </div>
                                     </div>
-                                    <div className='famo-cell'>
-                                        <div className='famo-input'>
-                                            <span className='famo-text-10'>{query.shipmentCode}</span>
+                                    <input type='submit' className='hide' value='' />
+                                </form>
+                                <div className='famo-grid famo-buttons'>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell text-right'>
+                                            <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => cleanBoxCode()}>
+                                                <span className='famo-text-12'>{t('key_829')}</span>
+                                            </button>
+                                            {!globalState.androidApp &&
+                                                <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => addBox()}>
+                                                    <span className='famo-text-12'>{t('key_815')}</span>
+                                                </button>
+                                            }
                                         </div>
                                     </div>
                                 </div>
-                                <div className='famo-row'>
-                                    <div className='famo-cell famo-input-label'>
-                                        <span className='famo-text-11'>{t('key_138')}</span>
-                                    </div>
-                                    <div className='famo-cell'>
-                                        <div className='famo-input'>
-                                            <span className={'famo-text-10 ' + (shipment && shipment.Description ? '' : 'famo-color-yellow')}>{shipment && shipment.Description ? shipment.Description : t('key_237')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className='famo-row'>
-                                    <div className='famo-cell famo-input-label'>
-                                        <span className='famo-text-11'>{t('key_820')}</span>
-                                    </div>
-                                    <div className='famo-cell'>
-                                        <div className='famo-input'>
-                                            <span className='famo-text-10 famo-color-green'>{products.reduce((total, x) => { return x.Status === 1 ? total + x.TotalBoxes : total; }, 0)}</span><span className='famo-text-10'>/{products.reduce((total, x) => { return total + x.TotalBoxes; }, 0)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </React.Fragment>
-                        }
-                        <div className='famo-row'>
-                            <div className='famo-cell famo-input-label'>
-                                <span className='famo-text-11'>{t('key_819')}</span>
                             </div>
-                            <div className='famo-cell'>
-                                <Input {...boxCode} set={setBoxCode} />
-                            </div>
-                        </div>
-                        <input type='submit' className='hide' value='' />
-                    </form>
-                    <div className='famo-grid famo-buttons'>
-                        <div className='famo-row'>
-                            <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => cleanBoxCode()}>
-                                    <span className='famo-text-12'>{t('key_829')}</span>
-                                </button>
-                                {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => addBox()}>
-                                        <span className='famo-text-12'>{t('key_815')}</span>
-                                    </button>
-                                }
-                            </div>
-                        </div>
+                        </section>
                     </div>
+                    {!globalState.androidApp &&
+                        <div className='col-12 col-xl-4'>
+                            <section id='special-consults' className='famo-wrapper'>
+                                <div className='famo-content'>
+                                    <ContentLoader hide={!saveBoxes} />
+                                    <div className={'famo-grid rating-panel ' + (saveBoxes ? 'hide' : '')}>
+                                        <div className='famo-row'>
+                                            <div className='famo-cell text-center'>
+                                                <span className='famo-text-23 famo-color-green'>{products.reduce((total, x) => { return x.Status === 1 ? total + x.TotalBoxes : total; }, 0)}</span><span className='famo-text-23'>/{products.reduce((total, x) => { return total + x.TotalBoxes; }, 0)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    }
                 </div>
             </section>
             <section className='container famo-wrapper expedition-details'>
                 <div className='row'>
                     <div className='col-12 col-xl-5'>
                         <section className='famo-wrapper'>
-                            <div className='famo-title'>
-                                <span className='famo-text-13'>Em falta</span>
-                            </div>
+                            <Title text={t('key_876')} />
                             <div className='famo-content'>
                                 <ContentLoader hide={!saveBoxes} />
                                 <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {productsHeader.map((x, i) => {
                                             return (
-                                                <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
+                                                <div key={i} className={'famo-cell famo-col-' + (i + 1) + ' ' + (i === productsHeader.length - 1 ? 'text-center' : '')}>
                                                     <span className='famo-text-11'>{x}</span>
                                                 </div>
                                             );
@@ -508,16 +523,24 @@ function Edit(props: any) {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
                                                 <div className='famo-cell famo-col-1'>
-                                                    <span className='famo-text-10' onClick={event => getProductComponents(x.OrderCode)}>{x.OrderCode}</span>
+                                                    <button type='button' className='famo-button famo-transparent-button famo-loader-button text-left' onClick={event => getProductComponents(event.currentTarget, x.OrderCode)}>
+                                                        <span className={'fas fa-spinner fa-spin ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '') + ' hide'}></span>
+                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.OrderCode}</span>
+                                                    </button>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
-                                                    <span className='famo-text-10'>{x.ProductCode}</span>
+                                                    <p>
+                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.ProductCode}</span>
+                                                    </p>
+                                                    <p>
+                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.ProductDescription}</span>
+                                                    </p>
                                                 </div>
-                                                <div className='famo-cell famo-col-3'>
-                                                    <span className='famo-text-10'>{x.ProductDescription}</span>
-                                                </div>
-                                                <div className='famo-cell famo-col-4'>
-                                                    <span className='famo-text-10' onClick={event => getProductComponents(x.OrderCode, x.OrderLine)}>{x.TotalBoxes}</span>
+                                                <div className='famo-cell famo-col-3 text-center'>
+                                                    <button type='button' className='famo-button famo-transparent-button famo-loader-button' onClick={event => getProductComponents(event.currentTarget, x.OrderCode, x.OrderLine)}>
+                                                        <span className={'fas fa-spinner fa-spin ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '') + ' hide'}></span>
+                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.PendingBoxes}/{x.TotalBoxes}</span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         );
@@ -528,15 +551,13 @@ function Edit(props: any) {
                     </div>
                     <div className='col-12 col-xl-2'>
                         <section className='famo-wrapper'>
-                            <div className='famo-title'>
-                                <span className='famo-text-13'>Pronto p/carregar</span>
-                            </div>
+                            <Title text={t('key_879')} />
                             <div className='famo-content'>
                                 <ContentLoader hide={!loadBox && !saveBoxes} />
                                 <div className={'famo-grid ' + (!loadBox && !saveBoxes ? '' : 'hide')}>
                                     <div className='famo-row'>
-                                        <div className='famo-cell text-left'>
-                                            <button type='button' className='famo-button famo-normal-button famo-confirm-button' disabled={loadBox || saveBoxes || boxes.length === 0} onClick={event => saveShipment()}>
+                                        <div className='famo-cell text-right'>
+                                            <button type='button' className='famo-button famo-normal-button famo-confirm-button button-save-boxes' disabled={loadBox || saveBoxes || boxes.length === 0} onClick={event => saveShipment()}>
                                                 <span className='famo-text-12'>{t('key_220')}</span>
                                             </button>
                                         </div>
@@ -572,16 +593,14 @@ function Edit(props: any) {
                     </div>
                     <div className='col-12 col-xl-5'>
                         <section className='famo-wrapper'>
-                            <div className='famo-title'>
-                                <span className='famo-text-13'>Carregado</span>
-                            </div>
+                            <Title text={t('key_875')} />
                             <div className='famo-content'>
                                 <ContentLoader hide={!saveBoxes} />
                                 <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {productsHeader.map((x, i) => {
                                             return (
-                                                <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
+                                                <div key={i} className={'famo-cell famo-col-' + (i + 1) + ' ' + (i === productsHeader.length - 1 ? 'text-center' : '')}>
                                                     <span className='famo-text-11'>{x}</span>
                                                 </div>
                                             );
@@ -596,12 +615,14 @@ function Edit(props: any) {
                                                     <span className='famo-text-10'>{x.OrderCode}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
-                                                    <span className='famo-text-10'>{x.ProductCode}</span>
+                                                    <p>
+                                                        <span className='famo-text-10'>{x.ProductCode}</span>
+                                                    </p>
+                                                    <p>
+                                                        <span className='famo-text-10'>{x.ProductDescription}</span>
+                                                    </p>
                                                 </div>
-                                                <div className='famo-cell famo-col-3'>
-                                                    <span className='famo-text-10'>{x.ProductDescription}</span>
-                                                </div>
-                                                <div className='famo-cell famo-col-4'>
+                                                <div className='famo-cell famo-col-3 text-center'>
                                                     <span className='famo-text-10'>{x.TotalBoxes}</span>
                                                 </div>
                                             </div>
@@ -620,9 +641,7 @@ function Edit(props: any) {
 
                     return (
                         <section key={i} className='famo-wrapper'>
-                            <div className='famo-title'>
-                                <span className='famo-text-13'>{productCode + ' - ' + productDescription}</span>
-                            </div>
+                            <Title text={productCode + ' - ' + productDescription} />
                             <div className='famo-content'>
                                 <div className='famo-grid famo-content-grid expedition-components'>
                                     <div className='famo-row famo-header-row'>
@@ -641,7 +660,7 @@ function Edit(props: any) {
                                                     <span className='famo-text-10'>{y.ComponentCode}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
-                                                    <span className='famo-text-10'>{y.ComponentDescription}</span>
+                                                    <span className={'famo-text-10 ' + (!y.ComponentDescription ? 'famo-color-yellow' : '')}>{!y.ComponentDescription ? t('key_237') : y.ComponentDescription}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-3'>
                                                     <span className='famo-text-10'>{y.BoxCode}</span>

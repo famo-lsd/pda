@@ -213,7 +213,7 @@ function Edit(props: any) {
         [boxModal, setBoxModal] = useState<boolean>(false),
         [modalBoxCode, setModalBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
-            label: t('key_819'),
+            label: 'Box',
             className: 'famo-input famo-text-10',
             name: 'boxCode',
             value: '',
@@ -258,13 +258,13 @@ function Edit(props: any) {
                         httpErrorLog(wsSucc);
 
                         if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            alert('A embalagem não está associada ao envio.');
+                            alert(t('key_872'));
                         }
                         else if (wsSucc.status === httpStatus.FORBIDDEN) {
                             await wsSucc.json()
                                 .then(data => {
                                     if (data.forbidType === 'box') {
-                                        alert('A embalagem já foi carregada.');
+                                        alert(t('key_871'));
                                     }
                                     else if (data.forbidType === 'pallet') {
                                         alert(t('key_828'));
@@ -297,7 +297,7 @@ function Edit(props: any) {
     }
 
     function deleteBox(code: string) {
-        if (window.confirm('Tem a certeza que pretende eliminar a embalagem?')) {
+        if (window.confirm(t('key_880'))) {
             setBoxes(boxes.filter(x => { return x.Code !== code; }));
         }
     }
@@ -427,7 +427,7 @@ function Edit(props: any) {
                     else {
                         httpErrorLog(wsSucc);
 
-                        alert(wsSucc.status === httpStatus.NOT_FOUND ? 'A palete não está associada ao envio.' : t('key_303'));
+                        alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
                         history.replace('/Pallet');
                     }
                 })
@@ -462,7 +462,7 @@ function Edit(props: any) {
         return (
             <React.Fragment>
                 <section className='famo-wrapper'>
-                    <Title text={t('key_820')} />
+                    <Title text={'Box\'s'} />
                     <div className='famo-content'>
                         <ContentLoader hide={!palletSave} />
                         <div className={'famo-grid famo-content-grid pallet-boxes ' + (palletSave ? 'hide' : '')}>

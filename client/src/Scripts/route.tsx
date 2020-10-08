@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 import SignIn from './components/signIn';
 import { AppLoader } from './components/elements/loader';
 import { autoSignIn } from './utils/authentication';
-import { HashRouter, Route, Redirect, Switch, useHistory } from 'react-router-dom';
+import { HashRouter, Route, Redirect, Switch, useHistory, useLocation } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
 import { isAndroidApp } from './utils/platform';
 import { NODE_SERVER } from './utils/variablesRepo';
@@ -61,6 +61,7 @@ function RouteBody() {
 function AutoRouteBody(props: any) {
     const { t } = props,
         history = useHistory(),
+        location = useLocation(),
         [globalState, globalActions] = useGlobal(),
         [backButton, setBackButton] = useState<boolean>(false);
 
@@ -91,8 +92,8 @@ function AutoRouteBody(props: any) {
     }, []);
 
     useEffect(() => {
-        setBackButton(history.location.pathname === '/' ? false : true);
-    }, [history.location.pathname]);
+        setBackButton(location.pathname === '/' ? false : true);
+    }, [location.pathname]);
 
     return (
         <section className='famo-body'>
