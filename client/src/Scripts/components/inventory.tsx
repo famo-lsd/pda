@@ -380,7 +380,7 @@ function Inventory(props: any) {
             <Modal visible={productModal} setVisible={setProductModal} visibleCallback={productModalCallback}>
                 <section className='famo-wrapper'>
                     <div className='famo-content'>
-                        <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => submitProductModal()}>
+                        <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); submitProductModal(); }}>
                             <div className='famo-row'>
                                 <div className='famo-cell famo-input-label'>
                                     <span className='famo-text-11'>{modalProductCode.label}</span>
