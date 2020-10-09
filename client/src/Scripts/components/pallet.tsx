@@ -307,7 +307,7 @@ function Edit(props: any) {
 
         fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
             shipmentCode: query.shipmentCode,
-            palletID: !palletID ? -1 : palletID
+            palletID: !palletID ? null : palletID
         }), {
             method: 'PUT',
             headers: {
