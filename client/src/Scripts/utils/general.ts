@@ -17,12 +17,21 @@ export function createQueryString(json: any) {
     return qs;
 };
 
-export function loadScript(src: string, ref: React.RefObject<any>) {
+export function loadScript(src: string, ref: React.RefObject<any> = null) {
     const script = document.createElement('script');
 
-    script.async = true;
+    script.async = false;
     script.src = src;
     script.type = 'text/javascript';
 
-    ref.current.appendChild(script);
+    if (ref) {
+        ref.current.appendChild(script);
+    }
+    else {
+        document.querySelector('head').appendChild(script);
+    }
+
+    return new Promise((resolve, reject) => {
+        script.onload = resolve;
+    });
 }

@@ -187,13 +187,6 @@ function Inventory(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        // load scripts
-        if (Object.keys(window['numeral'].locales).length === 1) {
-            loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=27', sectionRef);
-            loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27', sectionRef);
-            loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27', sectionRef);
-        }
-
         fetch(NODE_SERVER + 'ERP/Inventories' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'

@@ -1,13 +1,14 @@
 import httpStatus from 'http-status';
+import Input, { InputConfig } from './elements/input';
 import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { ContentLoader } from './elements/loader';
-import { createQueryString } from '../utils/general';
+import { createQueryString, loadScript } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
-import Input, { InputConfig } from './elements/input';
 import { NODE_SERVER } from '../utils/variablesRepo';
+import { Prompt } from 'react-router'
 import { Route, Redirect, Switch, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
@@ -29,6 +30,7 @@ interface ShipmentProduct {
     OrderLine: number;
     ProductCode: string;
     ProductDescription: string;
+    Volume: number;
     PendingBoxes: number;
     TotalBoxes: number;
     Status: number;
@@ -152,19 +154,50 @@ function Edit(props: any) {
             isNumber: false,
             isDisabled: false
         }),
-        productsHeader: Array<string> = [t('key_179'), t('key_54'), /*t('key_138'),*/ 'Box\'s'],
+        productsHeader: Array<string> = [t('key_179'), t('key_54'), 'Box\'s'],
         [products, setProducts] = useState<Array<ShipmentProduct>>([]),
+        [updateProducts, setUpdateProducts] = useState<boolean>(false),
         boxesHeader: Array<string> = ['Box\'s', ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [loadBox, setLoadBox] = useState<boolean>(false),
         [saveBoxes, setSaveBoxes] = useState<boolean>(false),
         [componentsModal, setComponentsModal] = useState<boolean>(false),
         componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Box', ''],
-        [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]);
+        [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
+        numeral = window['numeral'],
+        unitFormat = '0,0',
+        volumeFormat = '0,0.00';
 
     function cleanBoxCode() {
         setBoxCode(x => { return { ...x, value: '' }; });
         boxCode.ref.current.focus();
+    }
+
+    function fetchShipmentProducts() {
+        return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            setProducts(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+                    alert(t('key_303'));
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            });
     }
 
     function getProductComponents(button: HTMLElement, orderCode: string, orderLine: number = null) {
@@ -390,41 +423,26 @@ function Edit(props: any) {
             .catch(wsErr => {
                 promiseErrorLog(wsErr);
                 alert(t('key_416'));
-            }),
-            fetchShipmentProducts = fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
-                method: 'GET',
-                credentials: 'include'
-            })
-                .then(async wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        await wsSucc.json()
-                            .then(data => {
-                                setProducts(data);
-                            })
-                            .catch(error => {
-                                promiseErrorLog(error);
-                                alert(t('key_416'));
-                            });
-                    }
-                    else {
-                        httpErrorLog(wsSucc);
-                        alert(t('key_303'));
-                    }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
-                    alert(t('key_416'));
-                });
+            });
 
-        Promise.all([fetchShipment, fetchShipmentProducts]).finally(() => {
+        Promise.all([fetchShipment, fetchShipmentProducts()]).finally(() => {
             globalActions.setLoadPage(false);
         });
+
+        setInterval(() => {
+            // setUpdateProducts(true);
+
+            fetchShipmentProducts().finally(() => {
+                // setUpdateProducts(false);
+            });
+        }, 10000);
 
         SessionStorage.clear();
     }, []);
 
     return (
         <React.Fragment>
+            <Prompt when={boxes.length > 0} message={t('key_881')} />
             <section className='container famo-wrapper'>
                 <div className='row'>
                     <div className='col-12 col-xl-8'>
@@ -484,13 +502,26 @@ function Edit(props: any) {
                     </div>
                     {!globalState.androidApp &&
                         <div className='col-12 col-xl-4'>
-                            <section id='special-consults' className='famo-wrapper'>
+                            <section className='famo-wrapper'>
+                                <Title text={'Box\'s'} />
                                 <div className='famo-content'>
-                                    <ContentLoader hide={!saveBoxes} />
-                                    <div className={'famo-grid rating-panel ' + (saveBoxes ? 'hide' : '')}>
+                                    <ContentLoader hide={!saveBoxes && !updateProducts} />
+                                    <div className={'famo-grid rating-panel ' + (saveBoxes || updateProducts ? 'hide' : '')}>
                                         <div className='famo-row'>
                                             <div className='famo-cell text-center'>
-                                                <span className='famo-text-23 famo-color-green'>{products.reduce((total, x) => { return x.Status === 1 ? total + x.TotalBoxes : total; }, 0)}</span><span className='famo-text-23'>/{products.reduce((total, x) => { return total + x.TotalBoxes; }, 0)}</span>
+                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.Status === 1 ? total + x.TotalBoxes : total; }, 0)).format(unitFormat)}</span><span className='famo-text-23'>/{numeral(products.reduce((total, x) => { return total + x.TotalBoxes; }, 0)).format(unitFormat)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section className='famo-wrapper'>
+                                <div className='famo-content'>
+                                    <ContentLoader hide={!saveBoxes && !updateProducts} />
+                                    <div className={'famo-grid rating-panel ' + (saveBoxes || updateProducts ? 'hide' : '')}>
+                                        <div className='famo-row'>
+                                            <div className='famo-cell text-center'>
+                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.Status === 1 ? total + x.Volume : total; }, 0)).format(volumeFormat)}</span><span className='famo-text-23'>/{numeral(products.reduce((total, x) => { return total + x.Volume; }, 0)).format(volumeFormat) + ' m3'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -506,8 +537,8 @@ function Edit(props: any) {
                         <section className='famo-wrapper'>
                             <Title text={t('key_876')} />
                             <div className='famo-content'>
-                                <ContentLoader hide={!saveBoxes} />
-                                <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
+                                <ContentLoader hide={!saveBoxes && !updateProducts} />
+                                <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes || updateProducts ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {productsHeader.map((x, i) => {
                                             return (
@@ -539,7 +570,7 @@ function Edit(props: any) {
                                                 <div className='famo-cell famo-col-3 text-center'>
                                                     <button type='button' className='famo-button famo-transparent-button famo-loader-button' onClick={event => getProductComponents(event.currentTarget, x.OrderCode, x.OrderLine)}>
                                                         <span className={'fas fa-spinner fa-spin ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '') + ' hide'}></span>
-                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.PendingBoxes}/{x.TotalBoxes}</span>
+                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{numeral(x.PendingBoxes).format(unitFormat)}/{numeral(x.TotalBoxes).format(unitFormat)}</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -568,7 +599,7 @@ function Edit(props: any) {
                                         {boxesHeader.map((x, i) => {
                                             return (
                                                 <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
-                                                    <span className='famo-text-11'>{x + (i === 0 ? (' (' + boxes.length + ')') : '')}</span>
+                                                    <span className='famo-text-11'>{x + (i === 0 ? (' (' + numeral(boxes.length).format(unitFormat) + ')') : '')}</span>
                                                 </div>
                                             );
                                         })}
@@ -595,8 +626,8 @@ function Edit(props: any) {
                         <section className='famo-wrapper'>
                             <Title text={t('key_875')} />
                             <div className='famo-content'>
-                                <ContentLoader hide={!saveBoxes} />
-                                <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes ? 'hide' : '')}>
+                                <ContentLoader hide={!saveBoxes && !updateProducts} />
+                                <div className={'famo-grid famo-content-grid expedition-products ' + (saveBoxes || updateProducts ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {productsHeader.map((x, i) => {
                                             return (
@@ -623,7 +654,7 @@ function Edit(props: any) {
                                                     </p>
                                                 </div>
                                                 <div className='famo-cell famo-col-3 text-center'>
-                                                    <span className='famo-text-10'>{x.TotalBoxes}</span>
+                                                    <span className='famo-text-10'>{numeral(x.TotalBoxes).format(unitFormat)}</span>
                                                 </div>
                                             </div>
                                         );

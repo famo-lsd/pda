@@ -545,7 +545,7 @@ function Edit(props: any) {
                 <Modal visible={boxModal} setVisible={setBoxModal} visibleCallback={boxModalCallback}>
                     <section className='famo-wrapper'>
                         <div className='famo-content'>
-                            <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => {event.preventDefault(); submitBoxModal();}}>
+                            <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); submitBoxModal(); }}>
                                 <div className='famo-row'>
                                     <div className='famo-cell famo-input-label'>
                                         <span className='famo-text-11'>{modalBoxCode.label}</span>
