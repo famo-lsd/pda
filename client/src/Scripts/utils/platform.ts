@@ -15,9 +15,9 @@ export function isAndroidApp(authUser: any, globalActions: any, t: any) {
                     .then(async data => {
                         // numeral
                         setNumeralLocale(authUser.Language.Code);
-                        await Promise.all([loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=27'),
-                        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=27'),
-                        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=27')]);
+                        await Promise.all([loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=2'),
+                        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=2'),
+                        loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=2')]);
 
                         // application data
                         globalActions.setAndroidApp(data);
