@@ -5,7 +5,7 @@ import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { ContentLoader } from './elements/loader';
-import { createQueryString, loadScript } from '../utils/general';
+import { createQueryString } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { Prompt } from 'react-router'
@@ -169,6 +169,24 @@ function Edit(props: any) {
         volumeFormat = '0,0.00';
 
     function cleanBoxCode() {
+        // (navigator as any).bluetooth.requestDevice({
+        //     acceptAllDevices: true
+        // }).then(device => {
+        //     return device.gatt.connect();
+        // })
+        //     .then(server => {
+        //         return server.getPrimaryService('battery_service');
+        //     }).then(service => {
+        //         return service.getCharacteristic('battery_level');
+        //     })
+        //     .then(characteristic => {
+        //         return characteristic.readValue();
+        //     })
+        //     .then(value => {
+        //         console.log(value.getUint8(0));
+        //     })
+        //     .catch(error => { console.log(error); });
+
         setBoxCode(x => { return { ...x, value: '' }; });
         boxCode.ref.current.focus();
     }
@@ -278,8 +296,8 @@ function Edit(props: any) {
                     alert(t('key_416'));
                 })
                 .finally(() => {
-                    cleanBoxCode();
                     setLoadBox(false);
+                    cleanBoxCode();
                 });
         }
         else {
@@ -338,8 +356,8 @@ function Edit(props: any) {
                         alert(t('key_416'));
                     })
                     .finally(() => {
-                        cleanBoxCode();
                         setLoadBox(false);
+                        cleanBoxCode();
                     });
             }
         }
@@ -386,8 +404,8 @@ function Edit(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                cleanBoxCode();
                 setSaveBoxes(false);
+                cleanBoxCode();
             });
     }
 

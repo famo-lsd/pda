@@ -1,4 +1,9 @@
 @media all {
+  body {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
   .famo-text-5,
   .famo-text-13 {
     font-size: 16px !important;

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { barcodeScan } from '../utils/barcode';
 import { ContentLoader } from './elements/loader';
-import { createQueryString, loadScript } from '../utils/general';
+import { createQueryString } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { SessionStorage } from '../utils/sessionStorage';

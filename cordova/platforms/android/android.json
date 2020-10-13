@@ -95,7 +95,7 @@
         "parents": {
           "/manifest/application": [
             {
-              "xml": "<application android:usesCleartextTraffic=\"true\" />",
+              "xml": "<application android:layerType=\"software\" />",
               "count": 1,
               "mode": "merge",
               "id": "config.xml",
@@ -103,6 +103,63 @@
                 "android:hardwareAccelerated": "true",
                 "android:icon": "@mipmap/ic_launcher",
                 "android:label": "@string/app_name",
+                "android:layerType": "hardware",
+                "android:supportsRtl": "true",
+                "android:usesCleartextTraffic": "true"
+              }
+            },
+            {
+              "xml": "<application android:hardwareAccelerated=\"true\" />",
+              "count": 1,
+              "mode": "merge",
+              "id": "config.xml",
+              "oldAttrib": {
+                "android:hardwareAccelerated": "true",
+                "android:icon": "@mipmap/ic_launcher",
+                "android:label": "@string/app_name",
+                "android:layerType": "software",
+                "android:supportsRtl": "true",
+                "android:usesCleartextTraffic": "true"
+              }
+            },
+            {
+              "xml": "<application android:layerType=\"hardware\" />",
+              "count": 2,
+              "mode": "merge",
+              "id": "config.xml",
+              "oldAttrib": {
+                "android:hardwareAccelerated": "true",
+                "android:icon": "@mipmap/ic_launcher",
+                "android:label": "@string/app_name",
+                "android:layerType": "software",
+                "android:supportsRtl": "true",
+                "android:usesCleartextTraffic": "true"
+              }
+            },
+            {
+              "xml": "<application android:hardwareAccelerated=\"false\" />",
+              "count": 1,
+              "mode": "merge",
+              "id": "config.xml",
+              "oldAttrib": {
+                "android:hardwareAccelerated": "true",
+                "android:icon": "@mipmap/ic_launcher",
+                "android:label": "@string/app_name",
+                "android:layerType": "hardware",
+                "android:supportsRtl": "true",
+                "android:usesCleartextTraffic": "true"
+              }
+            },
+            {
+              "xml": "<application android:usesCleartextTraffic=\"true\" />",
+              "count": 1,
+              "mode": "merge",
+              "id": "config.xml",
+              "oldAttrib": {
+                "android:hardwareAccelerated": "false",
+                "android:icon": "@mipmap/ic_launcher",
+                "android:label": "@string/app_name",
+                "android:layerType": "hardware",
                 "android:supportsRtl": "true",
                 "android:usesCleartextTraffic": "true"
               }
