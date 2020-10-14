@@ -11,7 +11,7 @@ async function initApp() {
         ReactDOM.render(<Suspense fallback={<AppLoader hide={true} />}><Routing /></Suspense>, document.getElementById('root'));
     }
     catch (err) {
-        alert('Ouch!! Please turn on Node.js server!');
+        alert('Ouch!! Restart app!');
     }
 }
 

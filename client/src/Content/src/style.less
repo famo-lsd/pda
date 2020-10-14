@@ -4,12 +4,6 @@
 
 @media all {
 
-    body {
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-
     // All font-size properties of famo-text-* have an increment of 2px.
     .famo-text-5,
     .famo-text-13 {
@@ -43,7 +37,7 @@
     }
 
     .pda-back-button {
-        padding: 15px;
+        padding: 15px !important;
         border-radius: 50%;
         position: fixed;
         left: 15px;
@@ -88,6 +82,11 @@
     .shipments {
         .applyCol(1, @width: 130px);
         .applyCol(3, @width: 75px);
+    }
+
+    .box-error-message {
+        display: inline-block;
+        margin-right: 10px;
     }
 
     .expedition-products {

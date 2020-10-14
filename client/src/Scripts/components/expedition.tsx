@@ -1,3 +1,4 @@
+import AudioEffect from '../utils/audio';
 import httpStatus from 'http-status';
 import Input, { InputConfig } from './elements/input';
 import Modal from './elements/modal';
@@ -154,6 +155,8 @@ function Edit(props: any) {
             isNumber: false,
             isDisabled: false
         }),
+        [boxError, setBoxError] = useState<boolean>(false),
+        [boxErrorMessage, setBoxErrorMessage] = useState<string>(),
         productsHeader: Array<string> = [t('key_179'), t('key_54'), 'Box\'s'],
         [products, setProducts] = useState<Array<ShipmentProduct>>([]),
         [updateProducts, setUpdateProducts] = useState<boolean>(false),
@@ -168,25 +171,19 @@ function Edit(props: any) {
         unitFormat = '0,0',
         volumeFormat = '0,0.00';
 
-    function cleanBoxCode() {
-        // (navigator as any).bluetooth.requestDevice({
-        //     acceptAllDevices: true
-        // }).then(device => {
-        //     return device.gatt.connect();
-        // })
-        //     .then(server => {
-        //         return server.getPrimaryService('battery_service');
-        //     }).then(service => {
-        //         return service.getCharacteristic('battery_level');
-        //     })
-        //     .then(characteristic => {
-        //         return characteristic.readValue();
-        //     })
-        //     .then(value => {
-        //         console.log(value.getUint8(0));
-        //     })
-        //     .catch(error => { console.log(error); });
+    function alertMessage(message: string) {
+        if (globalState.androidApp) {
+            alert(message);
+        }
+        else {
+            AudioEffect.error();
 
+            setBoxErrorMessage(message);
+            setBoxError(true);
+        }
+    }
+
+    function cleanBoxCode() {
         setBoxCode(x => { return { ...x, value: '' }; });
         boxCode.ref.current.focus();
     }
@@ -275,6 +272,7 @@ function Edit(props: any) {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                         await wsSucc.json()
                             .then(data => {
+                                setBoxError(false);
                                 (data as Array<Box>).forEach(x => {
                                     if (boxes.some(y => { return y.Code !== x.Code; })) {
                                         setBoxes([x, ...boxes]);
@@ -283,17 +281,17 @@ function Edit(props: any) {
                             })
                             .catch(error => {
                                 promiseErrorLog(error);
-                                alert(t('key_416'));
+                                alertMessage(t('key_416'));
                             });
                     }
                     else {
                         httpErrorLog(wsSucc);
-                        alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
+                        alertMessage(wsSucc.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
                     }
                 })
                 .catch(wsErr => {
                     promiseErrorLog(wsErr);
-                    alert(t('key_416'));
+                    alertMessage(t('key_416'));
                 })
                 .finally(() => {
                     setLoadBox(false);
@@ -302,7 +300,8 @@ function Edit(props: any) {
         }
         else {
             if (boxes && boxes.some(x => { return x.Code === boxCode.value; })) {
-                alert(t('key_874'));
+                alertMessage(t('key_874'));
+                cleanBoxCode();
             }
             else {
                 setLoadBox(true);
@@ -318,42 +317,43 @@ function Edit(props: any) {
                         if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                             await wsSucc.json()
                                 .then(data => {
+                                    setBoxError(false);
                                     setBoxes([(data as Box), ...boxes]);
                                 })
                                 .catch(error => {
                                     promiseErrorLog(error);
-                                    alert(t('key_416'));
+                                    alertMessage(t('key_416'));
                                 });
                         }
                         else {
                             httpErrorLog(wsSucc);
 
                             if (wsSucc.status === httpStatus.NOT_FOUND) {
-                                alert(t('key_872'));
+                                alertMessage(t('key_872'));
                             }
                             else if (wsSucc.status === httpStatus.FORBIDDEN) {
                                 await wsSucc.json()
                                     .then(data => {
                                         if (data.reason === 'box') {
-                                            alert(t('key_871'));
+                                            alertMessage(t('key_871'));
                                         }
                                         else if (data.reason === 'pallet') {
-                                            alert(t('key_828'));
+                                            alertMessage(t('key_828'));
                                         }
                                     })
                                     .catch(error => {
                                         promiseErrorLog(error);
-                                        alert(t('key_416'));
+                                        alertMessage(t('key_416'));
                                     });
                             }
                             else {
-                                alert(t('key_303'));
+                                alertMessage(t('key_303'));
                             }
                         }
                     })
                     .catch(wsErr => {
                         promiseErrorLog(wsErr);
-                        alert(t('key_416'));
+                        alertMessage(t('key_416'));
                     })
                     .finally(() => {
                         setLoadBox(false);
@@ -386,6 +386,7 @@ function Edit(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
                         .then(data => {
+                            setBoxError(false);
                             setProducts(data);
                             setBoxes([]);
                         })
@@ -504,6 +505,9 @@ function Edit(props: any) {
                                 <div className='famo-grid famo-buttons'>
                                     <div className='famo-row'>
                                         <div className='famo-cell text-right'>
+                                            <div className='box-error-message'>
+                                                <span className={'famo-text-11 famo-color-red ' + (boxError ? '' : 'hide')}>{boxErrorMessage}</span>
+                                            </div>
                                             <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => cleanBoxCode()}>
                                                 <span className='famo-text-12'>{t('key_829')}</span>
                                             </button>

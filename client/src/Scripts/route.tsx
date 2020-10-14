@@ -11,8 +11,10 @@ import { autoSignIn } from './utils/authentication';
 import { HashRouter, Route, Redirect, Switch, useHistory, useLocation } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
 import { isAndroidApp } from './utils/platform';
+import { isMobileBrowser } from './utils/general';
 import { NODE_SERVER } from './utils/variablesRepo';
 import { useGlobal } from './utils/globalHooks';
+import { useSwipeable, Swipeable } from 'react-swipeable'
 import { withTranslation } from 'react-i18next';
 import '../Content/style.css';
 
@@ -65,6 +67,9 @@ function AutoRouteBody(props: any) {
         [globalState, globalActions] = useGlobal(),
         [backButton, setBackButton] = useState<boolean>(false);
 
+    let scrollTop = -1,
+        elemToScroll: HTMLElement = null;
+
     useEffect(() => {
         fetch(NODE_SERVER + 'Authentication/Session/User', {
             method: 'GET',
@@ -95,19 +100,41 @@ function AutoRouteBody(props: any) {
         setBackButton(location.pathname === '/' ? false : true);
     }, [location.pathname]);
 
+    function swipingPage(event) {
+        if (!isMobileBrowser() && (event.dir === 'Up' || event.dir === 'Down')) {
+            if (scrollTop === -1) {
+                elemToScroll = (event.event.path as Array<any>).some(x => {
+                    const className = (x as HTMLElement).className;
+
+                    return !className ? false : className.indexOf('famo-modal') !== -1;
+                }) ? document.querySelector('.famo-modal') : document.querySelector('body');
+                scrollTop = elemToScroll.scrollTop;
+            }
+
+            elemToScroll.scrollTop = scrollTop + event.deltaY;
+        }
+    }
+
+    function swipedPage(event) {
+        elemToScroll = null;
+        scrollTop = -1;
+    }
+
     return (
-        <section className='famo-body'>
-            <Switch>
-                <Route exact path='/' render={() => { return <Home />; }} />
-                <Route path='/Inventory' render={() => { return <Inventory />; }} />
-                <Route path='/Pallet' render={() => { return <Pallet />; }} />
-                <Route path='/Expedition' render={() => { return <Expedition />; }} />
-            </Switch>
-            <AppLoader hide={globalState.authUser && !globalState.loadPage} />
-            {!globalState.androidApp && backButton && <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (globalState.authUser && !globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>
-                <span className='fas fa-arrow-left'></span>
-            </button>}
-        </section>
+        <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
+            <section className='famo-body'>
+                <Switch>
+                    <Route exact path='/' render={() => { return <Home />; }} />
+                    <Route path='/Inventory' render={() => { return <Inventory />; }} />
+                    <Route path='/Pallet' render={() => { return <Pallet />; }} />
+                    <Route path='/Expedition' render={() => { return <Expedition />; }} />
+                </Switch>
+                <AppLoader hide={globalState.authUser && !globalState.loadPage} />
+                {!globalState.androidApp && backButton && <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (globalState.authUser && !globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>
+                    <span className='fas fa-arrow-left'></span>
+                </button>}
+            </section>
+        </Swipeable>
     );
 }
 
