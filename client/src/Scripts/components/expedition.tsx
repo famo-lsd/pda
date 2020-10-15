@@ -155,8 +155,7 @@ function Edit(props: any) {
             isNumber: false,
             isDisabled: false
         }),
-        [boxError, setBoxError] = useState<boolean>(false),
-        [boxErrorMessage, setBoxErrorMessage] = useState<string>(),
+        [formMessage, setFormMessage] = useState<string>(''),
         productsHeader: Array<string> = [t('key_179'), t('key_54'), 'Box\'s'],
         [products, setProducts] = useState<Array<ShipmentProduct>>([]),
         [updateProducts, setUpdateProducts] = useState<boolean>(false),
@@ -171,15 +170,13 @@ function Edit(props: any) {
         unitFormat = '0,0',
         volumeFormat = '0,0.00';
 
-    function alertMessage(message: string) {
+    function localAlert(message: string) {
         if (globalState.androidApp) {
             alert(message);
         }
         else {
             AudioEffect.error();
-
-            setBoxErrorMessage(message);
-            setBoxError(true);
+            setFormMessage(message);
         }
     }
 
@@ -272,7 +269,7 @@ function Edit(props: any) {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                         await wsSucc.json()
                             .then(data => {
-                                setBoxError(false);
+                                setFormMessage('');
                                 (data as Array<Box>).forEach(x => {
                                     if (boxes.some(y => { return y.Code !== x.Code; })) {
                                         setBoxes([x, ...boxes]);
@@ -281,17 +278,17 @@ function Edit(props: any) {
                             })
                             .catch(error => {
                                 promiseErrorLog(error);
-                                alertMessage(t('key_416'));
+                                localAlert(t('key_416'));
                             });
                     }
                     else {
                         httpErrorLog(wsSucc);
-                        alertMessage(wsSucc.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
+                        localAlert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
                     }
                 })
                 .catch(wsErr => {
                     promiseErrorLog(wsErr);
-                    alertMessage(t('key_416'));
+                    localAlert(t('key_416'));
                 })
                 .finally(() => {
                     setLoadBox(false);
@@ -300,7 +297,7 @@ function Edit(props: any) {
         }
         else {
             if (boxes && boxes.some(x => { return x.Code === boxCode.value; })) {
-                alertMessage(t('key_874'));
+                localAlert(t('key_874'));
                 cleanBoxCode();
             }
             else {
@@ -317,43 +314,43 @@ function Edit(props: any) {
                         if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                             await wsSucc.json()
                                 .then(data => {
-                                    setBoxError(false);
+                                    setFormMessage('');
                                     setBoxes([(data as Box), ...boxes]);
                                 })
                                 .catch(error => {
                                     promiseErrorLog(error);
-                                    alertMessage(t('key_416'));
+                                    localAlert(t('key_416'));
                                 });
                         }
                         else {
                             httpErrorLog(wsSucc);
 
                             if (wsSucc.status === httpStatus.NOT_FOUND) {
-                                alertMessage(t('key_872'));
+                                localAlert(t('key_872'));
                             }
                             else if (wsSucc.status === httpStatus.FORBIDDEN) {
                                 await wsSucc.json()
                                     .then(data => {
                                         if (data.reason === 'box') {
-                                            alertMessage(t('key_871'));
+                                            localAlert(t('key_871'));
                                         }
                                         else if (data.reason === 'pallet') {
-                                            alertMessage(t('key_828'));
+                                            localAlert(t('key_828'));
                                         }
                                     })
                                     .catch(error => {
                                         promiseErrorLog(error);
-                                        alertMessage(t('key_416'));
+                                        localAlert(t('key_416'));
                                     });
                             }
                             else {
-                                alertMessage(t('key_303'));
+                                localAlert(t('key_303'));
                             }
                         }
                     })
                     .catch(wsErr => {
                         promiseErrorLog(wsErr);
-                        alertMessage(t('key_416'));
+                        localAlert(t('key_416'));
                     })
                     .finally(() => {
                         setLoadBox(false);
@@ -386,7 +383,7 @@ function Edit(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
                         .then(data => {
-                            setBoxError(false);
+                            setFormMessage('');
                             setProducts(data);
                             setBoxes([]);
                         })
@@ -505,8 +502,8 @@ function Edit(props: any) {
                                 <div className='famo-grid famo-buttons'>
                                     <div className='famo-row'>
                                         <div className='famo-cell text-right'>
-                                            <div className='box-error-message'>
-                                                <span className={'famo-text-11 famo-color-red ' + (boxError ? '' : 'hide')}>{boxErrorMessage}</span>
+                                            <div className='form-message'>
+                                                <span className={'famo-text-11 famo-color-red ' + (!formMessage ? 'hide' : '')}>{formMessage}</span>
                                             </div>
                                             <button type='button' className='famo-button famo-normal-button' disabled={loadBox || saveBoxes} onClick={event => cleanBoxCode()}>
                                                 <span className='famo-text-12'>{t('key_829')}</span>

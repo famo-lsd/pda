@@ -1,3 +1,4 @@
+import AudioEffect from '../utils/audio';
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools } from './elements/input';
 import Modal from './elements/modal';
@@ -224,12 +225,23 @@ function Edit(props: any) {
             localAnalyze: false,
             noData: false
         }),
+        [formMessage, setFormMessage] = useState<string>(''),
         boxModalForm: Array<InputConfig> = [modalBoxCode],
         setBoxModalForm: Array<any> = [setModalBoxCode];
 
+    function localAlert(message: string) {
+        if (globalState.androidApp) {
+            alert(message);
+        }
+        else {
+            AudioEffect.error();
+            setFormMessage(message);
+        }
+    }
+
     function addBox(code: string) {
         if (boxes.some(x => { return x.Code === code; })) {
-            alert(t('key_814'));
+            localAlert(t('key_814'));
         }
         else {
             setBoxLoad(true);
@@ -245,44 +257,46 @@ function Edit(props: any) {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                         await wsSucc.json()
                             .then(data => {
+                                setFormMessage('');
+
                                 // Add property isNew.
                                 (data as Box).isNew = true;
                                 setBoxes([...boxes, data]);
                             })
                             .catch(error => {
                                 promiseErrorLog(error);
-                                alert(t('key_416'));
+                                localAlert(t('key_416'));
                             });
                     }
                     else {
                         httpErrorLog(wsSucc);
 
                         if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            alert(t('key_872'));
+                            localAlert(t('key_872'));
                         }
                         else if (wsSucc.status === httpStatus.FORBIDDEN) {
                             await wsSucc.json()
                                 .then(data => {
-                                    if (data.forbidType === 'box') {
-                                        alert(t('key_871'));
+                                    if (data.reason === 'box') {
+                                        localAlert(t('key_871'));
                                     }
-                                    else if (data.forbidType === 'pallet') {
-                                        alert(t('key_828'));
+                                    else if (data.reason === 'pallet') {
+                                        localAlert(t('key_828'));
                                     }
                                 })
                                 .catch(error => {
                                     promiseErrorLog(error);
-                                    alert(t('key_416'));
+                                    localAlert(t('key_416'));
                                 });
                         }
                         else {
-                            alert(t('key_303'));
+                            localAlert(t('key_303'));
                         }
                     }
                 })
                 .catch(wsErr => {
                     promiseErrorLog(wsErr);
-                    alert(t('key_416'));
+                    localAlert(t('key_416'));
                 })
                 .finally(() => {
                     setBoxLoad(false);
@@ -388,6 +402,7 @@ function Edit(props: any) {
     function boxModalCallback(visibility: boolean) {
         if (!visibility) {
             InputTools.resetValues(boxModalForm, setBoxModalForm);
+            setFormMessage('');
         }
         else {
             modalBoxCode.ref.current.focus();
@@ -559,6 +574,9 @@ function Edit(props: any) {
                             <div className='famo-grid famo-buttons'>
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
+                                        <div className='form-message'>
+                                            <span className={'famo-text-11 famo-color-red ' + (!formMessage ? 'hide' : '')}>{formMessage}</span>
+                                        </div>
                                         <button type='button' className='famo-button famo-confirm-button' onClick={event => submitBoxModal()}>
                                             <span className='famo-text-12'>{t('key_701')}</span>
                                         </button>

@@ -48,6 +48,10 @@
     width: 45px;
     margin: auto;
   }
+  .form-message {
+    display: inline-block;
+    margin-right: 10px;
+  }
   .pallets .famo-row:not(.famo-header-row),
   .shipments .famo-row:not(.famo-header-row) {
     cursor: pointer;
@@ -68,10 +72,6 @@
   }
   .shipments .famo-col-3 {
     width: 95px;
-  }
-  .box-error-message {
-    display: inline-block;
-    margin-right: 10px;
   }
   .expedition-products .famo-col-1 {
     width: 120px;
