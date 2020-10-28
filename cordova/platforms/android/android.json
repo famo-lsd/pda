@@ -95,26 +95,12 @@
         "parents": {
           "/manifest/application": [
             {
-              "xml": "<application android:layerType=\"software\" />",
-              "count": 1,
-              "mode": "merge",
-              "id": "config.xml",
-              "oldAttrib": {
-                "android:hardwareAccelerated": "true",
-                "android:icon": "@mipmap/ic_launcher",
-                "android:label": "@string/app_name",
-                "android:layerType": "hardware",
-                "android:supportsRtl": "true",
-                "android:usesCleartextTraffic": "true"
-              }
-            },
-            {
               "xml": "<application android:hardwareAccelerated=\"true\" />",
               "count": 1,
               "mode": "merge",
               "id": "config.xml",
               "oldAttrib": {
-                "android:hardwareAccelerated": "true",
+                "android:hardwareAccelerated": "false",
                 "android:icon": "@mipmap/ic_launcher",
                 "android:label": "@string/app_name",
                 "android:layerType": "software",
@@ -124,7 +110,7 @@
             },
             {
               "xml": "<application android:layerType=\"hardware\" />",
-              "count": 2,
+              "count": 3,
               "mode": "merge",
               "id": "config.xml",
               "oldAttrib": {
@@ -138,7 +124,7 @@
             },
             {
               "xml": "<application android:hardwareAccelerated=\"false\" />",
-              "count": 1,
+              "count": 2,
               "mode": "merge",
               "id": "config.xml",
               "oldAttrib": {
@@ -152,7 +138,7 @@
             },
             {
               "xml": "<application android:usesCleartextTraffic=\"true\" />",
-              "count": 1,
+              "count": 2,
               "mode": "merge",
               "id": "config.xml",
               "oldAttrib": {

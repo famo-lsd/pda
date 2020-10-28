@@ -1,87 +1,64 @@
 import Authentication from '../utils/authentication';
-import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 import { useGlobal } from '../utils/globalHooks';
+import { withRouter } from 'react-router-dom';
 import { withTranslation } from 'react-i18next';
-import '../utils/i18n';
-
-interface SignInProps {
-    t: any;
-    location: any;
-}
 
 interface SignInState {
     username: string;
     password: string;
-    hideUserMsg: boolean;
-    hidePwdMsg: boolean;
+    usernameErrorMsg: boolean;
+    passwordErrorMsg: boolean;
     authSuccess: boolean;
     authError: boolean;
     authHttpCode: number;
 }
 
-interface SignInInputMsgProps {
-    msgClass: string;
-    msgText: string;
-}
-
-class SignIn extends React.Component<SignInProps, SignInState> {
-    private usernameRef: React.RefObject<any>;
-
-    constructor(props) {
-        super(props);
-
-        this.state = {
+function SignIn(props: any) {
+    const { t, location } = props,
+        [, globalActions] = useGlobal(),
+        [state, setState] = useState<SignInState>({
             username: '',
             password: '',
-            hideUserMsg: true,
-            hidePwdMsg: true,
+            usernameErrorMsg: false,
+            passwordErrorMsg: false,
             authSuccess: false,
             authError: false,
             authHttpCode: -1
-        };
+        }),
+        usernameRef: React.RefObject<any> = React.createRef();
 
-        this.usernameRef = React.createRef();
-    }
+    // handleChangeInput = event => {
+    //     this.setState(({ [event.target.name]: event.target.value } as any));
+    // }
 
-    hideInputMsg = hideFlag => {
-        return 'signin-error-input ' + (hideFlag ? 'hide' : '');
-    }
-
-    // #region Events
-    handleChangeInput = event => {
-        this.setState(({ [event.target.name]: event.target.value } as any));
-    }
-
-    handleUserInput = event => {
-        if (!event.target.value) {
-            this.setState({ hideUserMsg: event.type === 'blur' ? false : true });
+    function manageUsernameInput(event: React.FocusEvent<HTMLInputElement>) {
+        if (!state.username) {
+            setState(x => { return { ...x, usernameErrorMsg: event.type === 'blur' ? true : false }; });
         }
     }
 
-    handlePwdInput = event => {
-        if (!event.target.value) {
-            this.setState({ hidePwdMsg: event.type === 'blur' ? false : true });
+    function managePasswordInput(event: React.FocusEvent<HTMLInputElement>) {
+        if (!state.password) {
+            setState(x => { return { ...x, passwordErrorMsg: event.type === 'blur' ? true : false }; });
         }
     }
 
-    handleSubmit = async event => {
+    async function submit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const [, globalActions] = useGlobal();
-
-        if (!this.state.username || !this.state.password) {
-            this.setState({ hideUserMsg: this.state.username ? true : false, hidePwdMsg: this.state.password ? true : false });
+        if (!state.username || !state.password) {
+            setState(x => { return { ...x, hideUserMsg: state.username ? true : false, hidePwdMsg: state.password ? true : false }; });
         }
         else {
-            const signInRes = await Authentication.signIn(this.state.username, this.state.password),
-                { t } = this.props;
+            const signInRes = await Authentication.signIn(state.username, state.password);
 
-            this.setState({ authError: false, authHttpCode: -1 });
+            // Reset.
+            setState(x => { return { ...x, authError: false, authHttpCode: -1 }; });
 
             if (signInRes.ok) {
-                this.setState({ authSuccess: true });
+                setState(x => { return { ...x, authSuccess: true }; });
                 globalActions.setAuthUser(await signInRes.json());
             }
             else {
@@ -91,53 +68,45 @@ class SignIn extends React.Component<SignInProps, SignInState> {
                     console.log(t('key_416') + ' - ' + httpCode);
                 }
 
-                this.usernameRef.current.focus();
-                this.setState({ password: '', hidePwdMsg: true, authError: true, authHttpCode: httpCode });
+                setState(x => { return { ...x, password: '', hidePwdMsg: true, authError: true, authHttpCode: httpCode }; });
+                usernameRef.current.focus();
             }
         }
     }
-    // #endregion
 
-    componentDidMount() {
-        this.usernameRef.current.focus();
+    useEffect(() => {
+        usernameRef.current.focus();
+    }, []);
+
+
+    if (state.authSuccess) {
+        return <Redirect to={location.state || { from: { pathname: '/' } }} />;
     }
-
-    render() {
-        const famoLogo = process.env.REACT_APP_CODE_URL + 'Content/Images/logo-famo-black-normal.png',
-            inputClassName = 'famo-input signin-form-input famo-text-3',
-            userInputClassName = classNames(inputClassName, { 'famo-input-error': !this.state.hideUserMsg }),
-            pwdInputClassName = classNames(inputClassName, { 'famo-input-error': !this.state.hidePwdMsg }),
-            errSubmitClassName = classNames('signin-error-submit', { 'hide': !this.state.authError }),
-            { t, location } = this.props;
-
-        if (this.state.authSuccess) {
-            return <Redirect to={location.state || { from: { pathname: '/' } }} />;
-        }
-
+    else {
         return (
             <section className='famo-grid signin'>
                 <div className='famo-row'>
                     <div className='famo-cell'>
                         <div className='signin-body'>
                             <div className='signin-famo-logo'>
-                                <img src={famoLogo} alt='FAMO' />
+                                <img src={process.env.REACT_APP_CODE_URL + 'Content/Images/logo-famo-black-normal.png'} alt='FAMO' />
                             </div>
                             <div className='signin-form'>
                                 <div className='signin-app-name'>
                                     <span className='famo-text-2'>{process.env.REACT_APP_NAME}</span>
                                 </div>
-                                <form id='signin-form' method='POST' onSubmit={this.handleSubmit}>
+                                <form method='POST' onSubmit={event => submit(event)}>
                                     <div className='signin-input-wrapper'>
-                                        <input type='text' id='signin-username-input' className={userInputClassName} placeholder={t('key_397')} ref={this.usernameRef} name='username' value={this.state.username} autoComplete='off' onChange={this.handleChangeInput} onFocus={this.handleUserInput} onBlur={this.handleUserInput} />
-                                        <SignInInputMsg msgClass={this.hideInputMsg(this.state.hideUserMsg)} msgText={t('key_196')} />
+                                        <input type='text' className={'famo-input signin-form-input famo-text-3 ' + (state.usernameErrorMsg ? 'famo-input-error' : '')} placeholder={t('key_397')} ref={usernameRef} name='username' value={this.state.username} autoComplete='off' onChange={this.handleChangeInput} onFocus={event => manageUsernameInput(event)} onBlur={event => manageUsernameInput(event)} />
+                                        <SignInInputMsg className={'signin-error-input ' + (!state.usernameErrorMsg ? 'hide' : '')} text={t('key_196')} />
                                     </div>
                                     <div className='signin-input-wrapper'>
-                                        <input type='password' id='signin-password-input' className={pwdInputClassName} placeholder={t('key_314')} name='password' value={this.state.password} onChange={this.handleChangeInput} onFocus={this.handlePwdInput} onBlur={this.handlePwdInput} />
-                                        <SignInInputMsg msgClass={this.hideInputMsg(this.state.hidePwdMsg)} msgText={t('key_195')} />
+                                        <input type='password' className={'famo-input signin-form-input famo-text-3 ' + (state.passwordErrorMsg ? 'famo-input-error' : '')} placeholder={t('key_314')} name='password' value={this.state.password} onChange={this.handleChangeInput} onFocus={event => managePasswordInput(event)} onBlur={event => managePasswordInput(event)} />
+                                        <SignInInputMsg className={'signin-error-input ' + (!state.passwordErrorMsg ? 'hide' : '')} text={t('key_195')} />
                                     </div>
-                                    <div className={errSubmitClassName}>
-                                        {this.state.authError && this.state.authHttpCode === 400 && <span className='famo-text-7'>{t('key_398')}</span>}
-                                        {this.state.authError && this.state.authHttpCode === 500 && <span className='famo-text-7'>{t('key_306')}</span>}
+                                    <div className={'signin-error-submit' + (!state.authError ? 'hide' : '')}>
+                                        {state.authError && state.authHttpCode === 400 && <span className='famo-text-7'>{t('key_398')}</span>}
+                                        {state.authError && state.authHttpCode === 500 && <span className='famo-text-7'>{t('key_306')}</span>}
                                     </div>
                                     <button className='famo-button famo-confirm-button signin-button-submit' type='submit'>
                                         <span className='famo-text-5'>{t('key_238')}</span>
@@ -162,15 +131,14 @@ class SignIn extends React.Component<SignInProps, SignInState> {
     }
 }
 
-class SignInInputMsg extends React.Component<SignInInputMsgProps, any> {
-    render() {
-        const { msgClass, msgText } = this.props;
 
-        return (
-            <div className={msgClass}>
-                <span className='famo-text-7'>{msgText}</span>
-            </div>);
-    }
-}
+const SignInInputMsg = React.forwardRef((props: any, ref: any) => {
+    const { className, text } = props;
 
-export default withTranslation()(SignIn as any);
+    return (
+        <div className={className}>
+            <span className='famo-text-7'>{text}</span>
+        </div>);
+});
+
+export default withRouter(withTranslation()(SignIn));
