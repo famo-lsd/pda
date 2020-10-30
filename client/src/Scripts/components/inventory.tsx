@@ -10,8 +10,8 @@ import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
+import { useTranslation } from 'react-i18next';
 import { withRouter } from 'react-router-dom';
-import { withTranslation } from 'react-i18next';
 
 interface ItemJournal {
     Code: string;
@@ -27,7 +27,7 @@ interface ItemJournalLine {
 }
 
 function Inventory(props: any) {
-    const { t } = props,
+    const { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
         [inventoryCode, setInventoryCode] = useState<InputConfig>({
             ref: React.createRef(),
@@ -403,4 +403,4 @@ function Inventory(props: any) {
     );
 }
 
-export default withRouter(withTranslation()(Inventory));
+export default withRouter(Inventory);

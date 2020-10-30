@@ -5,18 +5,21 @@ interface GlobalState {
     androidApp: boolean;
     authUser: any;
     loadPage: boolean;
+    loadSession: boolean;
 }
 
 interface GlobalActions {
     setAndroidApp: (value: boolean) => void;
     setAuthUser: (value: any) => void;
     setLoadPage: (value: boolean) => void;
+    setLoadSession: (value: boolean) => void;
 }
 
 const initState: GlobalState = {
     androidApp: false,
     authUser: null,
-    loadPage: false
+    loadPage: false,
+    loadSession: true
 }
 
 const actions = {
@@ -28,6 +31,9 @@ const actions = {
     },
     setLoadPage: (store: Store<GlobalState, GlobalActions>, loadPage: boolean) => {
         store.setState({ ...store.state, loadPage });
+    },
+    setLoadSession: (store: Store<GlobalState, GlobalActions>, loadSession: boolean) => {
+        store.setState({ ...store.state, loadSession });
     }
 }
 

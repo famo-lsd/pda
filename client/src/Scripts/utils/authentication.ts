@@ -3,8 +3,9 @@ import { createQueryString } from './general';
 import { httpErrorLog, promiseErrorLog } from './log';
 import { isAndroidApp } from './platform';
 import { NODE_SERVER } from './variablesRepo';
+import { TFunction } from 'i18next';
 
-export function autoSignIn(globalActions: any, t: any) {
+export function autoSignIn(globalActions: any, t: TFunction) {
     Authentication.autoSignIn()
         .then(async wsSucc => {
             if (wsSucc.ok && wsSucc.status === httpStatus.OK) {

@@ -140,7 +140,7 @@ function Index(props: any) {
 
 function Edit(props: any) {
     const { t } = useTranslation(),
-        { location, history } = props,
+        { history, location } = props,
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         shipmentCode = query.shipmentCode,

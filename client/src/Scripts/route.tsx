@@ -1,3 +1,4 @@
+import '../Content/style.css';
 import Expedition from './components/expedition';
 import Home from './components/home';
 import httpStatus from 'http-status';
@@ -13,33 +14,67 @@ import { httpErrorLog, promiseErrorLog } from './utils/log';
 import { isAndroidApp } from './utils/platform';
 import { isMobileBrowser } from './utils/general';
 import { NODE_SERVER } from './utils/variablesRepo';
+import { Swipeable } from 'react-swipeable';
 import { useGlobal } from './utils/globalHooks';
-import { useSwipeable, Swipeable } from 'react-swipeable'
-import { withTranslation } from 'react-i18next';
-import '../Content/style.css';
+import { useTranslation } from 'react-i18next';
 
-interface AutoRouteBodyState {
-    isAuthenticated: boolean;
-}
+export function PrivateRoute({ component: Component, ...rest }) {
+    const history = useHistory(),
+        location = useLocation(),
+        [globalState,] = useGlobal(),
+        [backButton, setBackButton] = useState<boolean>(false);
 
-function PrivateRoute({ component: Component, ...rest }) {
-    const [globalState,] = useGlobal();
+    let scrollTop = -1,
+        elemToScroll: HTMLElement = null;
+
+    function swipingPage(event) {
+        if (!isMobileBrowser() && (event.dir === 'Up' || event.dir === 'Down')) {
+            if (scrollTop === -1) {
+                elemToScroll = (event.event.path as Array<any>).some(x => {
+                    const className = (x as HTMLElement).className;
+
+                    return !className ? false : className.indexOf('famo-modal') !== -1;
+                }) ? document.querySelector('.famo-modal') : document.querySelector('body');
+                scrollTop = elemToScroll.scrollTop;
+            }
+
+            elemToScroll.scrollTop = scrollTop + event.deltaY;
+        }
+    }
+
+    function swipedPage(event) {
+        elemToScroll = null;
+        scrollTop = -1;
+    }
+
+    useEffect(() => {
+        setBackButton(location.pathname === '/' ? false : true);
+    }, [location.pathname]);
 
     return (
-        <Route
-            render={routeProps => {
-                return globalState.authUser ? (
-                    <Component {...routeProps} />
-                ) : (
-                        <Redirect
-                            to={{
-                                pathname: '/SignIn',
-                                state: { from: routeProps.location }
-                            }}
-                        />
-                    );
-            }}
-        />
+        <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
+            <section className='famo-body'>
+                <Route
+                    render={routeProps => {
+                        return globalState.authUser ? (
+                            <Component {...routeProps} />
+                        ) : (
+                                <Redirect
+                                    to={{
+                                        pathname: '/SignIn',
+                                        state: { from: routeProps.location }
+                                    }}
+                                />
+                            );
+                    }}
+                />
+                {/* {<AppLoader hide={!globalState.loadPage} />} */}
+                {!globalState.androidApp && backButton &&
+                    <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (globalState.authUser && !globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>
+                        <span className='fas fa-arrow-left'></span>
+                    </button>}
+            </section>
+        </Swipeable>
     );
 }
 
@@ -47,28 +82,92 @@ PrivateRoute.propTypes = {
     component: PropTypes.elementType
 }
 
-function RouteBody() {
-    const [globalState,] = useGlobal();
+function RouteBody(props: any) {
+    const { t } = useTranslation(),
+        [globalState, globalActions] = useGlobal(),
+        [loadSessionUser, setLoadSessionUser] = useState<boolean>(true),
+        [sessionUser, setSessionUser] = useState<boolean>(false);
+
+    useEffect(() => {
+        fetch(NODE_SERVER + 'Authentication/Session/User', {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            isAndroidApp(data, globalActions, t);
+                            setSessionUser(true);
+                        }).catch(error => {
+                            isAndroidApp(null, globalActions, t);
+                            promiseErrorLog(error);
+                        });
+                }
+                else {
+                    isAndroidApp(null, globalActions, t);
+                    httpErrorLog(wsSucc);
+                }
+            })
+            .catch(wsErr => {
+                isAndroidApp(null, globalActions, t);
+                promiseErrorLog(wsErr);
+            })
+            .finally(() => {
+                setLoadSessionUser(false);
+            });
+    }, []);
 
     return (
-        <Switch>
-            <PrivateRoute exact path='/' component={Home} />
-            <Route exact path='/SignIn' render={routeProps => {
-                return globalState.authUser ? (<Redirect to={{ pathname: '/' }} />) : (<SignIn {...routeProps} />);
-            }} />
-        </Switch>
+        <React.Fragment>
+            {(!loadSessionUser && (!sessionUser || (sessionUser && globalState.authUser))) &&
+                <Switch>
+                    <PrivateRoute exact path='/' component={Home} />
+                    <PrivateRoute path='/Inventory' component={Inventory} />
+                    <PrivateRoute path='/Pallet' component={Pallet} />
+                    <PrivateRoute path='/Expedition' component={Expedition} />
+                    <Route exact path='/SignIn' render={routeProps => {
+                        return globalState.authUser ? (<Redirect to={{ pathname: '/' }} />) : (<SignIn {...routeProps} />);
+                    }} />
+                </Switch >}
+            <AppLoader hide={!globalState.loadPage} />
+        </React.Fragment>
     );
 }
 
 function AutoRouteBody(props: any) {
-    const { t } = props,
-        history = useHistory(),
+    const history = useHistory(),
         location = useLocation(),
+        { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
         [backButton, setBackButton] = useState<boolean>(false);
 
     let scrollTop = -1,
         elemToScroll: HTMLElement = null;
+
+    function swipingPage(event) {
+        if (!isMobileBrowser() && (event.dir === 'Up' || event.dir === 'Down')) {
+            if (scrollTop === -1) {
+                elemToScroll = (event.event.path as Array<any>).some(x => {
+                    const className = (x as HTMLElement).className;
+
+                    return !className ? false : className.indexOf('famo-modal') !== -1;
+                }) ? document.querySelector('.famo-modal') : document.querySelector('body');
+                scrollTop = elemToScroll.scrollTop;
+            }
+
+            elemToScroll.scrollTop = scrollTop + event.deltaY;
+        }
+    }
+
+    function swipedPage(event) {
+        elemToScroll = null;
+        scrollTop = -1;
+    }
+
+    useEffect(() => {
+        setBackButton(location.pathname === '/' ? false : true);
+    }, [location.pathname]);
 
     useEffect(() => {
         fetch(NODE_SERVER + 'Authentication/Session/User', {
@@ -95,30 +194,6 @@ function AutoRouteBody(props: any) {
                 promiseErrorLog(wsErr);
             });
     }, []);
-
-    useEffect(() => {
-        setBackButton(location.pathname === '/' ? false : true);
-    }, [location.pathname]);
-
-    function swipingPage(event) {
-        if (!isMobileBrowser() && (event.dir === 'Up' || event.dir === 'Down')) {
-            if (scrollTop === -1) {
-                elemToScroll = (event.event.path as Array<any>).some(x => {
-                    const className = (x as HTMLElement).className;
-
-                    return !className ? false : className.indexOf('famo-modal') !== -1;
-                }) ? document.querySelector('.famo-modal') : document.querySelector('body');
-                scrollTop = elemToScroll.scrollTop;
-            }
-
-            elemToScroll.scrollTop = scrollTop + event.deltaY;
-        }
-    }
-
-    function swipedPage(event) {
-        elemToScroll = null;
-        scrollTop = -1;
-    }
 
     return (
         <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
@@ -156,9 +231,9 @@ function Routing(props: any) {
 
     return (
         <HashRouter basename='/'>
-            <AutoRouteBody {...props} />
+            <RouteBody {...props} />
         </HashRouter>
     );
 }
 
-export default withTranslation()(Routing);
+export default Routing;

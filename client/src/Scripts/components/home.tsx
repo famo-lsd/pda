@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { Redirect, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';
-import { withTranslation } from 'react-i18next';
+import { useGlobal } from '../utils/globalHooks';
+import { useTranslation } from 'react-i18next';
 
 function Home(props: any) {
-    const { t } = props,
+    const { t } = useTranslation(),
+        [, globalActions] = useGlobal(),
         [redirect, setRedirection] = useState<any>({
             inventory: false,
             pallet: false,
@@ -62,4 +64,4 @@ function Home(props: any) {
     }
 }
 
-export default withRouter(withTranslation()(Home));
+export default withRouter(Home);

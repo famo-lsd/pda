@@ -10,7 +10,7 @@ i18n
     .init({
         lng: 'pt',
         fallbackLng: 'pt',
-        whitelist: ['pt', 'en', 'es', 'fr'],
+        whitelist: ['pt', 'de', 'en', 'es', 'fr'],
         debug: false,
         react: {
         },
@@ -19,3 +19,5 @@ i18n
             crossDomain: true
         }
     });
+
+export default i18n;
