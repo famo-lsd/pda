@@ -19,7 +19,7 @@ const initState: GlobalState = {
     androidApp: false,
     authUser: null,
     loadPage: false,
-    loadSession: true
+    loadSession: false
 }
 
 const actions = {

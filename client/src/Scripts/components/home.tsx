@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NODE_SERVER } from '../utils/variablesRepo';
-import { Redirect, withRouter } from 'react-router-dom';
+import { Link, Redirect, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
@@ -8,38 +8,24 @@ import { useTranslation } from 'react-i18next';
 function Home(props: any) {
     const { t } = useTranslation(),
         [, globalActions] = useGlobal(),
-        [redirect, setRedirection] = useState<any>({
-            inventory: false,
-            pallet: false,
-            expedition: false
-        }),
         buttons: Array<any> = [
-            { label: t('key_877'), key: 'expedition', image: 'btn-expedicao.png' },
-            { label: t('key_826'), key: 'pallet', image: 'btn-palete.png' },
-            { label: t('key_806'), key: 'inventory', image: 'btn-inventario.png' }
+            { label: t('key_877'), key: 'expedition', image: 'btn-expedicao.png', url: '/Expedition' },
+            { label: t('key_826'), key: 'pallet', image: 'btn-palete.png', url: '/Pallet' },
+            { label: t('key_806'), key: 'inventory', image: 'btn-inventario.png', url: '/Inventory' }
         ];
 
     useEffect(() => {
         SessionStorage.clear();
     }, []);
 
-    if (redirect.expedition) {
-        return <Redirect push to='/Expedition' />;
-    }
-    else if (redirect.pallet) {
-        return <Redirect push to='/Pallet' />;
-    }
-    else if (redirect.inventory) {
-        return <Redirect push to='/Inventory' />;
-    }
-    else {
-        return (
-            <div className='container'>
-                <div className='row' style={{ justifyContent: "center" }}>
-                    {buttons.map((x, i) => {
-                        return (
-                            <div key={i} className='col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2'>
-                                <section className='famo-wrapper' onClick={event => setRedirection(y => { return { ...y, [x.key]: true } })}>
+    return (
+        <div className='container'>
+            <div className='row' style={{ justifyContent: "center" }}>
+                {buttons.map((x, i) => {
+                    return (
+                        <div key={i} className='col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2'>
+                            <Link to={x.url}>
+                                <section className='famo-wrapper'>
                                     <div className='famo-content'>
                                         <div className='famo-grid famo-menu-item'>
                                             <div className='famo-row'>
@@ -55,13 +41,13 @@ function Home(props: any) {
                                         </div>
                                     </div>
                                 </section>
-                            </div>
-                        )
-                    })}
-                </div>
+                            </Link>
+                        </div>
+                    )
+                })}
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 export default withRouter(Home);

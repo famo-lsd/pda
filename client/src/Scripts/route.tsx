@@ -52,29 +52,29 @@ export function PrivateRoute({ component: Component, ...rest }) {
     }, [location.pathname]);
 
     return (
-        <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
-            <section className='famo-body'>
-                <Route
-                    render={routeProps => {
-                        return globalState.authUser ? (
+        <Route {...rest}
+            render={routeProps => {
+                return globalState.authUser ? (
+                    <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
+                        <section className='famo-body'>
                             <Component {...routeProps} />
-                        ) : (
-                                <Redirect
-                                    to={{
-                                        pathname: '/SignIn',
-                                        state: { from: routeProps.location }
-                                    }}
-                                />
-                            );
-                    }}
-                />
-                {/* {<AppLoader hide={!globalState.loadPage} />} */}
-                {!globalState.androidApp && backButton &&
-                    <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (globalState.authUser && !globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>
-                        <span className='fas fa-arrow-left'></span>
-                    </button>}
-            </section>
-        </Swipeable>
+                            {!globalState.androidApp && backButton &&
+                                <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (globalState.authUser && !globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>
+                                    <span className='fas fa-arrow-left'></span>
+                                </button>
+                            }
+                        </section>
+                    </Swipeable>
+                ) : (
+                        <Redirect
+                            to={{
+                                pathname: '/SignIn',
+                                state: { from: routeProps.location }
+                            }}
+                        />
+                    );
+            }}
+        />
     );
 }
 
@@ -84,11 +84,11 @@ PrivateRoute.propTypes = {
 
 function RouteBody(props: any) {
     const { t } = useTranslation(),
-        [globalState, globalActions] = useGlobal(),
-        [loadSessionUser, setLoadSessionUser] = useState<boolean>(true),
-        [sessionUser, setSessionUser] = useState<boolean>(false);
+        [globalState, globalActions] = useGlobal();
 
     useEffect(() => {
+        globalActions.setLoadSession(true);
+
         fetch(NODE_SERVER + 'Authentication/Session/User', {
             method: 'GET',
             credentials: 'include'
@@ -96,41 +96,40 @@ function RouteBody(props: any) {
             .then(async wsSucc => {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
-                        .then(data => {
-                            isAndroidApp(data, globalActions, t);
-                            setSessionUser(true);
-                        }).catch(error => {
-                            isAndroidApp(null, globalActions, t);
+                        .then(async data => {
+                            await isAndroidApp(data, globalActions, t);
+                            // setSessionUser(true);
+                        }).catch(async error => {
+                            await isAndroidApp(null, globalActions, t);
                             promiseErrorLog(error);
                         });
                 }
                 else {
-                    isAndroidApp(null, globalActions, t);
+                    await isAndroidApp(null, globalActions, t);
                     httpErrorLog(wsSucc);
                 }
             })
-            .catch(wsErr => {
-                isAndroidApp(null, globalActions, t);
+            .catch(async wsErr => {
+                await isAndroidApp(null, globalActions, t);
                 promiseErrorLog(wsErr);
             })
             .finally(() => {
-                setLoadSessionUser(false);
+                globalActions.setLoadSession(false);
             });
     }, []);
 
     return (
         <React.Fragment>
-            {(!loadSessionUser && (!sessionUser || (sessionUser && globalState.authUser))) &&
+            {!globalState.loadSession &&
                 <Switch>
                     <PrivateRoute exact path='/' component={Home} />
-                    <PrivateRoute path='/Inventory' component={Inventory} />
-                    <PrivateRoute path='/Pallet' component={Pallet} />
                     <PrivateRoute path='/Expedition' component={Expedition} />
-                    <Route exact path='/SignIn' render={routeProps => {
-                        return globalState.authUser ? (<Redirect to={{ pathname: '/' }} />) : (<SignIn {...routeProps} />);
-                    }} />
-                </Switch >}
-            <AppLoader hide={!globalState.loadPage} />
+                    <PrivateRoute path='/Pallet' component={Pallet} />
+                    <PrivateRoute path='/Inventory' component={Inventory} />
+                    <Route exact path='/SignIn' render={routeProps => { return <SignIn {...routeProps} />; }} />
+                </Switch>
+            }
+            <AppLoader hide={!globalState.loadPage && !globalState.loadSession} />
         </React.Fragment>
     );
 }

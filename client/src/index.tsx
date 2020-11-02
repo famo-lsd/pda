@@ -9,7 +9,7 @@ import { AppLoader } from './Scripts/components/elements/loader';
 async function initApp() {
     try {
         document.getElementById('pda-footer').innerText = new Date().getFullYear() + ' © FAMO - ' + process.env.REACT_APP_NAME;
-        ReactDOM.render(<Suspense fallback={<AppLoader hide={true} />}><Routing /></Suspense>, document.getElementById('root'));
+        ReactDOM.render(<Suspense fallback={<AppLoader hide={false} />}><Routing /></Suspense>, document.getElementById('root'));
     }
     catch (err) {
         alert('Ouch!! Restart app!');

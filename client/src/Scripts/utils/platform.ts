@@ -5,8 +5,8 @@ import { NODE_SERVER } from './variablesRepo';
 import { setNumeralLocale } from './numeral';
 import { TFunction } from 'i18next';
 
-export function isAndroidApp(authUser: any, globalActions: any, t: TFunction) {
-    fetch(NODE_SERVER + 'Platform/Android' + createQueryString({}), {
+export async function isAndroidApp(authUser: any, globalActions: any, t: TFunction) {
+    await fetch(NODE_SERVER + 'Platform/Android' + createQueryString({}), {
         method: 'GET',
         credentials: 'include'
     })
@@ -17,7 +17,11 @@ export function isAndroidApp(authUser: any, globalActions: any, t: TFunction) {
                         if (authUser) {
                             // numeral
                             setNumeralLocale(authUser.Language.Code);
-                            await Promise.all([loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=2'), loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=2'), loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=2')]);
+                            await Promise.all([
+                                loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=2'),
+                                loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=2'),
+                                loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=2')
+                            ]);
                         }
 
                         // application data

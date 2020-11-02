@@ -6,14 +6,13 @@ import { isAndroidApp } from '../utils/platform';
 import { Redirect } from 'react-router-dom';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
-import { withRouter } from 'react-router-dom';
+import { useHistory, withRouter } from 'react-router-dom';
 
 interface SignInState {
     username: string;
     password: string;
     usernameErrorMsg: boolean;
     passwordErrorMsg: boolean;
-    authSuccess: boolean;
     authError: boolean;
     authHttpCode: number;
 }
@@ -21,16 +20,16 @@ interface SignInState {
 function SignIn(props: any) {
     const { location } = props,
         { t } = useTranslation(),
-        [, globalActions] = useGlobal(),
+        [globalState, globalActions] = useGlobal(),
         [state, setState] = useState<SignInState>({
             username: '',
             password: '',
             usernameErrorMsg: false,
             passwordErrorMsg: false,
-            authSuccess: false,
             authError: false,
             authHttpCode: -1
         }),
+        [pendingSubmit, setPendingSubmit] = useState<boolean>(false),
         usernameRef: React.RefObject<any> = React.createRef();
 
     function changeUsername(event: React.ChangeEvent<HTMLInputElement>) {
@@ -57,8 +56,11 @@ function SignIn(props: any) {
         }
     }
 
-    function submit(event: React.FormEvent<HTMLFormElement>) {
+    async function submit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
+
+        // Reset.
+        setPendingSubmit(true);
 
         if (!state.username || !state.password) {
             setState(x => { return { ...x, usernameErrorMsg: state.username ? false : true, passwordErrorMsg: state.password ? false : true }; });
@@ -67,13 +69,12 @@ function SignIn(props: any) {
             // Reset.
             setState(x => { return { ...x, authError: false, authHttpCode: -1 }; });
 
-            Authentication.signIn(state.username, state.password)
+            await Authentication.signIn(state.username, state.password)
                 .then(async wsSucc => {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                         await wsSucc.json()
-                            .then(data => {
-                                isAndroidApp(data, globalActions, t);
-                                setState(x => { return { ...x, authSuccess: true }; });
+                            .then(async data => {
+                                await isAndroidApp(data, globalActions, t);
                             })
                             .catch(error => {
                                 promiseErrorLog(error);
@@ -88,7 +89,6 @@ function SignIn(props: any) {
                         }
 
                         setState(x => { return { ...x, password: '', passwordErrorMsg: false, authError: true, authHttpCode: wsSucc.status }; });
-                        usernameRef.current.focus();
                     }
                 })
                 .catch(wsErr => {
@@ -96,14 +96,24 @@ function SignIn(props: any) {
                     alert(t('key_416'));
                 });
         }
+
+        setPendingSubmit(false);
     }
 
     useEffect(() => {
-        usernameRef.current.focus();
+        if (state.authError) {
+            usernameRef.current.focus();
+        }
+    }, [state.authError]);
+
+    useEffect(() => {
+        if (!globalState.authUser) {
+            usernameRef.current.focus();
+        }
     }, []);
 
-    if (state.authSuccess) {
-        return <Redirect to={location.state || { from: { pathname: '/' } }} />;
+    if (!pendingSubmit && globalState.authUser) {
+        return <Redirect to={location.state?.from || { pathname: '/' }} />;
     }
     else {
         return (
@@ -118,7 +128,7 @@ function SignIn(props: any) {
                                 <div className='signin-app-name'>
                                     <span className='famo-text-2'>{process.env.REACT_APP_NAME}</span>
                                 </div>
-                                <form method='POST' onSubmit={event => submit(event)}>
+                                <form onSubmit={event => submit(event)}>
                                     <div className='signin-input'>
                                         <input type='text' className={'famo-input famo-text-3 ' + (state.usernameErrorMsg ? 'famo-input-error' : '')} placeholder={t('key_397')} ref={usernameRef} name='username' value={state.username} autoComplete='off' onChange={event => changeUsername(event)} onFocus={event => manageUsernameInput(event)} onBlur={event => manageUsernameInput(event)} />
                                         <SignInInputMsg className={'signin-input-error ' + (!state.usernameErrorMsg ? 'hide' : '')} text={t('key_196')} />
