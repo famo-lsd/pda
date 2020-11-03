@@ -26,6 +26,9 @@ export function setNumeralLocale(code: string) {
         case 'POR':
             numeral.locale('pt-pt');
             break;
+        case 'DEU':
+            numeral.locale('de');
+            break;
         case 'ENG':
             numeral.locale('en');
             break;

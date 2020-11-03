@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/numeral';
+import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/number';
 import { useTranslation } from 'react-i18next';
 
 export interface InputConfig {

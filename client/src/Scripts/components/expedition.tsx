@@ -155,13 +155,13 @@ function Edit(props: any) {
             isNumber: false,
             isDisabled: false
         }),
+        [loadBox, setLoadBox] = useState<boolean>(false),
         [formMessage, setFormMessage] = useState<string>(''),
         productsHeader: Array<string> = [t('key_179'), t('key_54'), 'Box\'s'],
         [products, setProducts] = useState<Array<ShipmentProduct>>([]),
         [updateProducts, setUpdateProducts] = useState<boolean>(false),
         boxesHeader: Array<string> = ['Box\'s', ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
-        [loadBox, setLoadBox] = useState<boolean>(false),
         [saveBoxes, setSaveBoxes] = useState<boolean>(false),
         [componentsModal, setComponentsModal] = useState<boolean>(false),
         componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Box', ''],
@@ -178,78 +178,6 @@ function Edit(props: any) {
             AudioEffect.error();
             setFormMessage(message);
         }
-    }
-
-    function cleanBoxCode() {
-        setBoxCode(x => { return { ...x, value: '' }; });
-        boxCode.ref.current.focus();
-    }
-
-    function fetchShipmentProducts() {
-        return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
-            method: 'GET',
-            credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(data => {
-                            setProducts(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        });
-                }
-                else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            });
-    }
-
-    function getProductComponents(button: HTMLElement, orderCode: string, orderLine: number = null) {
-        button.querySelector('.fas').classList.remove('hide');
-        button.querySelector('span[class*="famo-text-"]').classList.add('hide');
-
-        fetch(NODE_SERVER + 'ERP/Shipments/Products/Components' + createQueryString({
-            orderCode: orderCode,
-            orderLine: orderLine
-        }), {
-            method: 'GET',
-            credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(data => {
-                            setComponentsModal(true);
-                            setComponents(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        });
-                }
-                else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            })
-            .finally(() => {
-                setComponentsModal(true);
-
-                button.querySelector('.fas').classList.add('hide');
-                button.querySelector('span[class*="famo-text-"]').classList.remove('hide');
-            });
     }
 
     function addBox() {
@@ -360,6 +288,78 @@ function Edit(props: any) {
         }
     }
 
+    function cleanBoxCode() {
+        setBoxCode(x => { return { ...x, value: '' }; });
+        boxCode.ref.current.focus();
+    }
+
+    function fetchShipmentProducts() {
+        return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            setProducts(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+                    alert(t('key_303'));
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            });
+    }
+
+    function getProductComponents(button: HTMLElement, orderCode: string, orderLine: number = null) {
+        button.querySelector('.fas').classList.remove('hide');
+        button.querySelector('span[class*="famo-text-"]').classList.add('hide');
+
+        fetch(NODE_SERVER + 'ERP/Shipments/Products/Components' + createQueryString({
+            orderCode: orderCode,
+            orderLine: orderLine
+        }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            setComponentsModal(true);
+                            setComponents(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+                    alert(t('key_303'));
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                setComponentsModal(true);
+
+                button.querySelector('.fas').classList.add('hide');
+                button.querySelector('span[class*="famo-text-"]').classList.remove('hide');
+            });
+    }
+
     function deleteBox(code: string) {
         if (window.confirm(t('key_880'))) {
             setBoxes(boxes.filter(x => { return x.Code !== code; }));
@@ -409,7 +409,7 @@ function Edit(props: any) {
 
     useEffect(() => {
         setBoxCode(x => { return { ...x, isDisabled: saveBoxes }; });
-    }, [saveBoxes])
+    }, [saveBoxes]);
 
     useEffect(() => {
         globalActions.setLoadPage(true);

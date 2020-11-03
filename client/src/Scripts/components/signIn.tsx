@@ -6,7 +6,7 @@ import { isAndroidApp } from '../utils/platform';
 import { Redirect } from 'react-router-dom';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
-import { useHistory, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 
 interface SignInState {
     username: string;
@@ -29,7 +29,7 @@ function SignIn(props: any) {
             authError: false,
             authHttpCode: -1
         }),
-        [pendingSubmit, setPendingSubmit] = useState<boolean>(false),
+        [submitting, setSubmitting] = useState<boolean>(false),
         usernameRef: React.RefObject<any> = React.createRef();
 
     function changeUsername(event: React.ChangeEvent<HTMLInputElement>) {
@@ -60,7 +60,7 @@ function SignIn(props: any) {
         event.preventDefault();
 
         // Reset.
-        setPendingSubmit(true);
+        setSubmitting(true);
 
         if (!state.username || !state.password) {
             setState(x => { return { ...x, usernameErrorMsg: state.username ? false : true, passwordErrorMsg: state.password ? false : true }; });
@@ -82,13 +82,12 @@ function SignIn(props: any) {
                             });
                     }
                     else {
-                        httpErrorLog(wsSucc);
-
                         if (wsSucc.status !== httpStatus.BAD_REQUEST && wsSucc.status !== httpStatus.INTERNAL_SERVER_ERROR) {
                             console.log(t('key_416') + ' - ' + wsSucc.status);
                         }
 
                         setState(x => { return { ...x, password: '', passwordErrorMsg: false, authError: true, authHttpCode: wsSucc.status }; });
+                        httpErrorLog(wsSucc);
                     }
                 })
                 .catch(wsErr => {
@@ -97,7 +96,7 @@ function SignIn(props: any) {
                 });
         }
 
-        setPendingSubmit(false);
+        setSubmitting(false);
     }
 
     useEffect(() => {
@@ -106,13 +105,7 @@ function SignIn(props: any) {
         }
     }, [state.authError]);
 
-    useEffect(() => {
-        if (!globalState.authUser) {
-            usernameRef.current.focus();
-        }
-    }, []);
-
-    if (!pendingSubmit && globalState.authUser) {
+    if (!submitting && globalState.authUser) {
         return <Redirect to={location.state?.from || { pathname: '/' }} />;
     }
     else {
@@ -128,9 +121,12 @@ function SignIn(props: any) {
                                 <div className='signin-app-name'>
                                     <span className='famo-text-2'>{process.env.REACT_APP_NAME}</span>
                                 </div>
-                                <form onSubmit={event => submit(event)}>
+                                <div className={'famo-loader-wrapper ' + (submitting ? '' : 'hide')}>
+                                    <div className='famo-loader'></div>
+                                </div>
+                                <form className={submitting ? 'hide' : ''} onSubmit={event => submit(event)}>
                                     <div className='signin-input'>
-                                        <input type='text' className={'famo-input famo-text-3 ' + (state.usernameErrorMsg ? 'famo-input-error' : '')} placeholder={t('key_397')} ref={usernameRef} name='username' value={state.username} autoComplete='off' onChange={event => changeUsername(event)} onFocus={event => manageUsernameInput(event)} onBlur={event => manageUsernameInput(event)} />
+                                        <input type='text' className={'famo-input famo-text-3 ' + (state.usernameErrorMsg ? 'famo-input-error' : '')} placeholder={t('key_397')} ref={usernameRef} name='username' value={state.username} autoComplete='off' autoFocus={true} onChange={event => changeUsername(event)} onFocus={event => manageUsernameInput(event)} onBlur={event => manageUsernameInput(event)} />
                                         <SignInInputMsg className={'signin-input-error ' + (!state.usernameErrorMsg ? 'hide' : '')} text={t('key_196')} />
                                     </div>
                                     <div className='signin-input'>

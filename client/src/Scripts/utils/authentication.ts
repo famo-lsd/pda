@@ -5,13 +5,13 @@ import { isAndroidApp } from './platform';
 import { NODE_SERVER } from './variablesRepo';
 import { TFunction } from 'i18next';
 
-export function autoSignIn(globalActions: any, t: TFunction) {
-    Authentication.autoSignIn()
+export async function autoSignIn(globalActions: any, t: TFunction) {
+    await Authentication.autoSignIn()
         .then(async wsSucc => {
             if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                 await wsSucc.json()
-                    .then(data => {
-                        isAndroidApp(data, globalActions, t);
+                    .then(async data => {
+                        await isAndroidApp(data, globalActions, t);
                     })
                     .catch(error => {
                         promiseErrorLog(error);

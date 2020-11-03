@@ -2,7 +2,7 @@ import httpStatus from 'http-status';
 import { createQueryString, loadScript } from './general';
 import { httpErrorLog, promiseErrorLog } from './log';
 import { NODE_SERVER } from './variablesRepo';
-import { setNumeralLocale } from './numeral';
+import { setNumeralLocale } from './number';
 import { TFunction } from 'i18next';
 
 export async function isAndroidApp(authUser: any, globalActions: any, t: TFunction) {
@@ -19,6 +19,7 @@ export async function isAndroidApp(authUser: any, globalActions: any, t: TFuncti
                             setNumeralLocale(authUser.Language.Code);
                             await Promise.all([
                                 loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/pt-pt.js?version=2'),
+                                loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/de.js?version=2'),
                                 loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/es-es.js?version=2'),
                                 loadScript(process.env.REACT_APP_CODE_URL + 'Scripts/numeral/locales/fr.js?version=2')
                             ]);

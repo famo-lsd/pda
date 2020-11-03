@@ -9,9 +9,10 @@ function Home(props: any) {
     const { t } = useTranslation(),
         [, globalActions] = useGlobal(),
         buttons: Array<any> = [
-            { label: t('key_877'), key: 'expedition', image: 'btn-expedicao.png', url: '/Expedition' },
-            { label: t('key_826'), key: 'pallet', image: 'btn-palete.png', url: '/Pallet' },
-            { label: t('key_806'), key: 'inventory', image: 'btn-inventario.png', url: '/Inventory' }
+            { label: 'Armazém PA', image: 'btn-armazem.png', url: '/Warehouse' },
+            { label: t('key_877'), image: 'btn-expedicao.png', url: '/Expedition' },
+            { label: t('key_826'), image: 'btn-palete.png', url: '/Pallet' },
+            { label: t('key_806'), image: 'btn-inventario.png', url: '/Inventory' }
         ];
 
     useEffect(() => {
