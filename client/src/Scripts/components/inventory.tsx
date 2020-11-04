@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { barcodeScan } from '../utils/barcode';
 import { ContentLoader } from './elements/loader';
+import { convertNumeralToJS } from '../utils/number';
 import { createQueryString } from '../utils/general';
 import { httpErrorLog, promiseErrorLog } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
@@ -29,6 +30,7 @@ interface ItemJournalLine {
 function Inventory(props: any) {
     const { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
+        sectionRef: React.RefObject<any> = React.createRef(),
         [inventoryCode, setInventoryCode] = useState<InputConfig>({
             ref: React.createRef(),
             label: t('key_806'),
@@ -39,8 +41,8 @@ function Inventory(props: any) {
             isDisabled: false
         }),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
-        [productLoad, setProductLoad] = useState<boolean>(false),
-        [product, setProduct] = useState<ItemJournalLine>(),
+        [inventoryLine, setInventoryLine] = useState<ItemJournalLine>(),
+        [loadInventoryLine, setLoadInventoryLine] = useState<boolean>(false),
         [productCode, setProductCode] = useState<InputConfig>({
             label: t('key_87'),
             className: 'famo-input famo-text-10',
@@ -88,9 +90,8 @@ function Inventory(props: any) {
             invalidValue: false,
             invalidMessage: t('key_13')
         }),
-        productForm: Array<InputConfig> = [productCode, productVariantCode, productDescription, locationCode, quantity],
-        setProductForm: Array<any> = [setProductCode, setProductVariantCode, setProductDescription, setLocationCode, setQuantity],
-        sectionRef: React.RefObject<any> = React.createRef(),
+        inventoryLineForm: Array<InputConfig> = [productCode, productVariantCode, productDescription, locationCode, quantity],
+        setInventoryLineForm: Array<any> = [setProductCode, setProductVariantCode, setProductDescription, setLocationCode, setQuantity],
         [productModal, setProductModal] = useState<boolean>(false),
         [modalProductCode, setModalProductCode] = useState<InputConfig>({
             ref: React.createRef(),
@@ -107,13 +108,13 @@ function Inventory(props: any) {
         productModalForm: Array<InputConfig> = [modalProductCode],
         setProductModalForm: Array<any> = [setModalProductCode];
 
-    function resetProductForm() {
-        InputTools.resetValues(productForm, setProductForm);
-        setProduct(null);
+    function resetInventoryLineForm() {
+        InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
+        setInventoryLine(null);
     }
 
-    function getProduct(code: string) {
-        const split: Array<string> = code.split('/'),
+    function getInventoryLine(productCodeParam: string) {
+        const split: Array<string> = productCodeParam.split('/'),
             productCode = split[0];
         let productVariantCode = '';
 
@@ -121,10 +122,10 @@ function Inventory(props: any) {
             productVariantCode = split[1];
         }
 
-        resetProductForm();
-        setProductLoad(true);
+        resetInventoryLineForm();
+        setLoadInventoryLine(true);
 
-        fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
+        fetch(NODE_SERVER + 'ERP/Inventories/Lines' + createQueryString({
             inventoryCode: inventoryCode.value,
             productCode: productCode,
             productVariantCode: productVariantCode
@@ -136,7 +137,7 @@ function Inventory(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
                         .then(data => {
-                            setProduct(data);
+                            setInventoryLine(data);
                             setProductCode(x => { return { ...x, value: data.ProductCode }; });
                             setProductVariantCode(x => { return { ...x, value: data.ProductVariantCode }; });
                             setProductDescription(x => { return { ...x, value: data.ProductDescription }; });
@@ -157,18 +158,18 @@ function Inventory(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setProductLoad(false);
+                setLoadInventoryLine(false);
             });
     }
 
     function barcodeScanner() {
         barcodeScan((result) => {
-            getProduct(result.text);
+            getInventoryLine(result.text);
         }, t);
     }
 
     function changeQuantity() {
-        InputTools.analyze(productForm, setProductForm);
+        InputTools.analyze(inventoryLineForm, setInventoryLineForm);
     }
 
     function submitProductModal() {
@@ -219,27 +220,31 @@ function Inventory(props: any) {
     }, []);
 
     useEffect(() => {
-        resetProductForm();
+        resetInventoryLineForm();
     }, [inventoryCode]);
 
     useEffect(() => {
-        if (InputTools.areAnalyzed(productForm)) {
-            if (InputTools.areValid(productForm)) {
-                setProductLoad(true);
+        if (InputTools.areAnalyzed(inventoryLineForm)) {
+            if (InputTools.areValid(inventoryLineForm)) {
+                setLoadInventoryLine(true);
 
-                fetch(NODE_SERVER + 'ERP/Inventories/Products' + createQueryString({
-                    documentCode: product.Code,
-                    productCode: product.ProductCode,
-                    productVariantCode: product.ProductVariantCode,
-                    locationCode: product.LocationCode,
-                    quantity: InputTools.getValue(quantity)
-                }), {
+                fetch(NODE_SERVER + 'ERP/Inventories/Lines', {
                     method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: inventoryLine.Code,
+                        productCode: inventoryLine.ProductCode,
+                        productVariantCode: inventoryLine.ProductVariantCode,
+                        locationCode: inventoryLine.LocationCode,
+                        quantity: !quantity.isNumber ? quantity.value : parseFloat(convertNumeralToJS(quantity.value))
+                    }),
                     credentials: 'include'
                 })
                     .then(wsSucc => {
                         if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                            resetProductForm();
+                            resetInventoryLineForm();
                             alert(t('key_805'));
                         }
                         else {
@@ -252,21 +257,21 @@ function Inventory(props: any) {
                         alert(t('key_416'));
                     })
                     .finally(() => {
-                        setProductLoad(false);
+                        setLoadInventoryLine(false);
                     });
             }
             else {
-                InputTools.popUpAlerts(productForm, t);
+                InputTools.popUpAlerts(inventoryLineForm, t);
             }
 
-            InputTools.resetValidations(productForm, setProductForm);
+            InputTools.resetValidations(inventoryLineForm, setInventoryLineForm);
         }
-    }, productForm);
+    }, inventoryLineForm);
 
     useEffect(() => {
         if (InputTools.areAnalyzed(productModalForm)) {
             if (InputTools.areValid(productModalForm)) {
-                getProduct(modalProductCode.value);
+                getInventoryLine(modalProductCode.value);
                 setProductModal(false);
             }
 
@@ -284,7 +289,7 @@ function Inventory(props: any) {
                                 <span className='famo-text-11'>{inventoryCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...inventoryCode} isDisabled={productLoad} set={setInventoryCode}>
+                                <Input {...inventoryCode} isDisabled={loadInventoryLine} set={setInventoryCode}>
                                     <option key=''></option>
                                     {inventories.map((x, i) => {
                                         return <option key={i} value={x.Code}>{x.Name}</option>
@@ -297,11 +302,11 @@ function Inventory(props: any) {
                         <div className='famo-grid famo-buttons'>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => setProductModal(true)}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loadInventoryLine} onClick={event => setProductModal(true)}>
                                         <span className='famo-text-12'>{t('key_807')}</span>
                                     </button>
                                     {globalState.androidApp &&
-                                        <button type='button' className='famo-button famo-normal-button' disabled={productLoad} onClick={event => barcodeScanner()}>
+                                        <button type='button' className='famo-button famo-normal-button' disabled={loadInventoryLine} onClick={event => barcodeScanner()}>
                                             <span className='famo-text-12'>{t('key_681')}</span>
                                         </button>
                                     }
@@ -311,12 +316,12 @@ function Inventory(props: any) {
                     }
                 </div>
             </section>
-            {(product || productLoad) &&
+            {(loadInventoryLine || inventoryLine) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_339')} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!productLoad} />
-                        <form className={'famo-grid famo-form-grid ' + (productLoad ? 'hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
+                        <ContentLoader hide={!loadInventoryLine} />
+                        <form className={'famo-grid famo-form-grid ' + (loadInventoryLine ? 'hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
                             <div className='famo-row'>
                                 <div className='famo-cell famo-input-label'>
                                     <span className='famo-text-11'>{productCode.label}</span>
@@ -358,7 +363,7 @@ function Inventory(props: any) {
                                 </div>
                             </div>
                         </form>
-                        <div className={'famo-grid famo-buttons ' + (productLoad ? 'hide' : '')}>
+                        <div className={'famo-grid famo-buttons ' + (loadInventoryLine ? 'hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
                                     <button type='button' className='famo-button famo-confirm-button' onClick={event => changeQuantity()}>

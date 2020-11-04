@@ -25,13 +25,11 @@ const Input = React.forwardRef((props: any, ref: any) => {
         [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
         hasChildren = React.Children.count(children) > 0;
 
-    // #region Events
-    function handleKeyDown(event) {
+    function keyDown(event) {
         if (isNumber) {
             setDecimalDelimiter(event, ref);
         }
     }
-    // #endregion
 
     useEffect(() => {
         if (!isDisabled && analyze) {
@@ -63,8 +61,8 @@ const Input = React.forwardRef((props: any, ref: any) => {
 
     return (
         <React.Fragment>
-            {!hasChildren ? <input type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} ref={ref} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={handleKeyDown} onChange={event => set(x => { return { ...x, value: ref.current.value }; })} /> : (
-                <select className={className + (localState.noData ? ' famo-input-error' : '')} name={name} ref={ref} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: ref.current.value }; })}>
+            {!hasChildren ? <input type='text' ref={ref} className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={keyDown} onChange={event => set(x => { return { ...x, value: ref.current.value }; })} /> : (
+                <select ref={ref} className={className + (localState.noData ? ' famo-input-error' : '')} name={name} value={value} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: ref.current.value }; })}>
                     {children}
                 </select>
             )}
@@ -101,10 +99,6 @@ export class InputTools {
 
     public static areValid(inputs: Array<InputConfig>): boolean {
         return !inputs.filter(x => { return !x.isDisabled; }).some(x => { return x.noData || x.wrongFormat || x.invalidValue });
-    }
-
-    public static getValue(input: InputConfig) {
-        return !input.isNumber ? input.value : parseFloat(convertNumeralToJS(input.value));
     }
 
     public static popUpAlerts(inputs: Array<InputConfig>, t: Function) {

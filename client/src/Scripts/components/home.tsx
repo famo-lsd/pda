@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { NODE_SERVER } from '../utils/variablesRepo';
-import { Link, Redirect, withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';
-import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 
 function Home(props: any) {
     const { t } = useTranslation(),
-        [, globalActions] = useGlobal(),
         buttons: Array<any> = [
             { label: 'Armazém PA', image: 'btn-armazem.png', url: '/Warehouse' },
             { label: t('key_877'), image: 'btn-expedicao.png', url: '/Expedition' },

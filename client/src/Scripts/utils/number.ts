@@ -1,5 +1,11 @@
 import numeral from 'numeral';
 
+// locales
+import 'numeral/locales/pt-pt';
+import 'numeral/locales/de';
+import 'numeral/locales/es-es';
+import 'numeral/locales/fr';
+
 window['numeral'] = numeral;
 
 export function convertNumeralToJS(number: any) {

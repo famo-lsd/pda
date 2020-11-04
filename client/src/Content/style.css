@@ -11,6 +11,9 @@
   .famo-input {
     height: 34px;
   }
+  div.famo-input {
+    margin-bottom: 7px !important;
+  }
   .famo-button {
     padding: 10px 15px;
   }
