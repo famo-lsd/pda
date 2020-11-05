@@ -145,6 +145,9 @@
   .famo-input {
     height: 30px;
   }
+  div.famo-input {
+    margin-bottom: 6px !important;
+  }
   .famo-button {
     padding: 5px 10px;
   }

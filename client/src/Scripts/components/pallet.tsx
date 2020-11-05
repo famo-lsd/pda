@@ -45,20 +45,20 @@ function Index(props: any) {
             label: t('key_822'),
             className: 'famo-input famo-text-10',
             name: 'shipmentCode',
+            isNumber: false,
             value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : '',
             autoFocus: true,
-            isNumber: false,
             isDisabled: false
         }),
-        [shipmentCodeSubmitted, setShipmentCodeSubmitted] = useState<string>(),
-        [shipmentLoad, setShipmentLoad] = useState<boolean>(false),
+        [shipmentCodeSubmit, setShipmentCodeSubmit] = useState<string>(null),
+        [loadingPallets, setLoadingPallets] = useState<boolean>(false),
         palletsHeader: Array<string> = [t('key_279')],
         [pallets, setPallets] = useState<Array<Pallet>>(null);
 
     function getPallets(shipmentCode: string) {
         let reqSuccess = false;
 
-        setShipmentLoad(true);
+        setLoadingPallets(true);
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
             shipmentCode: shipmentCode
@@ -72,7 +72,7 @@ function Index(props: any) {
                         .then(data => {
                             reqSuccess = true;
 
-                            setShipmentCodeSubmitted(shipmentCode);
+                            setShipmentCodeSubmit(shipmentCode);
                             setPallets(data);
                         })
                         .catch(error => {
@@ -90,10 +90,13 @@ function Index(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setShipmentLoad(false);
+                setLoadingPallets(false);
 
                 if (!reqSuccess) {
+                    setShipmentCodeSubmit(null);
                     setPallets(null);
+
+                    cleanShipmentCode();
                 }
             });
     }
@@ -111,8 +114,8 @@ function Index(props: any) {
     }
 
     function editPallet(palletID?: number) {
-        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCodeSubmitted }));
-        history.push('/Pallet/Edit?shipmentCode=' + shipmentCodeSubmitted + (palletID ? '&palletID=' + palletID : ''));
+        window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCodeSubmit }));
+        history.push('/Pallet/Edit?shipmentCode=' + shipmentCodeSubmit + (palletID ? '&palletID=' + palletID : ''));
     }
 
     useEffect(() => {
@@ -142,14 +145,14 @@ function Index(props: any) {
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
                                 {globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => barcodeScanner()}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loadingPallets} onClick={event => barcodeScanner()}>
                                         <span className='famo-text-12'>{t('key_681')}</span>
                                     </button>
                                 }
-                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => cleanShipmentCode()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loadingPallets} onClick={event => cleanShipmentCode()}>
                                     <span className='famo-text-12'>{t('key_829')}</span>
                                 </button>
-                                <button type='button' className='famo-button famo-normal-button' disabled={shipmentLoad} onClick={event => getPallets(shipmentCode.value)}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loadingPallets} onClick={event => getPallets(shipmentCode.value)}>
                                     <span className='famo-text-12'>{t('key_323')}</span>
                                 </button>
                             </div>
@@ -157,12 +160,12 @@ function Index(props: any) {
                     </div>
                 </div>
             </section>
-            {(pallets || shipmentLoad) &&
+            {(loadingPallets || pallets) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_826')} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!shipmentLoad} />
-                        <div className={'famo-grid famo-content-grid pallets ' + (shipmentLoad ? 'hide' : '')}>
+                        <ContentLoader hide={!loadingPallets} />
+                        <div className={'famo-grid famo-content-grid pallets ' + (loadingPallets ? 'hide' : '')}>
                             <div className='famo-row famo-header-row'>
                                 {palletsHeader.map((x, i) => {
                                     return (
@@ -182,7 +185,7 @@ function Index(props: any) {
                                 );
                             })}
                         </div>
-                        <div className={'famo-grid famo-buttons ' + (shipmentLoad ? 'hide' : '')}>
+                        <div className={'famo-grid famo-buttons ' + (loadingPallets ? 'hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
                                     <button type='button' className='famo-button famo-normal-button' onClick={event => editPallet()}>
@@ -208,8 +211,8 @@ function Edit(props: any) {
         [isShipped, setIsShipped] = useState<boolean>(false),
         boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
-        [boxLoad, setBoxLoad] = useState<boolean>(false),
-        [palletSave, setPalletSave] = useState<boolean>(false),
+        [loadingBox, setLoadingBox] = useState<boolean>(false),
+        [savingPallet, setSavingPallet] = useState<boolean>(false),
         [palletStatusChange, setPalletStatusChange] = useState<boolean>(false),
         [boxModal, setBoxModal] = useState<boolean>(false),
         [modalBoxCode, setModalBoxCode] = useState<InputConfig>({
@@ -217,34 +220,37 @@ function Edit(props: any) {
             label: 'Box',
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isNumber: false,
             value: '',
             autoFocus: true,
-            isNumber: false,
             isDisabled: false,
             analyze: false,
             localAnalyze: false,
             noData: false
         }),
-        [formMessage, setFormMessage] = useState<string>(''),
         boxModalForm: Array<InputConfig> = [modalBoxCode],
-        setBoxModalForm: Array<any> = [setModalBoxCode];
+        setBoxModalForm: Array<any> = [setModalBoxCode],
+        [formMessage, setFormMessage] = useState<string>('');
 
     function localAlert(message: string) {
         if (globalState.androidApp) {
             alert(message);
         }
         else {
-            AudioEffect.error();
             setFormMessage(message);
+            AudioEffect.error();
         }
     }
 
     function addBox(code: string) {
         if (boxes.some(x => { return x.Code === code; })) {
+            InputTools.resetValues(boxModalForm, setBoxModalForm);
+            modalBoxCode.ref.current.focus();
+
             localAlert(t('key_814'));
         }
         else {
-            setBoxLoad(true);
+            setLoadingBox(true);
 
             fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
                 shipmentCode: query.shipmentCode,
@@ -299,13 +305,17 @@ function Edit(props: any) {
                     localAlert(t('key_416'));
                 })
                 .finally(() => {
-                    setBoxLoad(false);
+                    setLoadingBox(false);
+
+                    InputTools.resetValues(boxModalForm, setBoxModalForm);
+                    modalBoxCode.ref.current.focus();
                 });
         }
     }
 
     function barcodeScanner() {
         barcodeScan((result) => {
+            setModalBoxCode(x => { return { ...x, value: result.text }; });
             addBox(result.text);
         }, t);
     }
@@ -316,8 +326,8 @@ function Edit(props: any) {
         }
     }
 
-    function savePallet() {
-        setPalletSave(true);
+    function savePalletFunc() {
+        setSavingPallet(true);
 
         fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
             shipmentCode: query.shipmentCode,
@@ -353,7 +363,7 @@ function Edit(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setPalletSave(false);
+                setSavingPallet(false);
             });
     }
 
@@ -377,8 +387,8 @@ function Edit(props: any) {
             })
                 .then(wsSucc => {
                     if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        alert(isPalletOpen ? t('key_812') : t('key_813'));
                         setIsPalletOpen(!isPalletOpen);
+                        alert(isPalletOpen ? t('key_812') : t('key_813'));
                     }
                     else {
                         httpErrorLog(wsSucc);
@@ -462,8 +472,6 @@ function Edit(props: any) {
         if (InputTools.areAnalyzed(boxModalForm)) {
             if (InputTools.areValid(boxModalForm)) {
                 addBox(modalBoxCode.value);
-                InputTools.resetValues(boxModalForm, setBoxModalForm);
-                modalBoxCode.ref.current.focus();
             }
 
             InputTools.resetValidations(boxModalForm, setBoxModalForm);
@@ -479,8 +487,8 @@ function Edit(props: any) {
                 <section className='famo-wrapper'>
                     <Title text={'Box\'s'} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!palletSave} />
-                        <div className={'famo-grid famo-content-grid pallet-boxes ' + (palletSave ? 'hide' : '')}>
+                        <ContentLoader hide={!savingPallet} />
+                        <div className={'famo-grid famo-content-grid pallet-boxes ' + (savingPallet ? 'hide' : '')}>
                             <div className='famo-row famo-header-row'>
                                 {boxesHeader.map((x, i) => {
                                     return (
@@ -511,14 +519,14 @@ function Edit(props: any) {
                             })}
                         </div>
                         {!isShipped && isPalletOpen &&
-                            <div className={'famo-grid famo-buttons ' + (palletSave ? 'hide' : '')}>
+                            <div className={'famo-grid famo-buttons ' + (savingPallet ? 'hide' : '')}>
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
-                                        <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => setBoxModal(true)}>
+                                        <button type='button' className='famo-button famo-normal-button' disabled={loadingBox || palletStatusChange} onClick={event => setBoxModal(true)}>
                                             <span className='famo-text-12'>{t('key_815') + ' (' + t('key_807').toLowerCase() + ')'}</span>
                                         </button>
                                         {globalState.androidApp &&
-                                            <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletStatusChange} onClick={event => barcodeScanner()}>
+                                            <button type='button' className='famo-button famo-normal-button' disabled={loadingBox || palletStatusChange} onClick={event => barcodeScanner()}>
                                                 <span className='famo-text-12'>{t('key_815') + ' (' + t('key_681').toLowerCase() + ')'}</span>
                                             </button>
                                         }
@@ -536,18 +544,18 @@ function Edit(props: any) {
                                     {isPalletOpen ? (
                                         <React.Fragment>
                                             {boxes.some(x => { return x.isNew; }) &&
-                                                <button type='button' className='famo-button famo-normal-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => savePallet()}>
+                                                <button type='button' className='famo-button famo-normal-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => savePalletFunc()}>
                                                     <span className='famo-text-12'>{t('key_220')}</span>
                                                 </button>
                                             }
-                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
+                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => setPalletStatus()}>
                                                 <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? 'hide' : '')}></span>
                                                 <span className={'famo-text-12 ' + (palletStatusChange ? 'hide' : '')}>{t('key_200')}</span>
                                             </button>
                                         </React.Fragment>
                                     )
                                         : (
-                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={boxLoad || palletSave || palletStatusChange} onClick={event => setPalletStatus()}>
+                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => setPalletStatus()}>
                                                 <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? ' hide' : '')}></span>
                                                 <span className={'famo-text-12 ' + (palletStatusChange ? 'hide' : '')}>{t('key_827')}</span>
                                             </button>

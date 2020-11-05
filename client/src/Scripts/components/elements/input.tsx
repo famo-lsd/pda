@@ -7,9 +7,9 @@ export interface InputConfig {
     label: string;
     className: string;
     name: string;
+    isNumber: boolean;
     value: string;
     autoFocus?: boolean;
-    isNumber: boolean;
     isDisabled: boolean;
     analyze?: boolean;
     localAnalyze?: boolean;

@@ -36,43 +36,43 @@ function Inventory(props: any) {
             label: t('key_806'),
             className: 'famo-input famo-text-10',
             name: 'inventoryCode',
-            value: '',
             isNumber: false,
+            value: '',
             isDisabled: false
         }),
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [inventoryLine, setInventoryLine] = useState<ItemJournalLine>(),
-        [loadInventoryLine, setLoadInventoryLine] = useState<boolean>(false),
+        [loadingInventoryLine, setLoadingInventoryLine] = useState<boolean>(false),
         [productCode, setProductCode] = useState<InputConfig>({
             label: t('key_87'),
             className: 'famo-input famo-text-10',
             name: 'productCode',
-            value: '',
             isNumber: false,
+            value: '',
             isDisabled: true
         }),
         [productVariantCode, setProductVariantCode] = useState<InputConfig>({
             label: t('key_464'),
             className: 'famo-input famo-text-10',
             name: 'productVariantCode',
-            value: '',
             isNumber: false,
+            value: '',
             isDisabled: true
         }),
         [productDescription, setProductDescription] = useState<InputConfig>({
             label: t('key_138'),
             className: 'famo-input famo-text-10',
             name: 'productDescription',
-            value: '',
             isNumber: false,
+            value: '',
             isDisabled: true
         }),
         [locationCode, setLocationCode] = useState<InputConfig>({
             label: t('key_751'),
             className: 'famo-input famo-text-10',
             name: 'locationCode',
-            value: '',
             isNumber: false,
+            value: '',
             isDisabled: true
         }),
         [quantity, setQuantity] = useState<InputConfig>({
@@ -80,8 +80,8 @@ function Inventory(props: any) {
             label: t('key_347'),
             className: 'famo-input famo-text-10',
             name: 'quantity',
-            value: '',
             isNumber: true,
+            value: '',
             isDisabled: false,
             analyze: false,
             localAnalyze: false,
@@ -98,8 +98,8 @@ function Inventory(props: any) {
             label: t('key_87'),
             className: 'famo-input famo-text-10',
             name: 'productCode',
-            value: '',
             isNumber: false,
+            value: '',
             isDisabled: false,
             analyze: false,
             localAnalyze: false,
@@ -108,22 +108,17 @@ function Inventory(props: any) {
         productModalForm: Array<InputConfig> = [modalProductCode],
         setProductModalForm: Array<any> = [setModalProductCode];
 
-    function resetInventoryLineForm() {
-        InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
-        setInventoryLine(null);
-    }
-
     function getInventoryLine(productCodeParam: string) {
         const split: Array<string> = productCodeParam.split('/'),
             productCode = split[0];
-        let productVariantCode = '';
+        let reqSuccess = false,
+            productVariantCode = '';
 
         if (split.length > 1) {
             productVariantCode = split[1];
         }
 
-        resetInventoryLineForm();
-        setLoadInventoryLine(true);
+        setLoadingInventoryLine(true);
 
         fetch(NODE_SERVER + 'ERP/Inventories/Lines' + createQueryString({
             inventoryCode: inventoryCode.value,
@@ -137,6 +132,8 @@ function Inventory(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
                         .then(data => {
+                            reqSuccess = true;
+
                             setInventoryLine(data);
                             setProductCode(x => { return { ...x, value: data.ProductCode }; });
                             setProductVariantCode(x => { return { ...x, value: data.ProductVariantCode }; });
@@ -158,7 +155,12 @@ function Inventory(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setLoadInventoryLine(false);
+                setLoadingInventoryLine(false);
+
+                if (!reqSuccess) {
+                    setInventoryLine(null);
+                    InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
+                }
             });
     }
 
@@ -168,7 +170,7 @@ function Inventory(props: any) {
         }, t);
     }
 
-    function changeQuantity() {
+    function submitInventoryLine() {
         InputTools.analyze(inventoryLineForm, setInventoryLineForm);
     }
 
@@ -220,13 +222,14 @@ function Inventory(props: any) {
     }, []);
 
     useEffect(() => {
-        resetInventoryLineForm();
+        setInventoryLine(null);
+        InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
     }, [inventoryCode]);
 
     useEffect(() => {
         if (InputTools.areAnalyzed(inventoryLineForm)) {
             if (InputTools.areValid(inventoryLineForm)) {
-                setLoadInventoryLine(true);
+                setLoadingInventoryLine(true);
 
                 fetch(NODE_SERVER + 'ERP/Inventories/Lines', {
                     method: 'PATCH',
@@ -244,7 +247,9 @@ function Inventory(props: any) {
                 })
                     .then(wsSucc => {
                         if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                            resetInventoryLineForm();
+                            setInventoryLine(null);
+                            InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
+
                             alert(t('key_805'));
                         }
                         else {
@@ -257,7 +262,7 @@ function Inventory(props: any) {
                         alert(t('key_416'));
                     })
                     .finally(() => {
-                        setLoadInventoryLine(false);
+                        setLoadingInventoryLine(false);
                     });
             }
             else {
@@ -289,7 +294,7 @@ function Inventory(props: any) {
                                 <span className='famo-text-11'>{inventoryCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...inventoryCode} isDisabled={loadInventoryLine} set={setInventoryCode}>
+                                <Input {...inventoryCode} isDisabled={loadingInventoryLine} set={setInventoryCode}>
                                     <option key=''></option>
                                     {inventories.map((x, i) => {
                                         return <option key={i} value={x.Code}>{x.Name}</option>
@@ -302,11 +307,11 @@ function Inventory(props: any) {
                         <div className='famo-grid famo-buttons'>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loadInventoryLine} onClick={event => setProductModal(true)}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loadingInventoryLine} onClick={event => setProductModal(true)}>
                                         <span className='famo-text-12'>{t('key_807')}</span>
                                     </button>
                                     {globalState.androidApp &&
-                                        <button type='button' className='famo-button famo-normal-button' disabled={loadInventoryLine} onClick={event => barcodeScanner()}>
+                                        <button type='button' className='famo-button famo-normal-button' disabled={loadingInventoryLine} onClick={event => barcodeScanner()}>
                                             <span className='famo-text-12'>{t('key_681')}</span>
                                         </button>
                                     }
@@ -316,12 +321,12 @@ function Inventory(props: any) {
                     }
                 </div>
             </section>
-            {(loadInventoryLine || inventoryLine) &&
+            {(loadingInventoryLine || inventoryLine) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_339')} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!loadInventoryLine} />
-                        <form className={'famo-grid famo-form-grid ' + (loadInventoryLine ? 'hide' : '')} noValidate onSubmit={event => event.preventDefault()}>
+                        <ContentLoader hide={!loadingInventoryLine} />
+                        <form className={'famo-grid famo-form-grid ' + (loadingInventoryLine ? 'hide' : '')} noValidate onSubmit={event => { event.preventDefault(); submitInventoryLine(); }}>
                             <div className='famo-row'>
                                 <div className='famo-cell famo-input-label'>
                                     <span className='famo-text-11'>{productCode.label}</span>
@@ -363,11 +368,11 @@ function Inventory(props: any) {
                                 </div>
                             </div>
                         </form>
-                        <div className={'famo-grid famo-buttons ' + (loadInventoryLine ? 'hide' : '')}>
+                        <div className={'famo-grid famo-buttons ' + (loadingInventoryLine ? 'hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => changeQuantity()}>
-                                        <span className='famo-text-12'>{t('key_810')}</span>
+                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => submitInventoryLine()}>
+                                        <span className='famo-text-12'>{t('key_220')}</span>
                                     </button>
                                 </div>
                             </div>
