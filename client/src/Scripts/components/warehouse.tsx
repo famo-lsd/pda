@@ -357,9 +357,165 @@ function AddBox(props: any) {
 }
 
 function TransferBox(props: any) {
+    const { t } = useTranslation(),
+        moment = window['moment'],
+        [globalState, globalActions] = useGlobal(),
+        [boxCode, setBoxCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: 'Box',
+            className: 'famo-input famo-text-10',
+            name: 'boxCode',
+            isNumber: false,
+            value: '',
+            autoFocus: true,
+            isDisabled: false
+        }),
+        [loadingBox, setLoadingBox] = useState<boolean>(false),
+        [box, setBox] = useState<BinBox>(null);
+
+    function getBox() {
+        if (box?.Code !== boxCode.value) {
+            let reqSuccess = false;
+
+            setLoadingBox(true);
+
+            fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
+                method: 'GET',
+                credentials: 'include'
+            })
+                .then(async wsSucc => {
+                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                        await wsSucc.json()
+                            .then(data => {
+                                reqSuccess = true;
+
+                                setBox(data);
+                            })
+                            .catch(error => {
+                                promiseErrorLog(error);
+                                alert(t('key_416'));
+                            });
+                    }
+                    else {
+                        httpErrorLog(wsSucc);
+
+                        if (wsSucc.status === httpStatus.NOT_FOUND) {
+                            alert('A embalagem não existe.');
+                        }
+                        else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                            alert(t('key_871'));
+                        }
+                        else {
+                            alert(t('key_303'));
+                        }
+                    }
+                })
+                .catch(wsErr => {
+                    promiseErrorLog(wsErr);
+                    alert(t('key_416'));
+                })
+                .finally(() => {
+                    setLoadingBox(false);
+
+                    if (!reqSuccess) {
+                        setBox(null);
+                        cleanBoxCode();
+                    }
+                });
+        }
+    }
+
+    function cleanBoxCode() {
+        setBoxCode(x => { return { ...x, value: '' }; });
+        boxCode.ref.current.focus();
+    }
+
     return (
-        <h1>Transferir</h1>
-    );
+        <React.Fragment>
+            <section className='famo-wrapper'>
+                <div className='famo-content'>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
+                        <div className='famo-row'>
+                            <div className='famo-cell famo-input-label'>
+                                <span className='famo-text-11'>Box</span>
+                            </div>
+                            <div className='famo-cell'>
+                                <Input {...boxCode} isDisabled={loadingBox} set={setBoxCode} />
+                            </div>
+                        </div>
+                        <input type='submit' className='hide' value='' />
+                    </form>
+                    <div className='famo-grid famo-buttons'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loadingBox} onClick={event => cleanBoxCode()}>
+                                    <span className='famo-text-12'>{t('key_829')}</span>
+                                </button>
+                                {!globalState.androidApp &&
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loadingBox} onClick={event => getBox()}>
+                                        <span className='famo-text-12'>{t('key_323')}</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            {(loadingBox || box) &&
+                <section className='famo-wrapper'>
+                    <Title text='Box' />
+                    <div className='famo-content'>
+                        <ContentLoader hide={!loadingBox} />
+                        {box &&
+                            <React.Fragment>
+                                <form className={'famo-grid famo-form-grid ' + (loadingBox ? 'hide' : '')} noValidate >
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_179')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.OrderCode}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_85')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.CustomerName}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_670')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{moment(box.PlannedShipmentDate).format('L')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{'Armazém'}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.Bin.Code}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </React.Fragment>
+                        }
+                    </div>
+                </section>
+            }
+        </React.Fragment>);
 }
 
 function DeleteBox(props: any) {

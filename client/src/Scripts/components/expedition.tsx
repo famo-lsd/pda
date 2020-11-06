@@ -181,13 +181,13 @@ function Edit(props: any) {
 
     function addBox() {
         if (boxCode.value.startsWith('PL')) {
-            const matchPalletCode = boxCode.value.match(/PL.*?\//g);
+            const matchPalletCode = boxCode.value.match(/PL.*?(\/|\-)/g);
 
             setLoadingBox(true);
 
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
                 shipmentCode: query.shipmentCode,
-                palletID: matchPalletCode ? parseInt(matchPalletCode[0].replace('PL', '').replace('/', '')) : -1
+                palletID: matchPalletCode ? parseInt(matchPalletCode[0].replace('PL', '').replace('/', '').replace('-', '')) : -1
             }), {
                 method: 'GET',
                 credentials: 'include'
