@@ -31,7 +31,7 @@ export async function autoSignIn(globalActions: any, t: TFunction) {
 
 export default class Authentication {
     static signIn = async (username, password) => {
-        return fetch(NODE_SERVER + 'Authentication/SignIn', {
+        return fetch(NODE_SERVER + 'Authentication/SignIn' + createQueryString({}), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -52,7 +52,7 @@ export default class Authentication {
     }
 
     static signOut = async () => {
-        return fetch(NODE_SERVER + 'Authentication/SignOut', {
+        return fetch(NODE_SERVER + 'Authentication/SignOut' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'
         });

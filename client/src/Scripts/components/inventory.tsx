@@ -231,7 +231,7 @@ function Inventory(props: any) {
             if (InputTools.areValid(inventoryLineForm)) {
                 setLoadingInventoryLine(true);
 
-                fetch(NODE_SERVER + 'ERP/Inventories/Lines', {
+                fetch(NODE_SERVER + 'ERP/Inventories/Lines' + createQueryString({}), {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
@@ -278,6 +278,10 @@ function Inventory(props: any) {
             if (InputTools.areValid(productModalForm)) {
                 getInventoryLine(modalProductCode.value);
                 setProductModal(false);
+            }
+            else {
+                InputTools.popUpAlerts(productModalForm, t);
+                modalProductCode.ref.current.focus();
             }
 
             InputTools.resetValidations(productModalForm, setProductModalForm);

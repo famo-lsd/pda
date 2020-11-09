@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/number';
+import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
 export interface InputConfig {
@@ -101,7 +102,7 @@ export class InputTools {
         return !inputs.filter(x => { return !x.isDisabled; }).some(x => { return x.noData || x.wrongFormat || x.invalidValue });
     }
 
-    public static popUpAlerts(inputs: Array<InputConfig>, t: Function) {
+    public static popUpAlerts(inputs: Array<InputConfig>, t: TFunction) {
         if (inputs.some(x => { return x.noData; })) {
             InputAlert.noData(t);
         }
@@ -135,7 +136,7 @@ export class InputTools {
 
 // #region Alert
 export class InputAlert {
-    public static invalidValue(inputs: Array<string>, t: Function) {
+    public static invalidValue(inputs: Array<string>, t: TFunction) {
         let message = t('key_192');
 
         for (let i = 0, len = inputs.length; i < len; i++) {
@@ -152,11 +153,11 @@ export class InputAlert {
         alert(message);
     }
 
-    public static noData(t: Function) {
+    public static noData(t: TFunction) {
         alert(t('key_197'));
     }
 
-    public static wrongFormat(inputs: Array<string>, t: Function) {
+    public static wrongFormat(inputs: Array<string>, t: TFunction) {
         let message = t('key_191');
 
         for (let i = 0, len = inputs.length; i < len; i++) {

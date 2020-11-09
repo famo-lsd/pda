@@ -217,7 +217,7 @@ function Edit(props: any) {
         [boxModal, setBoxModal] = useState<boolean>(false),
         [modalBoxCode, setModalBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
-            label: 'Box',
+            label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
             isNumber: false,
@@ -376,8 +376,8 @@ function Edit(props: any) {
 
             fetch(NODE_SERVER + 'ERP/Pallets/' + (isPalletOpen ? 'Close' : 'Reopen') + createQueryString(isPalletOpen ? {
                 shipmentCode: query.shipmentCode,
-                palletID: !palletID ? -1 : palletID
-            } : { palletID: !palletID ? -1 : palletID }), {
+                palletID: palletID
+            } : { palletID: palletID }), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -485,7 +485,7 @@ function Edit(props: any) {
         return (
             <React.Fragment>
                 <section className='famo-wrapper'>
-                    <Title text={'Box\'s'} />
+                    <Title text={t('key_820')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!savingPallet} />
                         <div className={'famo-grid famo-content-grid pallet-boxes ' + (savingPallet ? 'hide' : '')}>
@@ -541,25 +541,21 @@ function Edit(props: any) {
                         <div className='famo-grid'>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    {isPalletOpen ? (
+                                    {isPalletOpen &&
                                         <React.Fragment>
                                             {boxes.some(x => { return x.isNew; }) &&
                                                 <button type='button' className='famo-button famo-normal-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => savePalletFunc()}>
                                                     <span className='famo-text-12'>{t('key_220')}</span>
                                                 </button>
                                             }
-                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => setPalletStatus()}>
-                                                <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? 'hide' : '')}></span>
-                                                <span className={'famo-text-12 ' + (palletStatusChange ? 'hide' : '')}>{t('key_200')}</span>
-                                            </button>
                                         </React.Fragment>
-                                    )
-                                        : (
-                                            <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => setPalletStatus()}>
-                                                <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? ' hide' : '')}></span>
-                                                <span className={'famo-text-12 ' + (palletStatusChange ? 'hide' : '')}>{t('key_827')}</span>
-                                            </button>
-                                        )}
+                                    }
+                                    {palletID &&
+                                        <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => setPalletStatus()}>
+                                            <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? ' hide' : '')}></span>
+                                            <span className={'famo-text-12 ' + (palletStatusChange ? 'hide' : '')}>{isPalletOpen ? t('key_200') : t('key_827')}</span>
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>

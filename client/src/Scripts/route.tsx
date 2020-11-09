@@ -10,10 +10,10 @@ import SignIn from './components/signIn';
 import Warehouse from './components/warehouse';
 import { AppLoader } from './components/elements/loader';
 import { autoSignIn } from './utils/authentication';
+import { createQueryString, isMobileBrowser } from './utils/general';
 import { HashRouter, Route, Redirect, Switch, useHistory, useLocation } from 'react-router-dom';
 import { httpErrorLog, promiseErrorLog } from './utils/log';
 import { isAndroidApp } from './utils/platform';
-import { isMobileBrowser } from './utils/general';
 import { NODE_SERVER } from './utils/variablesRepo';
 import { Swipeable } from 'react-swipeable';
 import { useGlobal } from './utils/globalHooks';
@@ -91,7 +91,7 @@ function RouteBody(props: any) {
     useEffect(() => {
         setLoadSession(true);
 
-        fetch(NODE_SERVER + 'Authentication/Session/User', {
+        fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'
         })
@@ -168,13 +168,9 @@ function AutoRouteBody(props: any) {
     }
 
     useEffect(() => {
-        setBackButton(location.pathname === '/' ? false : true);
-    }, [location.pathname]);
-
-    useEffect(() => {
         setLoadSession(true);
 
-        fetch(NODE_SERVER + 'Authentication/Session/User', {
+        fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'
         })
@@ -201,6 +197,10 @@ function AutoRouteBody(props: any) {
                 setLoadSession(false);
             });
     }, []);
+
+    useEffect(() => {
+        setBackButton(location.pathname === '/' ? false : true);
+    }, [location.pathname]);
 
     return (
         <React.Fragment>

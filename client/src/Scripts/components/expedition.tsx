@@ -60,7 +60,7 @@ function Index(props: any) {
     const { t } = useTranslation(),
         { history } = props,
         [, globalActions] = useGlobal(),
-        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Box\'s'],
+        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_820')],
         [shipments, setShipments] = useState<Array<Shipment>>([]);
 
     function editExpedition(shipmentCode: string) {
@@ -143,11 +143,30 @@ function Edit(props: any) {
         { history, location } = props,
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
-        shipmentCode = query.shipmentCode,
-        [shipment, setShipment] = useState<Shipment>(),
+        shipmentCodeQS = query.shipmentCode,
+        [shipmentCode, setShipmentCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: t('key_822'),
+            className: 'famo-input famo-text-10',
+            name: 'shipmentCode',
+            isNumber: false,
+            value: shipmentCodeQS.toString(),
+            autoFocus: false,
+            isDisabled: true
+        }),
+        [description, setDescription] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: t('key_138'),
+            className: 'famo-input famo-text-10',
+            name: 'boxCode',
+            isNumber: false,
+            value: '',
+            autoFocus: false,
+            isDisabled: true
+        }),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
-            label: 'Box',
+            label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
             isNumber: false,
@@ -157,13 +176,13 @@ function Edit(props: any) {
         }),
         [loadingBox, setLoadingBox] = useState<boolean>(false),
         [formMessage, setFormMessage] = useState<string>(''),
-        productsHeader: Array<string> = [t('key_179'), t('key_54'), 'Box\'s'],
+        productsHeader: Array<string> = [t('key_179'), t('key_54'), 'Emb. (s)'],
         [products, setProducts] = useState<Array<ShipmentProduct>>([]),
-        boxesHeader: Array<string> = ['Box\'s', ''],
+        boxesHeader: Array<string> = [t('key_820'), ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [savingBoxes, setSavingBoxes] = useState<boolean>(false),
         [componentsModal, setComponentsModal] = useState<boolean>(false),
-        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Box', ''],
+        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb.', ''],
         [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
         numeral = window['numeral'],
         unitFormat = '0,0',
@@ -186,7 +205,7 @@ function Edit(props: any) {
             setLoadingBox(true);
 
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
-                shipmentCode: query.shipmentCode,
+                shipmentCode: shipmentCodeQS,
                 palletID: matchPalletCode ? parseInt(matchPalletCode[0].replace('PL', '').replace('/', '').replace('-', '')) : -1
             }), {
                 method: 'GET',
@@ -231,7 +250,7 @@ function Edit(props: any) {
                 setLoadingBox(true);
 
                 fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
-                    shipmentCode: query.shipmentCode,
+                    shipmentCode: shipmentCodeQS,
                     boxCode: boxCode.value
                 }), {
                     method: 'GET',
@@ -293,7 +312,7 @@ function Edit(props: any) {
     }
 
     function fetchShipmentProducts() {
-        return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCode }), {
+        return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCodeQS }), {
             method: 'GET',
             credentials: 'include'
         })
@@ -367,7 +386,7 @@ function Edit(props: any) {
         setSavingBoxes(true);
 
         fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
-            shipmentCode: query.shipmentCode
+            shipmentCode: shipmentCodeQS
         }), {
             method: 'POST',
             headers: {
@@ -407,7 +426,7 @@ function Edit(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        const fetchShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCode }), {
+        const fetchShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCodeQS }), {
             method: 'GET',
             credentials: 'include'
         })
@@ -415,7 +434,7 @@ function Edit(props: any) {
                 if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
                     await wsSucc.json()
                         .then(data => {
-                            setShipment(data);
+                            setDescription(x => { return { ...x, value: data.Description }; });
                         })
                         .catch(error => {
                             promiseErrorLog(error);
@@ -458,29 +477,25 @@ function Edit(props: any) {
                                         <React.Fragment>
                                             <div className='famo-row'>
                                                 <div className='famo-cell famo-input-label'>
-                                                    <span className='famo-text-11'>{t('key_822')}</span>
+                                                    <span className='famo-text-11'>{shipmentCode.label}</span>
                                                 </div>
                                                 <div className='famo-cell'>
-                                                    <div className='famo-input'>
-                                                        <span className='famo-text-10'>{query.shipmentCode}</span>
-                                                    </div>
+                                                    <Input {...shipmentCode} set={setShipmentCode} />
                                                 </div>
                                             </div>
                                             <div className='famo-row'>
                                                 <div className='famo-cell famo-input-label'>
-                                                    <span className='famo-text-11'>{t('key_138')}</span>
+                                                    <span className='famo-text-11'>{description.label}</span>
                                                 </div>
                                                 <div className='famo-cell'>
-                                                    <div className='famo-input'>
-                                                        <span className={'famo-text-10 ' + (shipment && shipment.Description ? '' : 'famo-color-yellow')}>{shipment && shipment.Description ? shipment.Description : t('key_237')}</span>
-                                                    </div>
+                                                    <Input {...description} set={setDescription} />
                                                 </div>
                                             </div>
                                         </React.Fragment>
                                     }
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
-                                            <span className='famo-text-11'>Box</span>
+                                            <span className='famo-text-11'>{boxCode.label}</span>
                                         </div>
                                         <div className='famo-cell'>
                                             <Input {...boxCode} isDisabled={loadingBox || savingBoxes} set={setBoxCode} />
@@ -511,7 +526,7 @@ function Edit(props: any) {
                     {!globalState.androidApp &&
                         <div className='col-12 col-xl-4'>
                             <section className='famo-wrapper'>
-                                <Title text={'Box\'s'} />
+                                <Title text={t('key_820')} />
                                 <div className='famo-content'>
                                     <ContentLoader hide={!savingBoxes} />
                                     <div className={'famo-grid rating-panel ' + (savingBoxes ? 'hide' : '')}>
