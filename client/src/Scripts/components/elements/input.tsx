@@ -84,7 +84,6 @@ const Input = React.forwardRef((props: any, ref: any) => {
         </React.Fragment>);
 });
 
-// #region Tools
 export class InputTools {
     public static analyze(inputs: Array<InputConfig>, setInputs: Array<any>) {
         inputs.forEach((x, i) => {
@@ -132,9 +131,7 @@ export class InputTools {
         });
     }
 }
-// #endregion
 
-// #region Alert
 export class InputAlert {
     public static invalidValue(inputs: Array<string>, t: TFunction) {
         let message = t('key_192');
@@ -174,6 +171,5 @@ export class InputAlert {
         alert(message);
     }
 }
-// #endregion Alert
 
 export default Input;

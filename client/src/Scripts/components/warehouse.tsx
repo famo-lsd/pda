@@ -21,9 +21,11 @@ interface BinBox {
     Bin: Bin;
     Code: string;
     OrderCode: string;
+    ProductCode: string;
     CustomerCode: string;
     CustomerName: string;
     Volume: number;
+    IsPrinted: boolean;
     PlannedShipmentDate: Date;
 }
 
@@ -39,6 +41,7 @@ function Warehouse(props: any) {
             <Route exact path='/Warehouse/Boxes/Add' render={(props) => { return <AddBox {...props} />; }} />
             <Route exact path='/Warehouse/Boxes/Transfer' render={(props) => { return <TransferBox {...props} />; }} />
             <Route exact path='/Warehouse/Boxes/Delete' render={(props) => { return <DeleteBox {...props} />; }} />
+            <Route exact path='/Warehouse/Orders' render={(props) => { return <GetOrder {...props} />; }} />
             <Route path='/Warehouse/*' render={() => { return <Redirect to='/Warehouse' />; }} />
         </Switch>
     );
@@ -48,7 +51,7 @@ function Index(props: any) {
     const { t } = useTranslation(),
         buttons: Array<any> = [
             { label: 'Arrumar embalagem', url: '/Warehouse/Boxes/Add' },
-            { label: 'Consultar encomenda', url: '/Warehouse' },
+            { label: 'Consultar encomenda', url: '/Warehouse/Orders' },
             { label: 'Transferir embalagem', url: '/Warehouse/Boxes/Transfer' },
             { label: 'Anular embalagem', url: '/Warehouse/Boxes/Delete' }
         ];
@@ -92,7 +95,7 @@ function AddBox(props: any) {
             autoFocus: true,
             isDisabled: false
         }),
-        [loadingBox, setLoadingBox] = useState<boolean>(false),
+        [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<BinBox>(null),
         [bins, setBins] = useState<Array<Bin>>([]),
         [code, setCode] = useState<InputConfig>({
@@ -140,62 +143,60 @@ function AddBox(props: any) {
         setBoxForm: Array<any> = [setCode, setOrderCode, setCustomerName, setPlannedShipmentDate, setBinID];
 
     function getBox() {
-        if (box?.Code !== boxCode.value) {
-            let reqSuccess = false;
+        let reqSuccess = false;
 
-            setLoadingBox(true);
+        setLoading(true);
 
-            fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
-                method: 'GET',
-                credentials: 'include'
-            })
-                .then(async wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        await wsSucc.json()
-                            .then(data => {
-                                reqSuccess = true;
+        fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            reqSuccess = true;
 
-                                setBox(data);
-                                setCode(x => { return { ...x, value: data.Code }; });
-                                setOrderCode(x => { return { ...x, value: data.OrderCode }; });
-                                setCustomerName(x => { return { ...x, value: data.CustomerName }; });
-                                setPlannedShipmentDate(x => { return { ...x, value: moment(data.PlannedShipmentDate).format('L') }; });
-                                setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
-                            })
-                            .catch(error => {
-                                promiseErrorLog(error);
-                                alert(t('key_416'));
-                            });
+                            setBox(data);
+                            setCode(x => { return { ...x, value: data.Code }; });
+                            setOrderCode(x => { return { ...x, value: data.OrderCode }; });
+                            setCustomerName(x => { return { ...x, value: data.CustomerName }; });
+                            setPlannedShipmentDate(x => { return { ...x, value: moment(data.PlannedShipmentDate).format('L') }; });
+                            setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+
+                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                        alert('A embalagem não existe.');
+                    }
+                    else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                        alert(t('key_871'));
                     }
                     else {
-                        httpErrorLog(wsSucc);
-
-                        if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            alert('A embalagem não existe.');
-                        }
-                        else if (wsSucc.status === httpStatus.FORBIDDEN) {
-                            alert(t('key_871'));
-                        }
-                        else {
-                            alert(t('key_303'));
-                        }
+                        alert(t('key_303'));
                     }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
-                    alert(t('key_416'));
-                })
-                .finally(() => {
-                    setLoadingBox(false);
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                setLoading(false);
 
-                    if (!reqSuccess) {
-                        setBox(null);
-                        InputTools.resetValues(boxForm, setBoxForm);
+                if (!reqSuccess) {
+                    setBox(null);
 
-                        cleanBoxCode();
-                    }
-                });
-        }
+                    InputTools.resetValues(boxForm, setBoxForm);
+                    cleanBoxCode();
+                }
+            });
     }
 
     function cleanBoxCode() {
@@ -206,7 +207,7 @@ function AddBox(props: any) {
     function addBox() {
         let reqSuccess = false;
 
-        setLoadingBox(true);
+        setLoading(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({}), {
             method: 'POST',
@@ -236,7 +237,7 @@ function AddBox(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setLoadingBox(false);
+                setLoading(false);
 
                 if (reqSuccess) {
                     cleanBoxCode();
@@ -286,7 +287,7 @@ function AddBox(props: any) {
                                 <span className='famo-text-11'>{boxCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...boxCode} isDisabled={loadingBox} set={setBoxCode} />
+                                <Input {...boxCode} isDisabled={loading} set={setBoxCode} />
                             </div>
                         </div>
                         <input type='submit' className='hide' value='' />
@@ -294,11 +295,11 @@ function AddBox(props: any) {
                     <div className='famo-grid famo-buttons'>
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadingBox} onClick={event => cleanBoxCode()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => cleanBoxCode()}>
                                     <span className='famo-text-12'>{t('key_829')}</span>
                                 </button>
                                 {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loadingBox} onClick={event => getBox()}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getBox()}>
                                         <span className='famo-text-12'>{t('key_323')}</span>
                                     </button>
                                 }
@@ -307,14 +308,14 @@ function AddBox(props: any) {
                     </div>
                 </div>
             </section>
-            {(loadingBox || box) &&
+            {(loading || box) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_149')} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!loadingBox} />
+                        <ContentLoader hide={!loading} />
                         {box &&
                             <React.Fragment>
-                                <form className={'famo-grid famo-form-grid ' + (loadingBox ? 'hide' : '')} noValidate>
+                                <form className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')} noValidate>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
                                             <span className='famo-text-11'>{code.label}</span>
@@ -360,7 +361,7 @@ function AddBox(props: any) {
                                         </div>
                                     </div>
                                 </form>
-                                <div className={'famo-grid famo-buttons ' + (loadingBox ? 'hide' : '')}>
+                                <div className={'famo-grid famo-buttons ' + (loading ? 'hide' : '')}>
                                     <div className='famo-row'>
                                         <div className='famo-cell text-right'>
                                             <button type='button' className='famo-button famo-confirm-button' onClick={event => addBox()}>
@@ -392,7 +393,7 @@ function TransferBox(props: any) {
             autoFocus: true,
             isDisabled: false
         }),
-        [loadingBox, setLoadingBox] = useState<boolean>(false),
+        [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<BinBox>(null),
         [bins, setBins] = useState<Array<Bin>>([]),
         [binID, setBinID] = useState<InputConfig>({
@@ -412,56 +413,51 @@ function TransferBox(props: any) {
         [transferType, setTransferType] = useState<TransferType>(null);
 
     function getBox() {
-        if (box?.Code !== boxCode.value) {
-            let reqSuccess = false;
+        let reqSuccess = false;
 
-            setLoadingBox(true);
+        setLoading(true);
 
-            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
-                method: 'GET',
-                credentials: 'include'
-            })
-                .then(async wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        await wsSucc.json()
-                            .then(data => {
-                                reqSuccess = true;
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            reqSuccess = true;
 
-                                setBox(data);
-                            })
-                            .catch(error => {
-                                promiseErrorLog(error);
-                                alert(t('key_416'));
-                            });
+                            setBox(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+
+                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                        alert('A embalagem não existe.');
                     }
                     else {
-                        httpErrorLog(wsSucc);
-
-                        if (wsSucc.status === httpStatus.NOT_FOUND) {
-                            alert('A embalagem não existe.');
-                        }
-                        else if (wsSucc.status === httpStatus.FORBIDDEN) {
-                            alert(t('key_871'));
-                        }
-                        else {
-                            alert(t('key_303'));
-                        }
+                        alert(t('key_303'));
                     }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
-                    alert(t('key_416'));
-                })
-                .finally(() => {
-                    setLoadingBox(false);
-                    InputTools.resetValues(binForm, setBinForm);
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                setLoading(false);
+                InputTools.resetValues(binForm, setBinForm);
 
-                    if (!reqSuccess) {
-                        setBox(null);
-                        cleanBoxCode();
-                    }
-                });
-        }
+                if (!reqSuccess) {
+                    setBox(null);
+                    cleanBoxCode();
+                }
+            });
     }
 
     function cleanBoxCode() {
@@ -482,7 +478,7 @@ function TransferBox(props: any) {
     function transfer() {
         let reqSuccess = false;
 
-        setLoadingBox(true);
+        setLoading(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString(transferType === TransferType.Box ? { ID: box.ID } : {}), {
             method: 'PATCH',
@@ -518,7 +514,7 @@ function TransferBox(props: any) {
                 alert(t('key_416'));
             })
             .finally(() => {
-                setLoadingBox(false);
+                setLoading(false);
 
                 if (reqSuccess) {
                     cleanBoxCode();
@@ -581,7 +577,7 @@ function TransferBox(props: any) {
                                 <span className='famo-text-11'>{boxCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...boxCode} isDisabled={loadingBox} set={setBoxCode} />
+                                <Input {...boxCode} isDisabled={loading} set={setBoxCode} />
                             </div>
                         </div>
                         <input type='submit' className='hide' value='' />
@@ -589,11 +585,11 @@ function TransferBox(props: any) {
                     <div className='famo-grid famo-buttons'>
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadingBox} onClick={event => cleanBoxCode()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => cleanBoxCode()}>
                                     <span className='famo-text-12'>{t('key_829')}</span>
                                 </button>
                                 {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loadingBox} onClick={event => getBox()}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getBox()}>
                                         <span className='famo-text-12'>{t('key_323')}</span>
                                     </button>
                                 }
@@ -602,14 +598,14 @@ function TransferBox(props: any) {
                     </div>
                 </div>
             </section>
-            {(loadingBox || box) &&
+            {(loading || box) &&
                 <React.Fragment>
                     <section className='famo-wrapper'>
                         <Title text={t('key_312')} />
                         <div className='famo-content'>
-                            <ContentLoader hide={!loadingBox} />
+                            <ContentLoader hide={!loading} />
                             {box &&
-                                <div className={'famo-grid famo-form-grid ' + (loadingBox ? 'hide' : '')}>
+                                <div className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')}>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
                                             <span className='famo-text-11'>{t('key_87')}</span>
@@ -667,9 +663,9 @@ function TransferBox(props: any) {
                     <section className='famo-wrapper'>
                         <Title text='Destino' />
                         <div className='famo-content'>
-                            <ContentLoader hide={!loadingBox} />
+                            <ContentLoader hide={!loading} />
                             {box &&
-                                <form className={'famo-grid famo-form-grid ' + (loadingBox ? 'hide' : '')} noValidate>
+                                <form className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')} noValidate>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
                                             <span className='famo-text-11'>{binID.label}</span>
@@ -694,10 +690,10 @@ function TransferBox(props: any) {
                             <div className='famo-grid'>
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
-                                        <button type='button' className='famo-button famo-confirm-button' disabled={loadingBox} onClick={event => transferOrder()}>
+                                        <button type='button' className='famo-button famo-confirm-button' disabled={loading} onClick={event => transferOrder()}>
                                             <span className='famo-text-12'>Transferir encomenda</span>
                                         </button>
-                                        <button type='button' className='famo-button famo-confirm-button' disabled={loadingBox} onClick={event => transferBox()}>
+                                        <button type='button' className='famo-button famo-confirm-button' disabled={loading} onClick={event => transferBox()}>
                                             <span className='famo-text-12'>Transferir embalagem</span>
                                         </button>
                                     </div>
@@ -711,8 +707,379 @@ function TransferBox(props: any) {
 }
 
 function DeleteBox(props: any) {
+    const { t } = useTranslation(),
+        moment = window['moment'],
+        [globalState,] = useGlobal(),
+        [boxCode, setBoxCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: t('key_819'),
+            className: 'famo-input famo-text-10',
+            name: 'boxCode',
+            isNumber: false,
+            value: '',
+            autoFocus: true,
+            isDisabled: false
+        }),
+        [loading, setLoading] = useState<boolean>(false),
+        [box, setBox] = useState<BinBox>(null);
+
+    function getBox() {
+        let reqSuccess = false;
+
+        setLoading(true);
+
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            reqSuccess = true;
+
+                            setBox(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+
+                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                        alert('A embalagem não existe.');
+                    }
+                    else {
+                        alert(t('key_303'));
+                    }
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                setLoading(false);
+
+                if (!reqSuccess) {
+                    setBox(null);
+                    cleanBoxCode();
+                }
+            });
+    }
+
+    function cleanBoxCode() {
+        setBoxCode(x => { return { ...x, value: '' }; });
+        boxCode.ref.current.focus();
+    }
+
+    function deleteBox() {
+        if (window.confirm(t('key_880'))) {
+            let reqSuccess = false;
+
+            setLoading(true);
+
+            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ ID: box.ID }), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            })
+                .then(async wsSucc => {
+                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                        reqSuccess = true;
+
+                        setBox(null);
+                    }
+                    else {
+                        httpErrorLog(wsSucc);
+                        alert(t('key_302'));
+                    }
+                })
+                .catch(wsErr => {
+                    promiseErrorLog(wsErr);
+                    alert(t('key_416'));
+                })
+                .finally(() => {
+                    setLoading(false);
+
+                    if (reqSuccess) {
+                        cleanBoxCode();
+                    }
+                });
+        }
+    }
+
     return (
-        <h1>Eliminar</h1>
+        <React.Fragment>
+            <section className='famo-wrapper'>
+                <div className='famo-content'>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
+                        <div className='famo-row'>
+                            <div className='famo-cell famo-input-label'>
+                                <span className='famo-text-11'>{boxCode.label}</span>
+                            </div>
+                            <div className='famo-cell'>
+                                <Input {...boxCode} isDisabled={loading} set={setBoxCode} />
+                            </div>
+                        </div>
+                        <input type='submit' className='hide' value='' />
+                    </form>
+                    <div className='famo-grid famo-buttons'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => cleanBoxCode()}>
+                                    <span className='famo-text-12'>{t('key_829')}</span>
+                                </button>
+                                {!globalState.androidApp &&
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getBox()}>
+                                        <span className='famo-text-12'>{t('key_323')}</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            {(loading || box) &&
+                <section className='famo-wrapper'>
+                    <Title text={t('key_149')} />
+                    <div className='famo-content'>
+                        <ContentLoader hide={!loading} />
+                        {box &&
+                            <React.Fragment>
+                                <div className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')}>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_87')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.Code}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_179')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.OrderCode}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_85')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.CustomerName}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_670')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{moment(box.PlannedShipmentDate).format('L')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{'Armazém'}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.Bin.Code}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={'famo-grid famo-buttons ' + (loading ? 'hide' : '')}>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell text-right'>
+                                            <button type='button' className='famo-button famo-cancel-button' onClick={event => deleteBox()}>
+                                                <span className='famo-text-12'>{t('key_489')}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </React.Fragment>
+                        }
+                    </div>
+                </section>
+            }
+        </React.Fragment>
+    );
+}
+
+function GetOrder(props: any) {
+    const { t } = useTranslation(),
+        moment = window['moment'],
+        [globalState,] = useGlobal(),
+        [boxCode, setBoxCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: t('key_819'),
+            className: 'famo-input famo-text-10',
+            name: 'boxCode',
+            isNumber: false,
+            value: '',
+            autoFocus: true,
+            isDisabled: false
+        }),
+        [loading, setLoading] = useState<boolean>(false),
+        [box, setBox] = useState<BinBox>(null),
+        [orderBoxes, setOrderBoxes] = useState<Array<BinBox>>([]);
+
+    function getBox() {
+        let reqSuccess = false;
+
+        setLoading(true);
+
+        fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async wsSucc => {
+                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    await wsSucc.json()
+                        .then(data => {
+                            reqSuccess = true;
+
+                            setBox(data);
+                        })
+                        .catch(error => {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+
+                            throw error;
+                        });
+                }
+                else {
+                    httpErrorLog(wsSucc);
+
+                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                        alert('A embalagem não existe.');
+                    }
+                    else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                        alert(t('key_871'));
+                    }
+                    else {
+                        alert(t('key_303'));
+                    }
+
+                    throw new Error('HTTP');
+                }
+            })
+            .catch(wsErr => {
+                promiseErrorLog(wsErr);
+                alert(t('key_416'));
+            })
+            .finally(() => {
+                if (!reqSuccess) {
+                    setBox(null);
+                    setOrderBoxes([]);
+
+                    cleanBoxCode();
+                }
+            });
+    }
+
+    function cleanBoxCode() {
+        setBoxCode(x => { return { ...x, value: '' }; });
+        boxCode.ref.current.focus();
+    }
+
+    useEffect(() => {
+if(box){
+    console.log('teste');
+}
+    }, [box]);
+
+    return (
+        <React.Fragment>
+            <section className='famo-wrapper'>
+                <div className='famo-content'>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getOrder(); }}>
+                        <div className='famo-row'>
+                            <div className='famo-cell famo-input-label'>
+                                <span className='famo-text-11'>{boxCode.label}</span>
+                            </div>
+                            <div className='famo-cell'>
+                                <Input {...boxCode} isDisabled={loading} set={setBoxCode} />
+                            </div>
+                        </div>
+                        <input type='submit' className='hide' value='' />
+                    </form>
+                    <div className='famo-grid famo-buttons'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => cleanBoxCode()}>
+                                    <span className='famo-text-12'>{t('key_829')}</span>
+                                </button>
+                                {!globalState.androidApp &&
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getOrder()}>
+                                        <span className='famo-text-12'>{t('key_323')}</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            {(loading || box) &&
+                <React.Fragment>
+                    <section className='famo-wrapper'>
+                        <Title text={t('key_149')} />
+                        <div className='famo-content'>
+                            <ContentLoader hide={!loading} />
+                            {box &&
+                                <div className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')}>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_179')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.OrderCode}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_85')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{box.CustomerName}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{t('key_670')}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <div className='famo-input'>
+                                                <span className='famo-text-10'>{moment(box.PlannedShipmentDate).format('L')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                </React.Fragment>
+            }
+        </React.Fragment>
     );
 }
 
