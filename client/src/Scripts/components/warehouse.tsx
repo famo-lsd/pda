@@ -9,6 +9,16 @@ import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
+import { VictoryPie } from 'victory';
+
+interface Box {
+    Code: string;
+    ProductCode: string;
+    OrderCode: string;
+    CustomerCode: string;
+    CustomerName: string;
+    ExpectedShipmentDate: Date;
+}
 
 interface Bin {
     ID: number;
@@ -16,17 +26,11 @@ interface Bin {
     Label: string;
 }
 
-interface BinBox {
+interface BinBox extends Box {
     ID: number;
     Bin: Bin;
-    Code: string;
-    OrderCode: string;
-    ProductCode: string;
-    CustomerCode: string;
-    CustomerName: string;
     Volume: number;
     IsPrinted: boolean;
-    PlannedShipmentDate: Date;
 }
 
 enum TransferType {
@@ -41,7 +45,7 @@ function Warehouse(props: any) {
             <Route exact path='/Warehouse/Boxes/Add' render={(props) => { return <AddBox {...props} />; }} />
             <Route exact path='/Warehouse/Boxes/Transfer' render={(props) => { return <TransferBox {...props} />; }} />
             <Route exact path='/Warehouse/Boxes/Delete' render={(props) => { return <DeleteBox {...props} />; }} />
-            <Route exact path='/Warehouse/Orders' render={(props) => { return <GetOrder {...props} />; }} />
+            <Route exact path='/Warehouse/Orders' render={(props) => { return <Order {...props} />; }} />
             <Route path='/Warehouse/*' render={() => { return <Redirect to='/Warehouse' />; }} />
         </Switch>
     );
@@ -122,10 +126,10 @@ function AddBox(props: any) {
             value: '',
             isDisabled: true
         }),
-        [plannedShipmentDate, setPlannedShipmentDate] = useState<InputConfig>({
+        [expectedShipmentDate, setExpectedShipmentDate] = useState<InputConfig>({
             label: t('key_670'),
             className: 'famo-input famo-text-10',
-            name: 'plannedShipmentDate',
+            name: 'expectedShipmentDate',
             isNumber: false,
             value: '',
             isDisabled: true
@@ -139,63 +143,58 @@ function AddBox(props: any) {
             value: '',
             isDisabled: false
         }),
-        boxForm: Array<InputConfig> = [code, orderCode, customerName, plannedShipmentDate, binID],
-        setBoxForm: Array<any> = [setCode, setOrderCode, setCustomerName, setPlannedShipmentDate, setBinID];
+        boxForm: Array<InputConfig> = [code, orderCode, customerName, expectedShipmentDate, binID],
+        setBoxForm: Array<any> = [setCode, setOrderCode, setCustomerName, setExpectedShipmentDate, setBinID];
 
     function getBox() {
-        let reqSuccess = false;
-
         setLoading(true);
 
         fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
-                            reqSuccess = true;
-
                             setBox(data);
                             setCode(x => { return { ...x, value: data.Code }; });
                             setOrderCode(x => { return { ...x, value: data.OrderCode }; });
                             setCustomerName(x => { return { ...x, value: data.CustomerName }; });
-                            setPlannedShipmentDate(x => { return { ...x, value: moment(data.PlannedShipmentDate).format('L') }; });
+                            setExpectedShipmentDate(x => { return { ...x, value: moment(data.ExpectedShipmentDate).format('L') }; });
                             setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
+
+                            setLoading(false);
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
+                    throw result;
+                }
+            })
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
 
-                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                    if (error.status === httpStatus.NOT_FOUND) {
                         alert('A embalagem não existe.');
                     }
-                    else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                    else if (error.status === httpStatus.FORBIDDEN) {
                         alert(t('key_871'));
                     }
                     else {
                         alert(t('key_303'));
                     }
                 }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            })
-            .finally(() => {
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
+
+                setBox(null);
                 setLoading(false);
 
-                if (!reqSuccess) {
-                    setBox(null);
-
-                    InputTools.resetValues(boxForm, setBoxForm);
-                    cleanBoxCode();
-                }
+                InputTools.resetValues(boxForm, setBoxForm);
+                cleanBoxCode();
             });
     }
 
@@ -205,8 +204,6 @@ function AddBox(props: any) {
     }
 
     function addBox() {
-        let reqSuccess = false;
-
         setLoading(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({}), {
@@ -220,28 +217,29 @@ function AddBox(props: any) {
             }),
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    reqSuccess = true;
-
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
                     setBox(null);
-                    InputTools.resetValues(boxForm, setBoxForm);
-                }
-                else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_302'));
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            })
-            .finally(() => {
-                setLoading(false);
+                    setLoading(false);
 
-                if (reqSuccess) {
+                    InputTools.resetValues(boxForm, setBoxForm);
                     cleanBoxCode();
                 }
+                else {
+                    throw result;
+                }
+            })
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
+                    alert(t('key_302'));
+                }
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
+
+                setLoading(false);
             });
     }
 
@@ -252,25 +250,26 @@ function AddBox(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
                             setBins(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
+                    throw result;
                 }
             })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
+                    alert(t('key_303'));
+                }
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
             })
             .finally(() => {
                 globalActions.setLoadPage(false);
@@ -342,10 +341,10 @@ function AddBox(props: any) {
                                     </div>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
-                                            <span className='famo-text-11'>{plannedShipmentDate.label}</span>
+                                            <span className='famo-text-11'>{expectedShipmentDate.label}</span>
                                         </div>
                                         <div className='famo-cell'>
-                                            <Input {...plannedShipmentDate} />
+                                            <Input {...expectedShipmentDate} />
                                         </div>
                                     </div>
                                     <div className='famo-row'>
@@ -413,50 +412,47 @@ function TransferBox(props: any) {
         [transferType, setTransferType] = useState<TransferType>(null);
 
     function getBox() {
-        let reqSuccess = false;
-
         setLoading(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
-                            reqSuccess = true;
-
                             setBox(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
+                            setLoading(false);
+
+                            InputTools.resetValues(binForm, setBinForm);
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
+                    throw result;
+                }
+            })
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
 
-                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                    if (error.status === httpStatus.NOT_FOUND) {
                         alert('A embalagem não existe.');
                     }
                     else {
                         alert(t('key_303'));
                     }
                 }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            })
-            .finally(() => {
-                setLoading(false);
-                InputTools.resetValues(binForm, setBinForm);
-
-                if (!reqSuccess) {
-                    setBox(null);
-                    cleanBoxCode();
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
                 }
+
+                setBox(null);
+                setLoading(false);
+
+                InputTools.resetValues(binForm, setBinForm);
+                cleanBoxCode();
             });
     }
 
@@ -476,8 +472,6 @@ function TransferBox(props: any) {
     }
 
     function transfer() {
-        let reqSuccess = false;
-
         setLoading(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString(transferType === TransferType.Box ? { ID: box.ID } : {}), {
@@ -491,34 +485,35 @@ function TransferBox(props: any) {
             }),
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    reqSuccess = true;
-
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
                     setBox(null);
+                    setLoading(false);
+
                     InputTools.resetValues(binForm, setBinForm);
+                    cleanBoxCode();
                 }
                 else {
-                    httpErrorLog(wsSucc);
+                    throw result;
+                }
+            })
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
 
-                    if (wsSucc.status === httpStatus.CONFLICT) {
+                    if (error.status === httpStatus.CONFLICT) {
                         alert('A encomenda tem embalagens em mais do que um armazém.');
                     }
                     else {
                         alert(t('key_302'));
                     }
                 }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            })
-            .finally(() => {
-                setLoading(false);
-
-                if (reqSuccess) {
-                    cleanBoxCode();
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
                 }
+
+                setLoading(false);
             });
     }
 
@@ -529,25 +524,26 @@ function TransferBox(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
                             setBins(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
+                    throw result;
                 }
             })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
+                    alert(t('key_303'));
+                }
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
             })
             .finally(() => {
                 globalActions.setLoadPage(false);
@@ -642,7 +638,7 @@ function TransferBox(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{moment(box.PlannedShipmentDate).format('L')}</span>
+                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format('L')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -724,49 +720,44 @@ function DeleteBox(props: any) {
         [box, setBox] = useState<BinBox>(null);
 
     function getBox() {
-        let reqSuccess = false;
-
         setLoading(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
-                            reqSuccess = true;
-
                             setBox(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
+                            setLoading(false);
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
+                    throw result;
+                }
+            })
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
 
-                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                    if (error.status === httpStatus.NOT_FOUND) {
                         alert('A embalagem não existe.');
                     }
                     else {
                         alert(t('key_303'));
                     }
                 }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            })
-            .finally(() => {
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
+
+                setBox(null);
                 setLoading(false);
 
-                if (!reqSuccess) {
-                    setBox(null);
-                    cleanBoxCode();
-                }
+                cleanBoxCode();
             });
     }
 
@@ -777,8 +768,6 @@ function DeleteBox(props: any) {
 
     function deleteBox() {
         if (window.confirm(t('key_880'))) {
-            let reqSuccess = false;
-
             setLoading(true);
 
             fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ ID: box.ID }), {
@@ -788,27 +777,28 @@ function DeleteBox(props: any) {
                 },
                 credentials: 'include'
             })
-                .then(async wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        reqSuccess = true;
-
+                .then(async result => {
+                    if (result.ok && result.status === httpStatus.OK) {
                         setBox(null);
-                    }
-                    else {
-                        httpErrorLog(wsSucc);
-                        alert(t('key_302'));
-                    }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
-                    alert(t('key_416'));
-                })
-                .finally(() => {
-                    setLoading(false);
+                        setLoading(false);
 
-                    if (reqSuccess) {
                         cleanBoxCode();
                     }
+                    else {
+                        throw result;
+                    }
+                })
+                .catch(error => {
+                    if (error as Response) {
+                        httpErrorLog(error);
+                        alert(t('key_302'));
+                    }
+                    else {
+                        promiseErrorLog(error);
+                        alert(t('key_416'));
+                    }
+
+                    setLoading(false);
                 });
         }
     }
@@ -888,7 +878,7 @@ function DeleteBox(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{moment(box.PlannedShipmentDate).format('L')}</span>
+                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format('L')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -921,7 +911,7 @@ function DeleteBox(props: any) {
     );
 }
 
-function GetOrder(props: any) {
+function Order(props: any) {
     const { t } = useTranslation(),
         moment = window['moment'],
         [globalState,] = useGlobal(),
@@ -936,60 +926,52 @@ function GetOrder(props: any) {
             isDisabled: false
         }),
         [loading, setLoading] = useState<boolean>(false),
-        [box, setBox] = useState<BinBox>(null),
-        [orderBoxes, setOrderBoxes] = useState<Array<BinBox>>([]);
+        [box, setBox] = useState<Box>(null),
+        boxesHeader: Array<string> = [t('key_339'), 'Emb. (s)', ''],
+        [boxes, setBoxes] = useState<Array<BinBox>>([]);
 
     function getBox() {
-        let reqSuccess = false;
-
         setLoading(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
+        fetch(NODE_SERVER + 'ERP/Boxes' + createQueryString({ code: boxCode.value }), {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
-                            reqSuccess = true;
-
                             setBox(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-
-                            throw error;
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
+                    throw result;
+                }
+            })
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
 
-                    if (wsSucc.status === httpStatus.NOT_FOUND) {
+                    if (error.status === httpStatus.NOT_FOUND) {
                         alert('A embalagem não existe.');
                     }
-                    else if (wsSucc.status === httpStatus.FORBIDDEN) {
+                    else if (error.status === httpStatus.FORBIDDEN) {
                         alert(t('key_871'));
                     }
                     else {
                         alert(t('key_303'));
                     }
-
-                    throw new Error('HTTP');
                 }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
-            })
-            .finally(() => {
-                if (!reqSuccess) {
-                    setBox(null);
-                    setOrderBoxes([]);
-
-                    cleanBoxCode();
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
                 }
+
+                setBox(null);
+                setBoxes([]);
+                setLoading(false);
+
+                cleanBoxCode();
             });
     }
 
@@ -999,16 +981,48 @@ function GetOrder(props: any) {
     }
 
     useEffect(() => {
-if(box){
-    console.log('teste');
-}
+        if (box) {
+            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ orderCode: box.OrderCode, languageCode: globalState.authUser.Language.Code }), {
+                method: 'GET',
+                credentials: 'include'
+            })
+                .then(async result => {
+                    if (result.ok && result.status === httpStatus.OK) {
+                        await result.json()
+                            .then(data => {
+                                setBoxes(data);
+                            });
+                    }
+                    else {
+                        throw result;
+                    }
+                })
+                .catch(error => {
+                    if (error as Response) {
+                        httpErrorLog(error);
+
+                        if (error.status === httpStatus.NOT_FOUND) {
+                            alert('A encomenda não existe.');
+                        }
+                        else {
+                            alert(t('key_303'));
+                        }
+                    }
+                    else {
+                        promiseErrorLog(error);
+                        alert(t('key_416'));
+                    }
+                }).finally(() => {
+                    setLoading(false);
+                });
+        }
     }, [box]);
 
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getOrder(); }}>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
                                 <span className='famo-text-11'>{boxCode.label}</span>
@@ -1026,7 +1040,7 @@ if(box){
                                     <span className='famo-text-12'>{t('key_829')}</span>
                                 </button>
                                 {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getOrder()}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getBox()}>
                                         <span className='famo-text-12'>{t('key_323')}</span>
                                     </button>
                                 }
@@ -1069,10 +1083,86 @@ if(box){
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{moment(box.PlannedShipmentDate).format('L')}</span>
+                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format('L')}</span>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                    <section className='famo-wrapper'>
+                        <div className='famo-content'>
+                            <ContentLoader hide={!loading} />
+                            {box &&
+                                <div className='container'>
+                                    <div className='row'>
+                                        <div className='col-12 col-lg-4'>
+                                            <div className='famo-grid'>
+                                                <div className='famo-cell text-center'>
+                                                    <span className='famo-text-11'>Teste 1</span>
+                                                </div>
+                                            </div>
+                                            <VictoryPie cornerRadius={10} innerRadius={120} padAngle={3} padding={10} data={[{ x: true, y: boxes.filter(x => { return !x.IsPrinted; }).length }, { x: false, y: boxes.filter(x => { return x.IsPrinted; }).length }]} labels={({ datum }) => datum.x ? datum.y : null} colorScale={['#ff3333', '#bfbfbf']} />
+                                            <div className='col-12 col-lg-4'>
+                                            </div>
+                                            <div className='col-12 col-lg-4'>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                    <section className='famo-wrapper'>
+                        <div className='famo-content'>
+                            <ContentLoader hide={!loading} />
+                            {box &&
+                                <div className={'famo-grid famo-content-grid warehouse-boxes ' + (loading ? 'hide' : '')}>
+                                    <div className='famo-row famo-header-row'>
+                                        {boxesHeader.map((x, i) => {
+                                            return (
+                                                <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
+                                                    <span className='famo-text-11'>{x}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {Object.entries(boxes.sort((a, b) => {
+                                        return a.ProductCode > b.ProductCode ? 1 : -1;
+                                    }).reduce((r, x) => {
+                                        r[x.ProductCode] = r[x.ProductCode] || [];
+                                        r[x.ProductCode].push(x);
+
+                                        return r;
+                                    }, {})).map(([kProd, vProd]) => {
+                                        const productBoxes = vProd as Array<BinBox>;
+
+                                        return Object.entries(productBoxes.sort((a, b) => {
+                                            return a.Bin.Code > b.Bin.Code ? -1 : 1;
+                                        }).reduce((r, x) => {
+                                            r[x.Bin.Code] = r[x.Bin.Code] || [];
+                                            r[x.Bin.Code].push(x);
+
+                                            return r;
+                                        }, {})).map(([kBox, vBox], i) => {
+                                            const binProductBoxes = vBox as Array<BinBox>;
+
+                                            return (
+                                                <div key={i} className='famo-row famo-body-row'>
+                                                    <div className='famo-cell famo-col-1'>
+                                                        <span className='famo-text-10'>{kProd}</span>
+                                                    </div>
+                                                    <div className='famo-cell famo-col-2'>
+                                                        <span className='famo-text-10'>{binProductBoxes.length}/{productBoxes.length}</span>
+                                                    </div>
+                                                    <div className='famo-cell famo-col-3'>
+                                                        <span className={'famo-text-10 ' + (kBox === 'null' ? 'famo-color-yellow' : '')}>{kBox === 'null' ? t('key_237') : kBox}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })}
                                 </div>
                             }
                         </div>

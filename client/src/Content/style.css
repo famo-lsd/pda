@@ -131,6 +131,12 @@
     font-size: 16px !important;
     line-height: 1em !important;
   }
+  .warehouse-boxes .famo-col-2 {
+    width: 110px;
+  }
+  .warehouse-boxes .famo-col-3 {
+    width: 100px;
+  }
 }
 @media screen and (max-width: 991px) {
   .famo-text-5,

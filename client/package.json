@@ -18,7 +18,8 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.4",
     "react-swipeable": "^5.5.1",
-    "use-global-hook": "^0.1.13"
+    "use-global-hook": "^0.1.13",
+    "victory": "^35.3.5"
   },
   "scripts": {
     "copy:baseFunctions": "xcopy /s /y ..\\..\\..\\TFS\\DOTNET\\Development\\FAMO.CODE\\FAMO.CODE\\Content\\src\\baseFunctions.less src\\Content\\src",
