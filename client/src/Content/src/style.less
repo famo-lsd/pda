@@ -12,7 +12,8 @@
 
     .famo-text-10,
     .famo-text-11,
-    .famo-text-12 {
+    .famo-text-12,
+    .famo-text-15 {
         font-size: 14px !important;
     }
 
@@ -32,11 +33,17 @@
         margin-left: @famo_button_margin_l;
     }
 
-    .famo-body .famo-wrapper .famo-title span {
-        cursor: default;
+    .famo-body .famo-wrapper {
+        .famo-title span {
+            cursor: default;
 
-        &::before {
-            content: none;
+            &::before {
+                content: none;
+            }
+        }
+
+        .famo-form-grid .famo-input-label .famo-input-loader {
+            top: 0px;
         }
     }
 
@@ -45,7 +52,7 @@
         border-radius: 50%;
         position: fixed;
         left: 15px;
-        bottom: 35px;
+        bottom: 20px;
         z-index: 100;
 
         .fas {
@@ -148,8 +155,25 @@
     }
 
     .warehouse-boxes {
-        .applyCol(2, @width: 90px);
-        .applyCol(3, @width: 80px);
+        .applyCol(2, @width: 95px);
+        .applyCol(3, @width: 30px);
+    }
+
+    .warehouse-charts {
+        .victory-container {
+            width: 100%;
+            height: 150px;
+            text-align: center;
+
+            svg {
+                width: 100%;
+                height: 100%;
+
+                tspan {
+                    .applyText(normal, normal, 36px, @base_color, @base_line_height);
+                }
+            }
+        }
     }
 }
 
@@ -167,7 +191,8 @@
 
     .famo-text-10,
     .famo-text-11,
-    .famo-text-12 {
+    .famo-text-12,
+    .famo-text-15 {
         font-size: 12px !important;
     }
 
@@ -181,6 +206,12 @@
 
     .famo-button {
         padding: 5px 10px;
+    }
+
+    .famo-body .famo-wrapper {
+        .famo-form-grid .famo-input-label .famo-input-loader {
+            top: -3px;
+        }
     }
 
     .pallet-boxes {

@@ -9,7 +9,7 @@ import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
-import { VictoryPie } from 'victory';
+import { VictoryLabel, VictoryPie } from 'victory';
 
 interface Box {
     Code: string;
@@ -62,7 +62,7 @@ function Index(props: any) {
 
     return (
         <div className='container'>
-            <div className='row' style={{ justifyContent: "center" }}>
+            <div className='row' style={{ justifyContent: 'center' }}>
                 {buttons.map((x, i) => {
                     return (
                         <div key={i} className='col-12 col-sm-6 col-lg-3'>
@@ -102,13 +102,14 @@ function AddBox(props: any) {
         [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<BinBox>(null),
         [bins, setBins] = useState<Array<Bin>>([]),
-        [code, setCode] = useState<InputConfig>({
-            label: t('key_87'),
+        [binID, setBinID] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: 'Armazém',
             className: 'famo-input famo-text-10',
-            name: 'code',
+            name: 'binID',
             isNumber: false,
             value: '',
-            isDisabled: true
+            isDisabled: false
         }),
         [orderCode, setOrderCode] = useState<InputConfig>({
             label: t('key_179'),
@@ -134,17 +135,11 @@ function AddBox(props: any) {
             value: '',
             isDisabled: true
         }),
-        [binID, setBinID] = useState<InputConfig>({
-            ref: React.createRef(),
-            label: 'Armazém',
-            className: 'famo-input famo-text-10',
-            name: 'binID',
-            isNumber: false,
-            value: '',
-            isDisabled: false
-        }),
-        boxForm: Array<InputConfig> = [code, orderCode, customerName, expectedShipmentDate, binID],
-        setBoxForm: Array<any> = [setCode, setOrderCode, setCustomerName, setExpectedShipmentDate, setBinID];
+        [checkingOrder, setCheckingOrder] = useState<boolean>(false),
+        [separatedOrder, setSeparatedOrder] = useState<boolean>(false),
+        boxForm: Array<InputConfig> = [binID, orderCode, customerName, expectedShipmentDate],
+        setBoxForm: Array<any> = [setBinID, setOrderCode, setCustomerName, setExpectedShipmentDate],
+        saveButtonRef: React.RefObject<HTMLButtonElement> = React.createRef();
 
     function getBox() {
         setLoading(true);
@@ -158,20 +153,20 @@ function AddBox(props: any) {
                     await result.json()
                         .then(data => {
                             setBox(data);
-                            setCode(x => { return { ...x, value: data.Code }; });
                             setOrderCode(x => { return { ...x, value: data.OrderCode }; });
                             setCustomerName(x => { return { ...x, value: data.CustomerName }; });
                             setExpectedShipmentDate(x => { return { ...x, value: moment(data.ExpectedShipmentDate).format('L') }; });
                             setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
 
                             setLoading(false);
+                            checkOrderInBins(data.OrderCode, data.Bin.ID.toString());
                         });
                 }
                 else {
                     throw result;
                 }
             })
-            .catch(error => {
+            .catch(async error => {
                 if (error as Response) {
                     httpErrorLog(error);
 
@@ -180,6 +175,16 @@ function AddBox(props: any) {
                     }
                     else if (error.status === httpStatus.FORBIDDEN) {
                         alert(t('key_871'));
+                    }
+                    else if (error.status === httpStatus.CONFLICT) {
+                        await error.json()
+                            .then(data => {
+                                alert('A embalagem já foi selecionada e encontra-se no armazém:' + ' ' + data.box);
+                            })
+                            .catch(error => {
+                                promiseErrorLog(error);
+                                alert(t('key_416'));
+                            });
                     }
                     else {
                         alert(t('key_303'));
@@ -191,6 +196,8 @@ function AddBox(props: any) {
                 }
 
                 setBox(null);
+                setCheckingOrder(false);
+                setSeparatedOrder(false);
                 setLoading(false);
 
                 InputTools.resetValues(boxForm, setBoxForm);
@@ -201,6 +208,38 @@ function AddBox(props: any) {
     function cleanBoxCode() {
         setBoxCode(x => { return { ...x, value: '' }; });
         boxCode.ref.current.focus();
+    }
+
+    function checkOrderInBins(code: string, binID: string) {
+        setCheckingOrder(true);
+
+        fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({ code: code, binID: binID }), {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
+                        .then(data => {
+                            setSeparatedOrder(data);
+                        });
+                }
+                else {
+                    throw result;
+                }
+            })
+            .catch(async error => {
+                if (error as Response) {
+                    httpErrorLog(error);
+                    alert(t('key_303'));
+                }
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
+            }).finally(() => {
+                setCheckingOrder(false);
+            });
     }
 
     function addBox() {
@@ -220,6 +259,8 @@ function AddBox(props: any) {
             .then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     setBox(null);
+                    setCheckingOrder(false);
+                    setSeparatedOrder(false);
                     setLoading(false);
 
                     InputTools.resetValues(boxForm, setBoxForm);
@@ -242,6 +283,19 @@ function AddBox(props: any) {
                 setLoading(false);
             });
     }
+
+    useEffect(() => {
+        if (binID.value) {
+            checkOrderInBins(orderCode.value, binID.value);
+        }
+        saveButtonRef.current?.focus();
+    }, [binID.value]);
+
+    useEffect(() => {
+        if (!loading) {
+            saveButtonRef.current?.focus();
+        }
+    }, [loading]);
 
     useEffect(() => {
         globalActions.setLoadPage(true);
@@ -317,10 +371,20 @@ function AddBox(props: any) {
                                 <form className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')} noValidate>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
-                                            <span className='famo-text-11'>{code.label}</span>
+                                            <div className={'famo-input-loader ' + (checkingOrder ? '' : 'hide')}>
+                                                <div className='famo-loader'></div>
+                                            </div>
+                                            <span className='famo-text-11'>{binID.label}</span>
                                         </div>
                                         <div className='famo-cell'>
-                                            <Input {...code} />
+                                            <Input {...binID} set={setBinID}>
+                                                {bins.map((x, i) => {
+                                                    return <option key={i} value={x.ID}>{x.Code}</option>
+                                                })}
+                                            </Input>
+                                            <div className={'famo-input-message ' + (separatedOrder ? '' : 'hide')}>
+                                                <span className='famo-text-15'>Se colocar a embalagem neste armazém, a encomenda vai estar em vários armazéns.</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className='famo-row'>
@@ -347,23 +411,11 @@ function AddBox(props: any) {
                                             <Input {...expectedShipmentDate} />
                                         </div>
                                     </div>
-                                    <div className='famo-row'>
-                                        <div className='famo-cell famo-input-label'>
-                                            <span className='famo-text-11'>{binID.label}</span>
-                                        </div>
-                                        <div className='famo-cell'>
-                                            <Input {...binID} set={setBinID}>
-                                                {bins.map((x, i) => {
-                                                    return <option key={i} value={x.ID}>{x.Code}</option>
-                                                })}
-                                            </Input>
-                                        </div>
-                                    </div>
                                 </form>
                                 <div className={'famo-grid famo-buttons ' + (loading ? 'hide' : '')}>
                                     <div className='famo-row'>
                                         <div className='famo-cell text-right'>
-                                            <button type='button' className='famo-button famo-confirm-button' onClick={event => addBox()}>
+                                            <button type='button' ref={saveButtonRef} className='famo-button famo-confirm-button' onClick={event => addBox()}>
                                                 <span className='famo-text-12'>{t('key_220')}</span>
                                             </button>
                                         </div>
@@ -687,10 +739,10 @@ function TransferBox(props: any) {
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
                                         <button type='button' className='famo-button famo-confirm-button' disabled={loading} onClick={event => transferOrder()}>
-                                            <span className='famo-text-12'>Transferir encomenda</span>
+                                            <span className='famo-text-12'>Transf. encomenda</span>
                                         </button>
                                         <button type='button' className='famo-button famo-confirm-button' disabled={loading} onClick={event => transferBox()}>
-                                            <span className='famo-text-12'>Transferir embalagem</span>
+                                            <span className='famo-text-12'>Transf. embalagem</span>
                                         </button>
                                     </div>
                                 </div>
@@ -914,6 +966,7 @@ function DeleteBox(props: any) {
 function Order(props: any) {
     const { t } = useTranslation(),
         moment = window['moment'],
+        numeral = window['numeral'],
         [globalState,] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
@@ -927,6 +980,18 @@ function Order(props: any) {
         }),
         [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<Box>(null),
+        vicPieConfig = {
+            standalone: false,
+            cornerRadius: 10,
+            innerRadius: 120,
+            padAngle: 3,
+            padding: { top: 25, bottom: 5 }
+        },
+        vicLabelConfig = {
+            lineHeight: 3.5,
+            x: 400 * 0.5,
+            y: 400 * 0.525
+        },
         boxesHeader: Array<string> = [t('key_339'), 'Emb. (s)', ''],
         [boxes, setBoxes] = useState<Array<BinBox>>([]);
 
@@ -1095,18 +1160,45 @@ function Order(props: any) {
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
                             {box &&
-                                <div className='container'>
+                                <div className={'container warehouse-charts ' + (loading ? 'hide' : '')}>
                                     <div className='row'>
                                         <div className='col-12 col-lg-4'>
                                             <div className='famo-grid'>
                                                 <div className='famo-cell text-center'>
-                                                    <span className='famo-text-11'>Teste 1</span>
+                                                    <span className='famo-text-11'>A produzir</span>
                                                 </div>
                                             </div>
-                                            <VictoryPie cornerRadius={10} innerRadius={120} padAngle={3} padding={10} data={[{ x: true, y: boxes.filter(x => { return !x.IsPrinted; }).length }, { x: false, y: boxes.filter(x => { return x.IsPrinted; }).length }]} labels={({ datum }) => datum.x ? datum.y : null} colorScale={['#ff3333', '#bfbfbf']} />
-                                            <div className='col-12 col-lg-4'>
+                                            <div className='victory-container'>
+                                                <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
+                                                    <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return !x.IsPrinted; }).length }, { x: false, y: boxes.filter(x => { return x.IsPrinted; }).length }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
+                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return !x.IsPrinted; }).length / boxes.length).format('0.00%'), numeral(boxes.filter(x => { return !x.IsPrinted; }).length).format('0,0') + '/' + numeral(boxes.length).format('0,0')]} style={[{ fill: '#ff3333' }]} />
+                                                </svg>
                                             </div>
-                                            <div className='col-12 col-lg-4'>
+                                        </div>
+                                        <div className='col-12 col-lg-4'>
+                                            <div className='famo-grid'>
+                                                <div className='famo-cell text-center'>
+                                                    <span className='famo-text-11'>A arrumar</span>
+                                                </div>
+                                            </div>
+                                            <div className='victory-container'>
+                                                <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
+                                                    <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length }, { x: false, y: boxes.filter(x => { return !(x.IsPrinted && x.Bin.ID === -1); }).length }]} colorScale={['#3333ff', '#bfbfbf']} labels={() => null} />
+                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length / boxes.length).format('0.00%'), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length).format('0,0') + '/' + numeral(boxes.length).format('0,0')]} style={[{ fill: '#3333ff' }]} />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div className='col-12 col-lg-4'>
+                                            <div className='famo-grid'>
+                                                <div className='famo-cell text-center'>
+                                                    <span className='famo-text-11'>A expedir</span>
+                                                </div>
+                                            </div>
+                                            <div className='victory-container'>
+                                                <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
+                                                    <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length }, { x: false, y: boxes.filter(x => { return !(x.IsPrinted && x.Bin.ID !== -1); }).length }]} colorScale={['#33ff33', '#bfbfbf']} labels={() => null} />
+                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length / boxes.length).format('0.00%'), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length).format('0,0') + '/' + numeral(boxes.length).format('0,0')]} style={[{ fill: '#33ff33' }]} />
+                                                </svg>
                                             </div>
                                         </div>
                                     </div>
@@ -1154,10 +1246,10 @@ function Order(props: any) {
                                                         <span className='famo-text-10'>{kProd}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-2'>
-                                                        <span className='famo-text-10'>{binProductBoxes.length}/{productBoxes.length}</span>
+                                                        <span className='famo-text-10'>{numeral(binProductBoxes.length).format('0,0')}/{numeral(productBoxes.length).format('0,0')}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-3'>
-                                                        <span className={'famo-text-10 ' + (kBox === 'null' ? 'famo-color-yellow' : '')}>{kBox === 'null' ? t('key_237') : kBox}</span>
+                                                        <span className={'famo-text-10 ' + (kBox === 'null' ? 'famo-color-yellow' : '')}>{kBox === 'null' ? 'n/a' : kBox}</span>
                                                     </div>
                                                 </div>
                                             );
