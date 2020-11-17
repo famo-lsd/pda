@@ -181,8 +181,8 @@ function AddBox(props: any) {
                             .then(data => {
                                 alert('A embalagem já foi selecionada e encontra-se no armazém:' + ' ' + data.box);
                             })
-                            .catch(error => {
-                                promiseErrorLog(error);
+                            .catch(errorAux => {
+                                promiseErrorLog(errorAux);
                                 alert(t('key_416'));
                             });
                     }
@@ -333,6 +333,7 @@ function AddBox(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
+                <Title text={'Arrumar embalagem'} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -363,7 +364,7 @@ function AddBox(props: any) {
             </section>
             {(loading || box) &&
                 <section className='famo-wrapper'>
-                    <Title text={t('key_149')} />
+                    <Title text={t('key_819')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!loading} />
                         {box &&
@@ -487,13 +488,7 @@ function TransferBox(props: any) {
             .catch(error => {
                 if (error as Response) {
                     httpErrorLog(error);
-
-                    if (error.status === httpStatus.NOT_FOUND) {
-                        alert('A embalagem não existe.');
-                    }
-                    else {
-                        alert(t('key_303'));
-                    }
+                    alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
                 }
                 else {
                     promiseErrorLog(error);
@@ -552,13 +547,7 @@ function TransferBox(props: any) {
             .catch(error => {
                 if (error as Response) {
                     httpErrorLog(error);
-
-                    if (error.status === httpStatus.CONFLICT) {
-                        alert('A encomenda tem embalagens em mais do que um armazém.');
-                    }
-                    else {
-                        alert(t('key_302'));
-                    }
+                    alert(error.status === httpStatus.CONFLICT ? 'A encomenda tem embalagens em mais do que um armazém.' : t('key_302'));
                 }
                 else {
                     promiseErrorLog(error);
@@ -618,6 +607,7 @@ function TransferBox(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
+                <Title text={'Transferir embalagem'} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -709,7 +699,7 @@ function TransferBox(props: any) {
                         </div>
                     </section>
                     <section className='famo-wrapper'>
-                        <Title text='Destino' />
+                        <Title text={'Destino'} />
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
                             {box &&
@@ -793,13 +783,7 @@ function DeleteBox(props: any) {
             .catch(error => {
                 if (error as Response) {
                     httpErrorLog(error);
-
-                    if (error.status === httpStatus.NOT_FOUND) {
-                        alert('A embalagem não existe.');
-                    }
-                    else {
-                        alert(t('key_303'));
-                    }
+                    alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
                 }
                 else {
                     promiseErrorLog(error);
@@ -858,6 +842,7 @@ function DeleteBox(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
+                <Title text={'Anular embalagem'} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -888,7 +873,7 @@ function DeleteBox(props: any) {
             </section>
             {(loading || box) &&
                 <section className='famo-wrapper'>
-                    <Title text={t('key_149')} />
+                    <Title text={t('key_819')} />
                     <div className='famo-content'>
                         <ContentLoader hide={!loading} />
                         {box &&
@@ -1065,13 +1050,7 @@ function Order(props: any) {
                 .catch(error => {
                     if (error as Response) {
                         httpErrorLog(error);
-
-                        if (error.status === httpStatus.NOT_FOUND) {
-                            alert('A encomenda não existe.');
-                        }
-                        else {
-                            alert(t('key_303'));
-                        }
+                        alert(error.status === httpStatus.NOT_FOUND ? 'A encomenda não existe.' : t('key_303'));
                     }
                     else {
                         promiseErrorLog(error);
@@ -1086,6 +1065,7 @@ function Order(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
+                <Title text={'Consultar encomenda'} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -1117,7 +1097,7 @@ function Order(props: any) {
             {(loading || box) &&
                 <React.Fragment>
                     <section className='famo-wrapper'>
-                        <Title text={t('key_149')} />
+                        <Title text={t('key_179')} />
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
                             {box &&

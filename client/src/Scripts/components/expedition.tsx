@@ -22,19 +22,26 @@ interface Box {
 interface Shipment {
     Code: string;
     Description: string;
+    Gate: ShipmentGate;
     PickedBoxes: number;
     TotalBoxes: number;
 }
 
+interface ShipmentGate{
+    ID: number;
+    Label: string;
+}
+
+// TO DO:
 interface ShipmentProduct {
-    OrderCode: string;
-    OrderLine: number;
     ProductCode: string;
     ProductDescription: string;
-    Volume: number;
+    ProductVolume: number;
+    OrderCode: string;
+    OrderLine: number;
     PendingBoxes: number;
     TotalBoxes: number;
-    Status: number;
+    ShipmentStatus: number;
 }
 
 interface ShipmentProductComponent {

@@ -111,8 +111,7 @@ function Inventory(props: any) {
     function getInventoryLine(productCodeParam: string) {
         const split: Array<string> = productCodeParam.split('/'),
             productCode = split[0];
-        let reqSuccess = false,
-            productVariantCode = '';
+        let productVariantCode = '';
 
         if (split.length > 1) {
             productVariantCode = split[1];
@@ -128,39 +127,36 @@ function Inventory(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
-                            reqSuccess = true;
-
                             setInventoryLine(data);
                             setProductCode(x => { return { ...x, value: data.ProductCode }; });
                             setProductVariantCode(x => { return { ...x, value: data.ProductVariantCode }; });
                             setProductDescription(x => { return { ...x, value: data.ProductDescription }; });
                             setLocationCode(x => { return { ...x, value: data.LocationCode }; });
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
-                    alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_809') : t('key_303'));
+                    throw result;
                 }
             })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
+                    alert(error.status === httpStatus.NOT_FOUND ? t('key_809') : t('key_303'));
+                }
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
+
+                setInventoryLine(null);
+                InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
             })
             .finally(() => {
                 setLoadingInventoryLine(false);
-
-                if (!reqSuccess) {
-                    setInventoryLine(null);
-                    InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
-                }
             });
     }
 
@@ -194,25 +190,26 @@ function Inventory(props: any) {
             method: 'GET',
             credentials: 'include'
         })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
+            .then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
                         .then(data => {
                             setInventories(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
                         });
                 }
                 else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
+                    throw result;
                 }
             })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
-                alert(t('key_416'));
+            .catch(error => {
+                if (error as Response) {
+                    httpErrorLog(error);
+                    alert(t('key_303'));
+                }
+                else {
+                    promiseErrorLog(error);
+                    alert(t('key_416'));
+                }
             })
             .finally(() => {
                 globalActions.setLoadPage(false);
@@ -245,21 +242,26 @@ function Inventory(props: any) {
                     }),
                     credentials: 'include'
                 })
-                    .then(wsSucc => {
-                        if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
+                    .then(result => {
+                        if (result.ok && result.status === httpStatus.OK) {
                             setInventoryLine(null);
                             InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
 
                             alert(t('key_805'));
                         }
                         else {
-                            httpErrorLog(wsSucc);
-                            alert(t('key_302'));
+                            throw result;
                         }
                     })
-                    .catch(wsErr => {
-                        promiseErrorLog(wsErr);
-                        alert(t('key_416'));
+                    .catch(error => {
+                        if (error as Response) {
+                            httpErrorLog(error);
+                            alert(t('key_302'));
+                        }
+                        else {
+                            promiseErrorLog(error);
+                            alert(t('key_416'));
+                        }
                     })
                     .finally(() => {
                         setLoadingInventoryLine(false);
