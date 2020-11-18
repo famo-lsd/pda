@@ -67,18 +67,36 @@
     width: 120px;
   }
   .pallet-boxes .famo-col-3 {
-    width: 65px;
+    width: 70px;
   }
-  .pallet-boxes .button-delete-box .fas {
+  .pallet-boxes .famo-button .fas {
     font-size: 16px !important;
     line-height: 1em !important;
     color: #ffffff;
   }
   .shipments .famo-col-1 {
-    width: 150px;
+    width: 120px;
   }
   .shipments .famo-col-3 {
+    width: 110px;
+  }
+  .shipments .famo-col-4 {
     width: 105px;
+  }
+  .shipments .famo-col-5 {
+    width: 70px;
+  }
+  .shipments .famo-body-row .famo-col-4 span {
+    display: inline-block;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    word-break: break-word;
+  }
+  .shipments .famo-button .fas {
+    font-size: 16px !important;
+    line-height: 1em !important;
+    color: #ffffff;
   }
   .expedition-products .famo-col-1 {
     width: 120px;
@@ -107,9 +125,9 @@
     margin-top: 15px;
   }
   .expedition-boxes .famo-col-2 {
-    width: 65px;
+    width: 70px;
   }
-  .expedition-boxes .button-delete-box .fas {
+  .expedition-boxes .famo-button .fas {
     font-size: 16px !important;
     line-height: 1em !important;
     color: #ffffff;
@@ -121,6 +139,9 @@
     width: 80px;
   }
   .expedition-components .famo-col-4 {
+    width: 55px;
+  }
+  .expedition-components .famo-col-5 {
     width: 40px;
   }
   .expedition-components .famo-body-row .famo-col-1 span,
@@ -185,7 +206,24 @@
   .pallet-boxes .famo-col-3 {
     width: 60px;
   }
-  .pallet-boxes .button-delete-box .fas {
+  .pallet-boxes .famo-button .fas {
+    font-size: 14px !important;
+    line-height: 1em !important;
+    color: #ffffff;
+  }
+  .shipments .famo-col-1 {
+    width: 100px;
+  }
+  .shipments .famo-col-3 {
+    width: 100px;
+  }
+  .shipments .famo-col-4 {
+    width: 95px;
+  }
+  .shipments .famo-col-5 {
+    width: 60px;
+  }
+  .shipments .famo-button .fas {
     font-size: 14px !important;
     line-height: 1em !important;
     color: #ffffff;
@@ -198,7 +236,7 @@
   .expedition-boxes .famo-col-2 {
     width: 60px;
   }
-  .expedition-boxes .button-delete-box .fas {
+  .expedition-boxes .famo-button .fas {
     font-size: 14px !important;
     line-height: 1em !important;
     color: #ffffff;
@@ -210,13 +248,10 @@
 }
 @media screen and (max-width: 575px) {
   .shipments .famo-col-1 {
-    width: 55%;
+    width: auto;
   }
   .shipments .famo-col-2 {
     display: none;
-  }
-  .shipments .famo-col-3 {
-    width: 45%;
   }
   .expedition-details .col-xl-5 {
     display: none;

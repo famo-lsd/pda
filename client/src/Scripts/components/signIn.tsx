@@ -1,7 +1,7 @@
 import Authentication from '../utils/authentication';
 import httpStatus from 'http-status';
 import React, { useEffect, useState } from 'react';
-import { httpErrorLog, promiseErrorLog } from '../utils/log';
+import { logHttpError, logPromiseError } from '../utils/log';
 import { isAndroidApp } from '../utils/platform';
 import { Redirect } from 'react-router-dom';
 import { useGlobal } from '../utils/globalHooks';
@@ -69,31 +69,29 @@ function SignIn(props: any) {
             // Reset.
             setState(x => { return { ...x, authError: false, authHttpCode: -1 }; });
 
-            await Authentication.signIn(state.username, state.password)
-                .then(async wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        await wsSucc.json()
-                            .then(async data => {
-                                await isAndroidApp(data, globalActions, t);
-                            })
-                            .catch(error => {
-                                promiseErrorLog(error);
-                                alert(t('key_416'));
-                            });
-                    }
-                    else {
-                        if (wsSucc.status !== httpStatus.BAD_REQUEST && wsSucc.status !== httpStatus.INTERNAL_SERVER_ERROR) {
-                            console.log(t('key_416') + ' - ' + wsSucc.status);
-                        }
+            await Authentication.signIn(state.username, state.password).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json().then(async data => {
+                        await isAndroidApp(data, globalActions, t);
+                    });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    logHttpError(error);
 
-                        setState(x => { return { ...x, password: '', passwordErrorMsg: false, authError: true, authHttpCode: wsSucc.status }; });
-                        httpErrorLog(wsSucc);
+                    setState(x => { return { ...x, password: '', passwordErrorMsg: false, authError: true, authHttpCode: error.status }; });
+                    if (error.status !== httpStatus.BAD_REQUEST && error.status !== httpStatus.INTERNAL_SERVER_ERROR) {
+                        console.log(t('key_416') + ' - ' + error.status);
                     }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
+                }
+                else {
+                    logPromiseError(error);
                     alert(t('key_416'));
-                });
+                }
+            });
         }
 
         setSubmitting(false);

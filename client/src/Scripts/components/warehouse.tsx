@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
-import { httpErrorLog, promiseErrorLog } from '../utils/log';
+import { logHttpError, logPromiseError } from '../utils/log';
 import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
@@ -87,7 +87,6 @@ function Index(props: any) {
 
 function AddBox(props: any) {
     const { t } = useTranslation(),
-        moment = window['moment'],
         [globalState, globalActions] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
@@ -139,7 +138,9 @@ function AddBox(props: any) {
         [separatedOrder, setSeparatedOrder] = useState<boolean>(false),
         boxForm: Array<InputConfig> = [binID, orderCode, customerName, expectedShipmentDate],
         setBoxForm: Array<any> = [setBinID, setOrderCode, setCustomerName, setExpectedShipmentDate],
-        saveButtonRef: React.RefObject<HTMLButtonElement> = React.createRef();
+        saveButtonRef: React.RefObject<HTMLButtonElement> = React.createRef(),
+        moment = window['moment'],
+        dateFormat = 'L';
 
     function getBox() {
         setLoading(true);
@@ -147,62 +148,57 @@ function AddBox(props: any) {
         fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setBox(data);
-                            setOrderCode(x => { return { ...x, value: data.OrderCode }; });
-                            setCustomerName(x => { return { ...x, value: data.CustomerName }; });
-                            setExpectedShipmentDate(x => { return { ...x, value: moment(data.ExpectedShipmentDate).format('L') }; });
-                            setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBox(data);
+                    setOrderCode(x => { return { ...x, value: data.OrderCode }; });
+                    setCustomerName(x => { return { ...x, value: data.CustomerName }; });
+                    setExpectedShipmentDate(x => { return { ...x, value: moment(data.ExpectedShipmentDate).format(dateFormat) }; });
+                    setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
+                    setLoading(false);
 
-                            setLoading(false);
-                            checkOrderInBins(data.OrderCode, data.Bin.ID.toString());
-                        });
+                    checkOrderInBins(data.OrderCode, data.Bin.ID.toString());
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(async error => {
+            if (error as Response) {
+                logHttpError(error);
+
+                if (error.status === httpStatus.NOT_FOUND) {
+                    alert('A embalagem não existe.');
+                }
+                else if (error.status === httpStatus.FORBIDDEN) {
+                    alert(t('key_871'));
+                }
+                else if (error.status === httpStatus.CONFLICT) {
+                    await error.json().then(data => {
+                        alert('A embalagem já foi selecionada e encontra-se no armazém:' + ' ' + data.box);
+                    }).catch(errorAux => {
+                        logPromiseError(errorAux);
+                        alert(t('key_416'));
+                    });
                 }
                 else {
-                    throw result;
+                    alert(t('key_303'));
                 }
-            })
-            .catch(async error => {
-                if (error as Response) {
-                    httpErrorLog(error);
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
 
-                    if (error.status === httpStatus.NOT_FOUND) {
-                        alert('A embalagem não existe.');
-                    }
-                    else if (error.status === httpStatus.FORBIDDEN) {
-                        alert(t('key_871'));
-                    }
-                    else if (error.status === httpStatus.CONFLICT) {
-                        await error.json()
-                            .then(data => {
-                                alert('A embalagem já foi selecionada e encontra-se no armazém:' + ' ' + data.box);
-                            })
-                            .catch(errorAux => {
-                                promiseErrorLog(errorAux);
-                                alert(t('key_416'));
-                            });
-                    }
-                    else {
-                        alert(t('key_303'));
-                    }
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
+            setBox(null);
+            setCheckingOrder(false);
+            setSeparatedOrder(false);
+            setLoading(false);
 
-                setBox(null);
-                setCheckingOrder(false);
-                setSeparatedOrder(false);
-                setLoading(false);
-
-                InputTools.resetValues(boxForm, setBoxForm);
-                cleanBoxCode();
-            });
+            InputTools.resetValues(boxForm, setBoxForm);
+            cleanBoxCode();
+        });
     }
 
     function cleanBoxCode() {
@@ -216,30 +212,27 @@ function AddBox(props: any) {
         fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({ code: code, binID: binID }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setSeparatedOrder(data);
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(async error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
-            }).finally(() => {
-                setCheckingOrder(false);
-            });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setSeparatedOrder(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(async error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            setCheckingOrder(false);
+        });
     }
 
     function addBox() {
@@ -255,33 +248,31 @@ function AddBox(props: any) {
                 code: box.Code
             }),
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    setBox(null);
-                    setCheckingOrder(false);
-                    setSeparatedOrder(false);
-                    setLoading(false);
-
-                    InputTools.resetValues(boxForm, setBoxForm);
-                    cleanBoxCode();
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(t('key_302'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
-
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                setBox(null);
+                setCheckingOrder(false);
+                setSeparatedOrder(false);
                 setLoading(false);
-            });
+
+                InputTools.resetValues(boxForm, setBoxForm);
+                cleanBoxCode();
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_302'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+
+            setLoading(false);
+        });
     }
 
     useEffect(() => {
@@ -303,31 +294,27 @@ function AddBox(props: any) {
         fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setBins(data);
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
-            })
-            .finally(() => {
-                globalActions.setLoadPage(false);
-            });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBins(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            globalActions.setLoadPage(false);
+        });
     }, []);
 
     return (
@@ -433,7 +420,6 @@ function AddBox(props: any) {
 
 function TransferBox(props: any) {
     const { t } = useTranslation(),
-        moment = window['moment'],
         [globalState, globalActions] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
@@ -462,7 +448,9 @@ function TransferBox(props: any) {
         }),
         binForm: Array<InputConfig> = [binID],
         setBinForm: Array<any> = [setBinID],
-        [transferType, setTransferType] = useState<TransferType>(null);
+        [transferType, setTransferType] = useState<TransferType>(null),
+        moment = window['moment'],
+        dateFormat = 'L';
 
     function getBox() {
         setLoading(true);
@@ -470,37 +458,34 @@ function TransferBox(props: any) {
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setBox(data);
-                            setLoading(false);
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBox(data);
+                    setLoading(false);
 
-                            InputTools.resetValues(binForm, setBinForm);
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
+                    InputTools.resetValues(binForm, setBinForm);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
 
-                setBox(null);
-                setLoading(false);
+            setBox(null);
+            setLoading(false);
 
-                InputTools.resetValues(binForm, setBinForm);
-                cleanBoxCode();
-            });
+            InputTools.resetValues(binForm, setBinForm);
+            cleanBoxCode();
+        });
     }
 
     function cleanBoxCode() {
@@ -531,31 +516,29 @@ function TransferBox(props: any) {
                 orderCode: box.OrderCode
             }),
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    setBox(null);
-                    setLoading(false);
-
-                    InputTools.resetValues(binForm, setBinForm);
-                    cleanBoxCode();
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(error.status === httpStatus.CONFLICT ? 'A encomenda tem embalagens em mais do que um armazém.' : t('key_302'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
-
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                setBox(null);
                 setLoading(false);
-            });
+
+                InputTools.resetValues(binForm, setBinForm);
+                cleanBoxCode();
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(error.status === httpStatus.CONFLICT ? 'A encomenda tem embalagens em mais do que um armazém.' : t('key_302'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+
+            setLoading(false);
+        });
     }
 
     useEffect(() => {
@@ -564,31 +547,28 @@ function TransferBox(props: any) {
         fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setBins(data);
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
-            })
-            .finally(() => {
-                globalActions.setLoadPage(false);
-            });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json()
+                    .then(data => {
+                        setBins(data);
+                    });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            globalActions.setLoadPage(false);
+        });
     }, []);
 
     useEffect(() => {
@@ -680,7 +660,7 @@ function TransferBox(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format('L')}</span>
+                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format(dateFormat)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -746,7 +726,6 @@ function TransferBox(props: any) {
 
 function DeleteBox(props: any) {
     const { t } = useTranslation(),
-        moment = window['moment'],
         [globalState,] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
@@ -759,7 +738,9 @@ function DeleteBox(props: any) {
             isDisabled: false
         }),
         [loading, setLoading] = useState<boolean>(false),
-        [box, setBox] = useState<BinBox>(null);
+        [box, setBox] = useState<BinBox>(null),
+        moment = window['moment'],
+        dateFormat = 'L';
 
     function getBox() {
         setLoading(true);
@@ -767,34 +748,31 @@ function DeleteBox(props: any) {
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setBox(data);
-                            setLoading(false);
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBox(data);
+                    setLoading(false);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
 
-                setBox(null);
-                setLoading(false);
+            setBox(null);
+            setLoading(false);
 
-                cleanBoxCode();
-            });
+            cleanBoxCode();
+        });
     }
 
     function cleanBoxCode() {
@@ -812,30 +790,28 @@ function DeleteBox(props: any) {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include'
-            })
-                .then(async result => {
-                    if (result.ok && result.status === httpStatus.OK) {
-                        setBox(null);
-                        setLoading(false);
-
-                        cleanBoxCode();
-                    }
-                    else {
-                        throw result;
-                    }
-                })
-                .catch(error => {
-                    if (error as Response) {
-                        httpErrorLog(error);
-                        alert(t('key_302'));
-                    }
-                    else {
-                        promiseErrorLog(error);
-                        alert(t('key_416'));
-                    }
-
+            }).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    setBox(null);
                     setLoading(false);
-                });
+
+                    cleanBoxCode();
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    logHttpError(error);
+                    alert(t('key_302'));
+                }
+                else {
+                    logPromiseError(error);
+                    alert(t('key_416'));
+                }
+
+                setLoading(false);
+            });
         }
     }
 
@@ -915,7 +891,7 @@ function DeleteBox(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format('L')}</span>
+                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format(dateFormat)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -950,8 +926,6 @@ function DeleteBox(props: any) {
 
 function Order(props: any) {
     const { t } = useTranslation(),
-        moment = window['moment'],
-        numeral = window['numeral'],
         [globalState,] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
@@ -978,7 +952,12 @@ function Order(props: any) {
             y: 400 * 0.525
         },
         boxesHeader: Array<string> = [t('key_339'), 'Emb. (s)', ''],
-        [boxes, setBoxes] = useState<Array<BinBox>>([]);
+        [boxes, setBoxes] = useState<Array<BinBox>>([]),
+        moment = window['moment'],
+        numeral = window['numeral'],
+        dateFormat = 'L',
+        percentageFormat = '0.00%',
+        unitFormat = '0,0';
 
     function getBox() {
         setLoading(true);
@@ -986,43 +965,41 @@ function Order(props: any) {
         fetch(NODE_SERVER + 'ERP/Boxes' + createQueryString({ code: boxCode.value }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setBox(data);
-                        });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json()
+                    .then(data => {
+                        setBox(data);
+                    });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+
+                if (error.status === httpStatus.NOT_FOUND) {
+                    alert('A embalagem não existe.');
+                }
+                else if (error.status === httpStatus.FORBIDDEN) {
+                    alert(t('key_871'));
                 }
                 else {
-                    throw result;
+                    alert(t('key_303'));
                 }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
 
-                    if (error.status === httpStatus.NOT_FOUND) {
-                        alert('A embalagem não existe.');
-                    }
-                    else if (error.status === httpStatus.FORBIDDEN) {
-                        alert(t('key_871'));
-                    }
-                    else {
-                        alert(t('key_303'));
-                    }
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
+            setBox(null);
+            setBoxes([]);
+            setLoading(false);
 
-                setBox(null);
-                setBoxes([]);
-                setLoading(false);
-
-                cleanBoxCode();
-            });
+            cleanBoxCode();
+        });
     }
 
     function cleanBoxCode() {
@@ -1035,30 +1012,28 @@ function Order(props: any) {
             fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ orderCode: box.OrderCode, languageCode: globalState.authUser.Language.Code }), {
                 method: 'GET',
                 credentials: 'include'
-            })
-                .then(async result => {
-                    if (result.ok && result.status === httpStatus.OK) {
-                        await result.json()
-                            .then(data => {
-                                setBoxes(data);
-                            });
-                    }
-                    else {
-                        throw result;
-                    }
-                })
-                .catch(error => {
-                    if (error as Response) {
-                        httpErrorLog(error);
-                        alert(error.status === httpStatus.NOT_FOUND ? 'A encomenda não existe.' : t('key_303'));
-                    }
-                    else {
-                        promiseErrorLog(error);
-                        alert(t('key_416'));
-                    }
-                }).finally(() => {
-                    setLoading(false);
-                });
+            }).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json()
+                        .then(data => {
+                            setBoxes(data);
+                        });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    logHttpError(error);
+                    alert(error.status === httpStatus.NOT_FOUND ? 'A encomenda não existe.' : t('key_303'));
+                }
+                else {
+                    logPromiseError(error);
+                    alert(t('key_416'));
+                }
+            }).finally(() => {
+                setLoading(false);
+            });
         }
     }, [box]);
 
@@ -1128,7 +1103,7 @@ function Order(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format('L')}</span>
+                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format(dateFormat)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1151,7 +1126,7 @@ function Order(props: any) {
                                             <div className='victory-container'>
                                                 <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
                                                     <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return !x.IsPrinted; }).length }, { x: false, y: boxes.filter(x => { return x.IsPrinted; }).length }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
-                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return !x.IsPrinted; }).length / boxes.length).format('0.00%'), numeral(boxes.filter(x => { return !x.IsPrinted; }).length).format('0,0') + '/' + numeral(boxes.length).format('0,0')]} style={[{ fill: '#ff3333' }]} />
+                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return !x.IsPrinted; }).length / boxes.length).format(percentageFormat), numeral(boxes.filter(x => { return !x.IsPrinted; }).length).format(unitFormat) + '/' + numeral(boxes.length).format(unitFormat)]} style={[{ fill: '#ff3333' }]} />
                                                 </svg>
                                             </div>
                                         </div>
@@ -1164,7 +1139,7 @@ function Order(props: any) {
                                             <div className='victory-container'>
                                                 <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
                                                     <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length }, { x: false, y: boxes.filter(x => { return !(x.IsPrinted && x.Bin.ID === -1); }).length }]} colorScale={['#3333ff', '#bfbfbf']} labels={() => null} />
-                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length / boxes.length).format('0.00%'), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length).format('0,0') + '/' + numeral(boxes.length).format('0,0')]} style={[{ fill: '#3333ff' }]} />
+                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length / boxes.length).format(percentageFormat), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length).format(unitFormat) + '/' + numeral(boxes.length).format(unitFormat)]} style={[{ fill: '#3333ff' }]} />
                                                 </svg>
                                             </div>
                                         </div>
@@ -1177,7 +1152,7 @@ function Order(props: any) {
                                             <div className='victory-container'>
                                                 <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
                                                     <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length }, { x: false, y: boxes.filter(x => { return !(x.IsPrinted && x.Bin.ID !== -1); }).length }]} colorScale={['#33ff33', '#bfbfbf']} labels={() => null} />
-                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length / boxes.length).format('0.00%'), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length).format('0,0') + '/' + numeral(boxes.length).format('0,0')]} style={[{ fill: '#33ff33' }]} />
+                                                    <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length / boxes.length).format(percentageFormat), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length).format(unitFormat) + '/' + numeral(boxes.length).format(unitFormat)]} style={[{ fill: '#33ff33' }]} />
                                                 </svg>
                                             </div>
                                         </div>
@@ -1226,7 +1201,7 @@ function Order(props: any) {
                                                         <span className='famo-text-10'>{kProd}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-2'>
-                                                        <span className='famo-text-10'>{numeral(binProductBoxes.length).format('0,0')}/{numeral(productBoxes.length).format('0,0')}</span>
+                                                        <span className='famo-text-10'>{numeral(binProductBoxes.length).format(unitFormat)}/{numeral(productBoxes.length).format(unitFormat)}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-3'>
                                                         <span className={'famo-text-10 ' + (kBox === 'null' ? 'famo-color-yellow' : '')}>{kBox === 'null' ? 'n/a' : kBox}</span>

@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import { createQueryString } from './general';
-import { httpErrorLog, promiseErrorLog } from './log';
+import { logHttpError, logPromiseError } from './log';
 import { isAndroidApp } from './platform';
 import { NODE_SERVER } from './variablesRepo';
 import { TFunction } from 'i18next';
@@ -14,17 +14,17 @@ export async function autoSignIn(globalActions: any, t: TFunction) {
                         await isAndroidApp(data, globalActions, t);
                     })
                     .catch(error => {
-                        promiseErrorLog(error);
+                        logPromiseError(error);
                         alert(t('key_416'));
                     });
             }
             else {
-                httpErrorLog(wsSucc);
+                logHttpError(wsSucc);
                 alert(t('key_306'));
             }
         })
         .catch(wsErr => {
-            promiseErrorLog(wsErr);
+            logPromiseError(wsErr);
             alert(t('key_416'));
         });
 }

@@ -7,7 +7,7 @@ import { barcodeScan } from '../utils/barcode';
 import { ContentLoader } from './elements/loader';
 import { convertNumeralToJS } from '../utils/number';
 import { createQueryString } from '../utils/general';
-import { httpErrorLog, promiseErrorLog } from '../utils/log';
+import { logHttpError, logPromiseError } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
@@ -30,7 +30,7 @@ interface ItemJournalLine {
 function Inventory(props: any) {
     const { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
-        sectionRef: React.RefObject<any> = React.createRef(),
+        [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [inventoryCode, setInventoryCode] = useState<InputConfig>({
             ref: React.createRef(),
             label: t('key_806'),
@@ -40,9 +40,9 @@ function Inventory(props: any) {
             value: '',
             isDisabled: false
         }),
-        [inventories, setInventories] = useState<Array<ItemJournal>>([]),
+        inventoryForm: Array<InputConfig> = [inventoryCode],
+        [loading, setLoading] = useState<boolean>(false),
         [inventoryLine, setInventoryLine] = useState<ItemJournalLine>(),
-        [loadingInventoryLine, setLoadingInventoryLine] = useState<boolean>(false),
         [productCode, setProductCode] = useState<InputConfig>({
             label: t('key_87'),
             className: 'famo-input famo-text-10',
@@ -117,7 +117,7 @@ function Inventory(props: any) {
             productVariantCode = split[1];
         }
 
-        setLoadingInventoryLine(true);
+        setLoading(true);
 
         fetch(NODE_SERVER + 'ERP/Inventories/Lines' + createQueryString({
             inventoryCode: inventoryCode.value,
@@ -126,38 +126,34 @@ function Inventory(props: any) {
         }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setInventoryLine(data);
-                            setProductCode(x => { return { ...x, value: data.ProductCode }; });
-                            setProductVariantCode(x => { return { ...x, value: data.ProductVariantCode }; });
-                            setProductDescription(x => { return { ...x, value: data.ProductDescription }; });
-                            setLocationCode(x => { return { ...x, value: data.LocationCode }; });
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(error.status === httpStatus.NOT_FOUND ? t('key_809') : t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setInventoryLine(data);
+                    setProductCode(x => { return { ...x, value: data.ProductCode }; });
+                    setProductVariantCode(x => { return { ...x, value: data.ProductVariantCode }; });
+                    setProductDescription(x => { return { ...x, value: data.ProductDescription }; });
+                    setLocationCode(x => { return { ...x, value: data.LocationCode }; });
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_809') : t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
 
-                setInventoryLine(null);
-                InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
-            })
-            .finally(() => {
-                setLoadingInventoryLine(false);
-            });
+            setInventoryLine(null);
+            InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
+        }).finally(() => {
+            setLoading(false);
+        });
     }
 
     function barcodeScanner() {
@@ -189,31 +185,27 @@ function Inventory(props: any) {
         fetch(NODE_SERVER + 'ERP/Inventories' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setInventories(data);
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
-            })
-            .finally(() => {
-                globalActions.setLoadPage(false);
-            });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setInventories(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            globalActions.setLoadPage(false);
+        });
 
         SessionStorage.clear();
     }, []);
@@ -221,12 +213,12 @@ function Inventory(props: any) {
     useEffect(() => {
         setInventoryLine(null);
         InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
-    }, [inventoryCode]);
+    }, inventoryForm);
 
     useEffect(() => {
         if (InputTools.areAnalyzed(inventoryLineForm)) {
             if (InputTools.areValid(inventoryLineForm)) {
-                setLoadingInventoryLine(true);
+                setLoading(true);
 
                 fetch(NODE_SERVER + 'ERP/Inventories/Lines' + createQueryString({}), {
                     method: 'PATCH',
@@ -241,31 +233,28 @@ function Inventory(props: any) {
                         quantity: !quantity.isNumber ? quantity.value : parseFloat(convertNumeralToJS(quantity.value))
                     }),
                     credentials: 'include'
-                })
-                    .then(result => {
-                        if (result.ok && result.status === httpStatus.OK) {
-                            setInventoryLine(null);
-                            InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
+                }).then(result => {
+                    if (result.ok && result.status === httpStatus.OK) {
+                        setInventoryLine(null);
+                        InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
 
-                            alert(t('key_805'));
-                        }
-                        else {
-                            throw result;
-                        }
-                    })
-                    .catch(error => {
-                        if (error as Response) {
-                            httpErrorLog(error);
-                            alert(t('key_302'));
-                        }
-                        else {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        }
-                    })
-                    .finally(() => {
-                        setLoadingInventoryLine(false);
-                    });
+                        alert(t('key_805'));
+                    }
+                    else {
+                        throw result;
+                    }
+                }).catch(error => {
+                    if (error as Response) {
+                        logHttpError(error);
+                        alert(t('key_302'));
+                    }
+                    else {
+                        logPromiseError(error);
+                        alert(t('key_416'));
+                    }
+                }).finally(() => {
+                    setLoading(false);
+                });
             }
             else {
                 InputTools.popUpAlerts(inventoryLineForm, t);
@@ -282,8 +271,8 @@ function Inventory(props: any) {
                 setProductModal(false);
             }
             else {
-                InputTools.popUpAlerts(productModalForm, t);
                 modalProductCode.ref.current.focus();
+                InputTools.popUpAlerts(productModalForm, t);
             }
 
             InputTools.resetValidations(productModalForm, setProductModalForm);
@@ -292,7 +281,7 @@ function Inventory(props: any) {
 
     return (
         <React.Fragment>
-            <section className='famo-wrapper' ref={sectionRef}>
+            <section className='famo-wrapper'>
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid' noValidate onSubmit={event => event.preventDefault()}>
                         <div className='famo-row'>
@@ -300,7 +289,7 @@ function Inventory(props: any) {
                                 <span className='famo-text-11'>{inventoryCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...inventoryCode} isDisabled={loadingInventoryLine} set={setInventoryCode}>
+                                <Input {...inventoryCode} isDisabled={loading} set={setInventoryCode}>
                                     <option key=''></option>
                                     {inventories.map((x, i) => {
                                         return <option key={i} value={x.Code}>{x.Name}</option>
@@ -313,11 +302,11 @@ function Inventory(props: any) {
                         <div className='famo-grid famo-buttons'>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loadingInventoryLine} onClick={event => setProductModal(true)}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => setProductModal(true)}>
                                         <span className='famo-text-12'>{t('key_807')}</span>
                                     </button>
                                     {globalState.androidApp &&
-                                        <button type='button' className='famo-button famo-normal-button' disabled={loadingInventoryLine} onClick={event => barcodeScanner()}>
+                                        <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => barcodeScanner()}>
                                             <span className='famo-text-12'>{t('key_681')}</span>
                                         </button>
                                     }
@@ -327,12 +316,12 @@ function Inventory(props: any) {
                     }
                 </div>
             </section>
-            {(loadingInventoryLine || inventoryLine) &&
+            {(loading || inventoryLine) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_339')} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!loadingInventoryLine} />
-                        <form className={'famo-grid famo-form-grid ' + (loadingInventoryLine ? 'hide' : '')} noValidate onSubmit={event => { event.preventDefault(); submitInventoryLine(); }}>
+                        <ContentLoader hide={!loading} />
+                        <form className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')} noValidate onSubmit={event => { event.preventDefault(); submitInventoryLine(); }}>
                             <div className='famo-row'>
                                 <div className='famo-cell famo-input-label'>
                                     <span className='famo-text-11'>{productCode.label}</span>
@@ -374,7 +363,7 @@ function Inventory(props: any) {
                                 </div>
                             </div>
                         </form>
-                        <div className={'famo-grid famo-buttons ' + (loadingInventoryLine ? 'hide' : '')}>
+                        <div className={'famo-grid famo-buttons ' + (loading ? 'hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
                                     <button type='button' className='famo-button famo-confirm-button' onClick={event => submitInventoryLine()}>

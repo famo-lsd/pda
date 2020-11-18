@@ -12,7 +12,7 @@ import { AppLoader } from './components/elements/loader';
 import { autoSignIn } from './utils/authentication';
 import { createQueryString, isMobileBrowser } from './utils/general';
 import { HashRouter, Route, Redirect, Switch, useHistory, useLocation } from 'react-router-dom';
-import { httpErrorLog, promiseErrorLog } from './utils/log';
+import { logHttpError, logPromiseError } from './utils/log';
 import { isAndroidApp } from './utils/platform';
 import { NODE_SERVER } from './utils/variablesRepo';
 import { Swipeable } from 'react-swipeable';
@@ -94,29 +94,27 @@ function RouteBody(props: any) {
         fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(async data => {
-                            await isAndroidApp(data, globalActions, t);
-                        }).catch(async error => {
-                            await isAndroidApp(null, globalActions, t);
-                            promiseErrorLog(error);
-                        });
-                }
-                else {
-                    await isAndroidApp(null, globalActions, t);
-                    httpErrorLog(wsSucc);
-                }
-            })
-            .catch(async wsErr => {
-                await isAndroidApp(null, globalActions, t);
-                promiseErrorLog(wsErr);
-            })
-            .finally(() => {
-                setLoadSession(false);
-            });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(async data => {
+                    await isAndroidApp(data, globalActions, t);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(async error => {
+            await isAndroidApp(null, globalActions, t);
+
+            if (error as Response) {
+                logHttpError(error);
+            }
+            else {
+                logPromiseError(error);
+            }
+        }).finally(() => {
+            setLoadSession(false);
+        });
     }, []);
 
     return (
@@ -173,29 +171,27 @@ function AutoRouteBody(props: any) {
         fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(async data => {
-                            await isAndroidApp(data, globalActions, t);
-                        }).catch(async error => {
-                            await autoSignIn(globalActions, t);
-                            promiseErrorLog(error);
-                        });
-                }
-                else {
-                    await autoSignIn(globalActions, t);
-                    httpErrorLog(wsSucc);
-                }
-            })
-            .catch(async wsErr => {
-                await autoSignIn(globalActions, t);
-                promiseErrorLog(wsErr);
-            })
-            .finally(() => {
-                setLoadSession(false);
-            });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(async data => {
+                    await isAndroidApp(data, globalActions, t);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(async error => {
+            await autoSignIn(globalActions, t);
+
+            if (error as Response) {
+                logHttpError(error);
+            }
+            else {
+                logPromiseError(error);
+            }
+        }).finally(() => {
+            setLoadSession(false);
+        });
     }, []);
 
     useEffect(() => {

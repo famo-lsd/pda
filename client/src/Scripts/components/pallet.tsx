@@ -8,7 +8,7 @@ import Title from './elements/title';
 import { barcodeScan } from '../utils/barcode';
 import { createQueryString } from '../utils/general';
 import { ContentLoader } from './elements/loader';
-import { httpErrorLog, promiseErrorLog } from '../utils/log';
+import { logHttpError, logPromiseError } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { SessionStorage, SS_PALLET_KEY } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
@@ -39,60 +39,57 @@ function Index(props: any) {
     const { t } = useTranslation(),
         { history } = props,
         [globalState,] = useGlobal(),
-        hasSessionStorageItem = window.sessionStorage.getItem(SS_PALLET_KEY),
+        sessionStorageItem = window.sessionStorage.getItem(SS_PALLET_KEY),
         [shipmentCode, setShipmentCode] = useState<InputConfig>({
             ref: React.createRef(),
             label: t('key_822'),
             className: 'famo-input famo-text-10',
             name: 'shipmentCode',
             isNumber: false,
-            value: hasSessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : '',
+            value: sessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : '',
             autoFocus: true,
             isDisabled: false
         }),
         [shipmentCodeSubmit, setShipmentCodeSubmit] = useState<string>(null),
-        [loadingPallets, setLoadingPallets] = useState<boolean>(false),
+        [loading, setLoading] = useState<boolean>(false),
         palletsHeader: Array<string> = [t('key_279')],
         [pallets, setPallets] = useState<Array<Pallet>>(null);
 
     function getPallets(shipmentCode: string) {
-        setLoadingPallets(true);
+        setLoading(true);
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
             shipmentCode: shipmentCode
         }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setShipmentCodeSubmit(shipmentCode);
-                            setPallets(data);
-                            setLoadingPallets(false);
-                        });
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(error.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setShipmentCodeSubmit(shipmentCode);
+                    setPallets(data);
+                    setLoading(false);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
 
-                setShipmentCodeSubmit(null);
-                setPallets(null);
-                setLoadingPallets(false);
+            setShipmentCodeSubmit(null);
+            setPallets(null);
+            setLoading(false);
 
-                cleanShipmentCode();
-            });
+            cleanShipmentCode();
+        });
     }
 
     function barcodeScanner() {
@@ -113,7 +110,7 @@ function Index(props: any) {
     }
 
     useEffect(() => {
-        if (hasSessionStorageItem) {
+        if (sessionStorageItem) {
             getPallets(shipmentCode.value);
         }
 
@@ -139,14 +136,14 @@ function Index(props: any) {
                         <div className='famo-row'>
                             <div className='famo-cell text-right'>
                                 {globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loadingPallets} onClick={event => barcodeScanner()}>
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => barcodeScanner()}>
                                         <span className='famo-text-12'>{t('key_681')}</span>
                                     </button>
                                 }
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadingPallets} onClick={event => cleanShipmentCode()}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => cleanShipmentCode()}>
                                     <span className='famo-text-12'>{t('key_829')}</span>
                                 </button>
-                                <button type='button' className='famo-button famo-normal-button' disabled={loadingPallets} onClick={event => getPallets(shipmentCode.value)}>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getPallets(shipmentCode.value)}>
                                     <span className='famo-text-12'>{t('key_323')}</span>
                                 </button>
                             </div>
@@ -154,12 +151,12 @@ function Index(props: any) {
                     </div>
                 </div>
             </section>
-            {(loadingPallets || pallets) &&
+            {(loading || pallets) &&
                 <section className='famo-wrapper'>
                     <Title text={t('key_826')} />
                     <div className='famo-content'>
-                        <ContentLoader hide={!loadingPallets} />
-                        <div className={'famo-grid famo-content-grid pallets ' + (loadingPallets ? 'hide' : '')}>
+                        <ContentLoader hide={!loading} />
+                        <div className={'famo-grid famo-content-grid pallets ' + (loading ? 'hide' : '')}>
                             <div className='famo-row famo-header-row'>
                                 {palletsHeader.map((x, i) => {
                                     return (
@@ -179,7 +176,7 @@ function Index(props: any) {
                                 );
                             })}
                         </div>
-                        <div className={'famo-grid famo-buttons ' + (loadingPallets ? 'hide' : '')}>
+                        <div className={'famo-grid famo-buttons ' + (loading ? 'hide' : '')}>
                             <div className='famo-row'>
                                 <div className='famo-cell text-right'>
                                     <button type='button' className='famo-button famo-normal-button' onClick={event => editPallet()}>
@@ -252,59 +249,53 @@ function Edit(props: any) {
             }), {
                 method: 'GET',
                 credentials: 'include'
-            })
-                .then(async result => {
-                    if (result.ok && result.status === httpStatus.OK) {
-                        await result.json()
-                            .then(data => {
-                                setFormMessage('');
+            }).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json().then(data => {
+                        setFormMessage('');
 
-                                // Add property IsNew.
-                                (data as Box).IsNew = true;
-                                setBoxes([...boxes, data]);
-                            });
+                        // Add property IsNew.
+                        (data as Box).IsNew = true;
+                        setBoxes([...boxes, data]);
+                    });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(async error => {
+                if (error as Response) {
+                    logHttpError(error);
+
+                    if (error.status === httpStatus.NOT_FOUND) {
+                        formAlert(t('key_872'));
+                    }
+                    else if (error.status === httpStatus.FORBIDDEN) {
+                        await error.json().then(data => {
+                            if (data.reason === 'box') {
+                                formAlert(t('key_871'));
+                            }
+                            else if (data.reason === 'pallet') {
+                                formAlert(t('key_828'));
+                            }
+                        }).catch(errorAux => {
+                            logPromiseError(errorAux);
+                            formAlert(t('key_416'));
+                        });
                     }
                     else {
-                        throw result;
+                        formAlert(t('key_303'));
                     }
-                })
-                .catch(async error => {
-                    if (error as Response) {
-                        httpErrorLog(error);
+                }
+                else {
+                    logPromiseError(error);
+                    formAlert(t('key_416'));
+                }
+            }).finally(() => {
+                setLoadingBox(false);
 
-                        if (error.status === httpStatus.NOT_FOUND) {
-                            formAlert(t('key_872'));
-                        }
-                        else if (error.status === httpStatus.FORBIDDEN) {
-                            await error.json()
-                                .then(data => {
-                                    if (data.reason === 'box') {
-                                        formAlert(t('key_871'));
-                                    }
-                                    else if (data.reason === 'pallet') {
-                                        formAlert(t('key_828'));
-                                    }
-                                })
-                                .catch(errorAux => {
-                                    promiseErrorLog(errorAux);
-                                    formAlert(t('key_416'));
-                                });
-                        }
-                        else {
-                            formAlert(t('key_303'));
-                        }
-                    }
-                    else {
-                        promiseErrorLog(error);
-                        formAlert(t('key_416'));
-                    }
-                })
-                .finally(() => {
-                    setLoadingBox(false);
-
-                    InputTools.resetValues(boxModalForm, setBoxModalForm);
-                    modalBoxCode.ref.current.focus();
-                });
+                InputTools.resetValues(boxModalForm, setBoxModalForm);
+                modalBoxCode.ref.current.focus();
+            });
         }
     }
 
@@ -334,33 +325,29 @@ function Edit(props: any) {
             },
             body: JSON.stringify(boxes.filter(x => { return x.IsNew; }).map(x => { return x.Code; })),
             credentials: 'include'
-        })
-            .then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setPalletID(data.palletID);
-                        });
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setPalletID(data.palletID);
+                });
 
-                    setBoxes(boxes.map(x => { return { ...x, IsNew: false }; }));
-                }
-                else {
-                    throw result;
-                }
-            })
-            .catch(error => {
-                if (error as Response) {
-                    httpErrorLog(error);
-                    alert(t('key_302'));
-                }
-                else {
-                    promiseErrorLog(error);
-                    alert(t('key_416'));
-                }
-            })
-            .finally(() => {
-                setSavingPallet(false);
-            });
+                setBoxes(boxes.map(x => { return { ...x, IsNew: false }; }));
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_302'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            setSavingPallet(false);
+        });
     }
 
     function setPalletStatus() {
@@ -380,29 +367,26 @@ function Edit(props: any) {
                 },
                 body: JSON.stringify(boxes.map(x => { return x.Code; })),
                 credentials: 'include'
-            })
-                .then(result => {
-                    if (result.ok && result.status === httpStatus.OK) {
-                        setIsPalletOpen(!isPalletOpen);
-                        alert(isPalletOpen ? t('key_812') : t('key_813'));
-                    }
-                    else {
-                        throw result;
-                    }
-                })
-                .catch(error => {
-                    if (error as Response) {
-                        httpErrorLog(error);
-                        alert(t('key_302'));
-                    }
-                    else {
-                        promiseErrorLog(error);
-                        alert(t('key_416'));
-                    }
-                })
-                .finally(() => {
-                    setPalletStatusChange(false);
-                });
+            }).then(result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    setIsPalletOpen(!isPalletOpen);
+                    alert(isPalletOpen ? t('key_812') : t('key_813'));
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    logHttpError(error);
+                    alert(t('key_302'));
+                }
+                else {
+                    logPromiseError(error);
+                    alert(t('key_416'));
+                }
+            }).finally(() => {
+                setPalletStatusChange(false);
+            });
         }
     }
 
@@ -430,41 +414,37 @@ function Edit(props: any) {
             }), {
                 method: 'GET',
                 credentials: 'include'
-            })
-                .then(async result => {
-                    if (result.ok && result.status === httpStatus.OK) {
-                        await result.json()
-                            .then(data => {
-                                // Check if pallet has some shipped boxes.
-                                setIsShipped(data.some(x => { return x.IsShipped }));
+            }).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json().then(data => {
+                        // Check if pallet has some shipped boxes.
+                        setIsShipped(data.some(x => { return x.IsShipped }));
 
-                                // Check if pallet is open.
-                                setIsPalletOpen(data.some(x => { return x.IsPalletOpen }));
+                        // Check if pallet is open.
+                        setIsPalletOpen(data.some(x => { return x.IsPalletOpen }));
 
-                                // Add property IsNew.
-                                (data as Array<Box>).forEach(x => { x.IsNew = false; });
-                                setBoxes(data);
-                            });
-                    }
-                    else {
-                        throw result;
-                    }
-                })
-                .catch(error => {
-                    if (error as Response) {
-                        httpErrorLog(error);
+                        // Add property IsNew.
+                        (data as Array<Box>).forEach(x => { x.IsNew = false; });
+                        setBoxes(data);
+                    });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    logHttpError(error);
 
-                        alert(error.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
-                        history.replace('/Pallet');
-                    }
-                    else {
-                        promiseErrorLog(error);
-                        alert(t('key_416'));
-                    }
-                })
-                .finally(() => {
-                    globalActions.setLoadPage(false);
-                });
+                    alert(error.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
+                    history.replace('/Pallet');
+                }
+                else {
+                    logPromiseError(error);
+                    alert(t('key_416'));
+                }
+            }).finally(() => {
+                globalActions.setLoadPage(false);
+            });
         }
 
         SessionStorage.clear({ pallet: true });
@@ -511,7 +491,7 @@ function Edit(props: any) {
                                         </div>
                                         <div className='famo-cell famo-col-3'>
                                             <span className='famo-text-10'>
-                                                {x.IsNew && <button type='button' className='famo-button famo-cancel-button button-delete-box' onClick={event => deleteBox(x.Code)}>
+                                                {x.IsNew && <button type='button' className='famo-button famo-cancel-button' onClick={event => deleteBox(x.Code)}>
                                                     <span className='fas fa-trash-alt'></span>
                                                 </button>}
                                             </span>

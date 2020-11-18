@@ -4,15 +4,13 @@ function Title(props) {
     const { text } = props,
         [collapse, setCollapse] = useState(false);
 
-    // #region Events
-    function handleClick(event) {
+    function collapseContent(event) {
         setCollapse(!collapse);
     }
-    // #endregion
 
     return (
         <div className={'famo-title ' + (collapse ? 'collapsed' : '')}>
-            <span className='famo-text-13' onClick={handleClick}>{text}</span>
+            <span className='famo-text-13' onClick={collapseContent}>{text}</span>
         </div>
     );
 }

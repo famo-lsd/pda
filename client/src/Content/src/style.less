@@ -90,14 +90,28 @@
         .applyCol(1, @width: 100px);
         .applyCol(3, @width: @famo_content_fa_button_w_lg);
 
-        .button-delete-box .fas {
+        .famo-button .fas {
             .applyIcon(@famo_icon_fs_content_lg, @base_line_height, @color_2);
         }
     }
 
     .shipments {
-        .applyCol(1, @width: 130px);
-        .applyCol(3, @width: 85px);
+        .applyCol(1, @width: 100px);
+        .applyCol(3, @width: 90px);
+        .applyCol(4, @width: 85px);
+        .applyCol(5, @width: @famo_content_fa_button_w_lg);
+
+        .famo-body-row {
+            .famo-col-4 {
+                span {
+                    .applyWordWrapping();
+                }
+            }
+        }
+
+        .famo-button .fas {
+            .applyIcon(@famo_icon_fs_content_lg, @base_line_height, @color_2);
+        }
     }
 
     .expedition-products {
@@ -129,7 +143,7 @@
 
         margin-top: 15px;
 
-        .button-delete-box .fas {
+        .famo-button .fas {
             .applyIcon(@famo_icon_fs_content_lg, @base_line_height, @color_2);
         }
     }
@@ -137,7 +151,8 @@
     .expedition-components {
         .applyCol(1, @width: 105px);
         .applyCol(3, @width: 60px);
-        .applyCol(4, @width: 20px);
+        .applyCol(4, @width: 35px);
+        .applyCol(5, @width: 20px);
 
         .famo-body-row {
 
@@ -217,7 +232,18 @@
     .pallet-boxes {
         .applyCol(3, @width: @famo_content_fa_button_w);
 
-        .button-delete-box .fas {
+        .famo-button .fas {
+            .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
+        }
+    }
+
+    .shipments {
+        .applyCol(1, @width: 80px);
+        .applyCol(3, @width: 80px);
+        .applyCol(4, @width: 75px);
+        .applyCol(5, @width: @famo_content_fa_button_w);
+
+        .famo-button .fas {
             .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
         }
     }
@@ -226,13 +252,12 @@
         .famo-button .fas {
             .applyIcon(@famo_icon_fs_content, @base_line_height, @base_color);
         }
-
     }
 
     .expedition-boxes {
         .applyCol(2, @width: @famo_content_fa_button_w);
 
-        .button-delete-box .fas {
+        .famo-button .fas {
             .applyIcon(@famo_icon_fs_content, @base_line_height, @color_2);
         }
     }
@@ -250,9 +275,8 @@
 //** ECRAS PEQUENOS
 @media screen and (max-width: (576px - 1px)) {
     .shipments {
-        .applyCol(1, @width: 55%);
+        .applyCol(1, @width: auto);
         .applyCol(2, none);
-        .applyCol(3, @width: 45%);
     }
 
     .expedition-details .col-xl-5 {

@@ -3,13 +3,21 @@ import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/number';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
+export enum InputType {
+    Text = 1,
+    Number = 2,
+    Checkbox = 3,
+    Radio = 4,
+    Select = 100
+}
+
 export interface InputConfig {
     ref?: any;
     label: string;
+    type: InputType,
     className: string;
     name: string;
-    isNumber: boolean;
-    value: string;
+    value: any;
     autoFocus?: boolean;
     isDisabled: boolean;
     analyze?: boolean;
@@ -22,18 +30,17 @@ export interface InputConfig {
 
 const Input = React.forwardRef((props: any, ref: any) => {
     const { t } = useTranslation(),
-        { className, isDisabled, isNumber, name, value, autoFocus, noData, wrongFormat, invalidValue, invalidMessage, analyze, set, children } = props,
-        [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false }),
-        hasChildren = React.Children.count(children) > 0;
+        { type, className, name, value, autoFocus, isDisabled, analyze, noData, wrongFormat, invalidValue, invalidMessage, set, children } = props,
+        [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false });
 
     function keyDown(event) {
-        if (isNumber) {
+        if (type === InputType.Number) {
             setDecimalDelimiter(event, ref);
         }
     }
 
     useEffect(() => {
-        if (!isDisabled && analyze) {
+        if (analyze) {
             let localValue = value;
 
             set(x => { return { ...x, noData: false, wrongFormat: false, invalidValue: false }; });
@@ -41,7 +48,7 @@ const Input = React.forwardRef((props: any, ref: any) => {
             if (!localValue) {
                 set(x => { return { ...x, noData: true, wrongFormat: false, invalidValue: false }; });
             }
-            else if (isNumber && localValue) {
+            else if (type === InputType.Number && localValue) {
                 localValue = convertNumeralToJS(localValue);
 
                 if (isNaN(localValue)) {
@@ -62,13 +69,9 @@ const Input = React.forwardRef((props: any, ref: any) => {
 
     return (
         <React.Fragment>
-            {!hasChildren ? <input type='text' ref={ref} className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={keyDown} onChange={event => set(x => { return { ...x, value: ref.current.value }; })} /> : (
-                <select ref={ref} className={className + (localState.noData ? ' famo-input-error' : '')} name={name} value={value} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: ref.current.value }; })}>
-                    {children}
-                </select>
-            )}
-            {!hasChildren &&
+            {(type === InputType.Text || type === InputType.Number) &&
                 <React.Fragment>
+                    <input ref={ref} type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={keyDown} onChange={event => set(x => { return { ...x, value: ref.current.value }; })} />
                     {!isDisabled &&
                         <div className={'famo-input-message ' + (localState.wrongFormat ? '' : 'hide')}>
                             <span className='famo-text-15'>{t('key_808')}</span>
@@ -81,13 +84,24 @@ const Input = React.forwardRef((props: any, ref: any) => {
                     }
                 </React.Fragment>
             }
+            {type === InputType.Checkbox &&
+                <label>
+                    <input ref={ref} type='checkbox' className={className} name={name} checked={value} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: event.target.checked }; })} />
+                    <span className='famo-checkbox'></span>
+                </label>
+            }
+            {type === InputType.Select &&
+                <select ref={ref} className={className + (localState.noData ? ' famo-input-error' : '')} name={name} value={value} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: ref.current.value }; })}>
+                    {children}
+                </select>
+            }
         </React.Fragment>);
 });
 
 export class InputTools {
     public static analyze(inputs: Array<InputConfig>, setInputs: Array<any>) {
         inputs.forEach((x, i) => {
-            if (!x.isDisabled) {
+            if ((x.type === InputType.Text || x.type === InputType.Number || x.type === InputType.Select) && !x.isDisabled) {
                 setInputs[i](x => { return { ...x, analyze: true } });
             }
         });
@@ -126,7 +140,7 @@ export class InputTools {
     public static resetValues(inputs: Array<InputConfig>, setInputs: Array<any>) {
         inputs.forEach((x, i) => {
             if (!x.isDisabled) {
-                setInputs[i](x => { return { ...x, value: '', noData: false, wrongFormat: false, invalidValue: false, analyze: false, selfAnalyze: false }; });
+                setInputs[i](x => { return { ...x, value: '', noData: false, wrongFormat: false, invalidValue: false, analyze: false, localAnalyze: false }; });
             }
         });
     }

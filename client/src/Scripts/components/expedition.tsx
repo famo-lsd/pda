@@ -1,19 +1,25 @@
 import AudioEffect from '../utils/audio';
 import httpStatus from 'http-status';
-import Input, { InputConfig } from './elements/input';
+import Input, { InputConfig, InputTools } from './elements/input';
 import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
-import { httpErrorLog, promiseErrorLog } from '../utils/log';
+import { logHttpError, logPromiseError } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { Prompt } from 'react-router'
 import { Route, Redirect, Switch, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
+
+interface Bin {
+    ID: number;
+    Code: string;
+    Label: string;
+}
 
 interface Box {
     Code: string;
@@ -27,12 +33,11 @@ interface Shipment {
     TotalBoxes: number;
 }
 
-interface ShipmentGate{
+interface ShipmentGate {
     ID: number;
     Label: string;
 }
 
-// TO DO:
 interface ShipmentProduct {
     ProductCode: string;
     ProductDescription: string;
@@ -49,6 +54,7 @@ interface ShipmentProductComponent {
     ProductDescription: string;
     ComponentCode: string;
     ComponentDescription: string;
+    Bin: Bin;
     BoxCode: string;
     BoxPrinted: boolean;
 }
@@ -66,54 +72,182 @@ function Expedition() {
 function Index(props: any) {
     const { t } = useTranslation(),
         { history } = props,
-        [, globalActions] = useGlobal(),
-        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_820')],
-        [shipments, setShipments] = useState<Array<Shipment>>([]);
+        [globalState, globalActions] = useGlobal(),
+        [loading, setLoading] = useState<boolean>(false),
+        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_820'), 'Cais (carga)', ''],
+        [shipments, setShipments] = useState<Array<Shipment>>([]),
+        [shipmentGates, setShipmentGates] = useState<Array<ShipmentGate>>([]),
+        [shipmentCodeSelected, setShipmentCodeSelected] = useState<string>(null),
+        [clickOnShipment, setClickOnShipment] = useState<boolean>(false),
+        [shipmentGateModal, setShipmentGateModal] = useState<boolean>(false),
+        [modalShipmentGateID, setModalShipmentGateID] = useState<InputConfig>({
+            ref: React.createRef(),
+            label: 'Cais (carga)',
+            className: 'famo-input famo-text-10',
+            name: 'gateID',
+            isNumber: false,
+            value: '',
+            isDisabled: false,
+            analyze: false,
+            localAnalyze: false,
+            noData: false
+        }),
+        shipmentGateModalForm: Array<InputConfig> = [modalShipmentGateID],
+        setShipmentGateModalForm: Array<any> = [setModalShipmentGateID],
+        numeral = window['numeral'],
+        unitFormat = '0,0';
 
-    function editExpedition(shipmentCode: string) {
-        history.push('/Expedition/Edit?shipmentCode=' + shipmentCode);
+    function getShipments() {
+        return fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
+            method: 'GET',
+            credentials: 'include'
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setShipments(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
+                alert(t('key_416'));
+            }
+        });
+    }
+
+    function edit(shipmentCode: string, shipmentGate: ShipmentGate) {
+        if (shipmentGate.ID === -1) {
+            setClickOnShipment(true);
+            setShipmentCodeSelected(shipmentCode);
+            setShipmentGateModal(true);
+        }
+        else {
+            history.push('/Expedition/Edit?shipmentCode=' + shipmentCode);
+        }
+    }
+
+    function setGate(event: React.MouseEvent<HTMLButtonElement>, shipmentCode: string) {
+        event.stopPropagation();
+
+        setClickOnShipment(false);
+        setShipmentCodeSelected(shipmentCode);
+        setShipmentGateModal(true);
+    }
+
+    function submitShipmentGateModal() {
+        InputTools.analyze(shipmentGateModalForm, setShipmentGateModalForm);
+    }
+
+    function shipmentGateModalCallback(visibility: boolean) {
+        if (!visibility) {
+            InputTools.resetValues(shipmentGateModalForm, setShipmentGateModalForm);
+        }
     }
 
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({}), {
+        const fetchShipmentGates = fetch(NODE_SERVER + 'Shipments/Gates' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(data => {
-                            setShipments(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        });
-                }
-                else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setShipmentGates(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
                 alert(t('key_416'));
-            })
-            .finally(() => {
-                globalActions.setLoadPage(false);
-            });
+            }
+        });
+
+        Promise.all([getShipments(), fetchShipmentGates]).finally(() => {
+            globalActions.setLoadPage(false);
+        });
 
         SessionStorage.clear();
     }, []);
+
+    useEffect(() => {
+        if (InputTools.areAnalyzed(shipmentGateModalForm)) {
+            if (InputTools.areValid(shipmentGateModalForm)) {
+                setLoading(true);
+
+                fetch(NODE_SERVER + 'Shipments' + createQueryString({}), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: shipmentCodeSelected,
+                        gateID: modalShipmentGateID.value
+                    }),
+                    credentials: 'include'
+                }).then(async result => {
+                    if (result.ok && result.status === httpStatus.OK) {
+                        await getShipments();
+
+                        // Reset.
+                        setClickOnShipment(false);
+                        setShipmentCodeSelected(null);
+                        setLoading(false);
+
+                        if (clickOnShipment) {
+                            history.push('/Expedition/Edit?shipmentCode=' + shipmentCodeSelected);
+                        }
+                    }
+                    else {
+                        throw result;
+                    }
+                }).catch(error => {
+                    if (error as Response) {
+                        logHttpError(error);
+                        alert(t('key_302'));
+                    }
+                    else {
+                        logPromiseError(error);
+                        alert(t('key_416'));
+                    }
+
+                    // Reset.
+                    setClickOnShipment(false);
+                    setShipmentCodeSelected(null);
+                    setLoading(false);
+                });
+
+                setShipmentGateModal(false);
+            }
+            else {
+                InputTools.popUpAlerts(shipmentGateModalForm, t);
+            }
+
+            InputTools.resetValidations(shipmentGateModalForm, setShipmentGateModalForm);
+        }
+    }, shipmentGateModalForm);
 
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
                 <Title text={t('key_878')} />
                 <div className='famo-content'>
-                    <div className='famo-grid famo-content-grid shipments'>
+                    <ContentLoader hide={!loading} />
+                    <div className={'famo-grid famo-content-grid shipments ' + (loading ? 'hide' : '')}>
                         <div className='famo-row famo-header-row'>
                             {shipmentsHeader.map((x, i) => {
                                 return (
@@ -125,7 +259,7 @@ function Index(props: any) {
                         </div>
                         {shipments.map((x, i) => {
                             return (
-                                <div key={i} className='famo-row famo-body-row' onClick={event => editExpedition(x.Code)}>
+                                <div key={i} className='famo-row famo-body-row' onClick={event => edit(x.Code, x.Gate)}>
                                     <div className='famo-cell famo-col-1'>
                                         <span className='famo-text-10'>{x.Code}</span>
                                     </div>
@@ -133,7 +267,15 @@ function Index(props: any) {
                                         <span className={'famo-text-10 ' + (!x.Description ? 'famo-color-yellow' : '')}>{!x.Description ? t('key_237') : x.Description}</span>
                                     </div>
                                     <div className='famo-cell famo-col-3'>
-                                        <span className='famo-text-10'>{x.PickedBoxes + '/' + x.TotalBoxes}</span>
+                                        <span className='famo-text-10'>{numeral(x.PickedBoxes).format(unitFormat) + '/' + numeral(x.TotalBoxes).format(unitFormat)}</span>
+                                    </div>
+                                    <div className='famo-cell famo-col-4'>
+                                        <span className={'famo-text-10 ' + (x.Gate.ID === -1 ? 'famo-color-yellow' : '')}>{x.Gate.ID === -1 ? t('key_237') : x.Gate.Label}</span>
+                                    </div>
+                                    <div className='famo-cell famo-col-5'>
+                                        <button type='button' className='famo-button famo-normal-button' onClick={event => setGate(event, x.Code)}>
+                                            <span className='fas fa-truck-loading'></span>
+                                        </button>
                                     </div>
                                 </div>
                             );
@@ -141,6 +283,40 @@ function Index(props: any) {
                     </div>
                 </div>
             </section>
+            <Modal visible={shipmentGateModal} setVisible={setShipmentGateModal} visibleCallback={shipmentGateModalCallback}>
+                <section className='famo-wrapper'>
+                    <div className='famo-content'>
+                        <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); submitShipmentGateModal(); }}>
+                            <div className='famo-row'>
+                                <div className='famo-cell famo-input-label'>
+                                    <span className='famo-text-11'>{modalShipmentGateID.label}</span>
+                                </div>
+                                <div className='famo-cell'>
+                                    <Input {...modalShipmentGateID} set={setModalShipmentGateID}>
+                                        <option key={-1} value=''></option>
+                                        {shipmentGates.map((x, i) => {
+                                            return <option key={i} value={x.ID}>{x.Label}</option>
+                                        })}
+                                    </Input>
+                                </div>
+                            </div>
+                            <input type='submit' className='hide' value='' />
+                        </form>
+                        <div className='famo-grid famo-buttons'>
+                            <div className='famo-row'>
+                                <div className='famo-cell text-right'>
+                                    <button type='button' className='famo-button famo-confirm-button' onClick={event => submitShipmentGateModal()}>
+                                        <span className='famo-text-12'>{t('key_701')}</span>
+                                    </button>
+                                    <button type="button" className="famo-button famo-cancel-button" onClick={event => setShipmentGateModal(false)}>
+                                        <span className="famo-text-12">{t('key_484')}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </Modal>
         </React.Fragment>
     );
 }
@@ -189,13 +365,13 @@ function Edit(props: any) {
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [savingBoxes, setSavingBoxes] = useState<boolean>(false),
         [componentsModal, setComponentsModal] = useState<boolean>(false),
-        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb.', ''],
+        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb.', 'Arm.', ''],
         [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
         numeral = window['numeral'],
         unitFormat = '0,0',
         volumeFormat = '0,0.00';
 
-    function localAlert(message: string) {
+    function formAlert(message: string) {
         if (globalState.androidApp) {
             alert(message);
         }
@@ -217,41 +393,38 @@ function Edit(props: any) {
             }), {
                 method: 'GET',
                 credentials: 'include'
-            })
-                .then(async wsSucc => {
-                    if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                        await wsSucc.json()
-                            .then(data => {
-                                setFormMessage('');
-                                (data as Array<Box>).forEach(x => {
-                                    if (boxes.some(y => { return y.Code !== x.Code; })) {
-                                        setBoxes([x, ...boxes]);
-                                    }
-                                });
-                            })
-                            .catch(error => {
-                                promiseErrorLog(error);
-                                localAlert(t('key_416'));
-                            });
-                    }
-                    else {
-                        httpErrorLog(wsSucc);
-                        localAlert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
-                    }
-                })
-                .catch(wsErr => {
-                    promiseErrorLog(wsErr);
-                    localAlert(t('key_416'));
-                })
-                .finally(() => {
-                    setLoadingBox(false);
-                    cleanBoxCode();
-                });
+            }).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json().then(data => {
+                        setFormMessage('');
+                        (data as Array<Box>).forEach(x => {
+                            if (boxes.some(y => { return y.Code !== x.Code; })) {
+                                setBoxes([x, ...boxes]);
+                            }
+                        });
+                    });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    logHttpError(error);
+                    formAlert(error.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
+                }
+                else {
+                    logPromiseError(error);
+                    formAlert(t('key_416'));
+                }
+            }).finally(() => {
+                setLoadingBox(false);
+                cleanBoxCode();
+            });
         }
         else {
             if (boxes && boxes.some(x => { return x.Code === boxCode.value; })) {
-                localAlert(t('key_874'));
                 cleanBoxCode();
+                formAlert(t('key_874'));
             }
             else {
                 setLoadingBox(true);
@@ -262,53 +435,48 @@ function Edit(props: any) {
                 }), {
                     method: 'GET',
                     credentials: 'include'
-                })
-                    .then(async wsSucc => {
-                        if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                            await wsSucc.json()
-                                .then(data => {
-                                    setFormMessage('');
-                                    setBoxes([(data as Box), ...boxes]);
-                                })
-                                .catch(error => {
-                                    promiseErrorLog(error);
-                                    localAlert(t('key_416'));
-                                });
+                }).then(async result => {
+                    if (result.ok && result.status === httpStatus.OK) {
+                        await result.json().then(data => {
+                            setFormMessage('');
+                            setBoxes([(data as Box), ...boxes]);
+                        });
+                    }
+                    else {
+                        throw result;
+                    }
+                }).catch(async error => {
+                    if (error as Response) {
+                        logHttpError(error);
+
+                        if (error.status === httpStatus.NOT_FOUND) {
+                            formAlert(t('key_872'));
+                        }
+                        else if (error.status === httpStatus.FORBIDDEN) {
+                            await error.json().then(data => {
+                                if (data.reason === 'box') {
+                                    formAlert(t('key_871'));
+                                }
+                                else if (data.reason === 'pallet') {
+                                    formAlert(t('key_828'));
+                                }
+                            }).catch(errorAux => {
+                                logPromiseError(errorAux);
+                                formAlert(t('key_416'));
+                            });
                         }
                         else {
-                            httpErrorLog(wsSucc);
-
-                            if (wsSucc.status === httpStatus.NOT_FOUND) {
-                                localAlert(t('key_872'));
-                            }
-                            else if (wsSucc.status === httpStatus.FORBIDDEN) {
-                                await wsSucc.json()
-                                    .then(data => {
-                                        if (data.reason === 'box') {
-                                            localAlert(t('key_871'));
-                                        }
-                                        else if (data.reason === 'pallet') {
-                                            localAlert(t('key_828'));
-                                        }
-                                    })
-                                    .catch(error => {
-                                        promiseErrorLog(error);
-                                        localAlert(t('key_416'));
-                                    });
-                            }
-                            else {
-                                localAlert(t('key_303'));
-                            }
+                            formAlert(t('key_303'));
                         }
-                    })
-                    .catch(wsErr => {
-                        promiseErrorLog(wsErr);
-                        localAlert(t('key_416'));
-                    })
-                    .finally(() => {
-                        setLoadingBox(false);
-                        cleanBoxCode();
-                    });
+                    }
+                    else {
+                        logPromiseError(error);
+                        formAlert(t('key_416'));
+                    }
+                }).finally(() => {
+                    setLoadingBox(false);
+                    cleanBoxCode();
+                });
             }
         }
     }
@@ -322,27 +490,25 @@ function Edit(props: any) {
         return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCodeQS }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(data => {
-                            setProducts(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        });
-                }
-                else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setProducts(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
                 alert(t('key_416'));
-            });
+            }
+        });
     }
 
     function getProductComponents(button: HTMLElement, orderCode: string, orderLine: number = null) {
@@ -351,36 +517,34 @@ function Edit(props: any) {
 
         fetch(NODE_SERVER + 'ERP/Shipments/Products/Components' + createQueryString({
             orderCode: orderCode,
-            orderLine: orderLine
+            orderLine: orderLine,
+            languageCode: globalState.authUser.Language.Code
         }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(data => {
-                            setComponentsModal(true);
-                            setComponents(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        });
-                }
-                else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_303'));
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setComponentsModal(true);
+                    setComponents(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                logPromiseError(error);
                 alert(t('key_416'));
-            })
-            .finally(() => {
-                button.querySelector('.fas').classList.add('hide');
-                button.querySelector('span[class*="famo-text-"]').classList.remove('hide');
-            });
+            }
+        }).finally(() => {
+            button.querySelector('.fas').classList.add('hide');
+            button.querySelector('span[class*="famo-text-"]').classList.remove('hide');
+        });
     }
 
     function deleteBox(code: string) {
@@ -401,33 +565,30 @@ function Edit(props: any) {
             },
             body: JSON.stringify(boxes.map(x => { return x.Code; })),
             credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(data => {
-                            setFormMessage('');
-                            setBoxes([]);
-                            setProducts(data);
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        });
-                }
-                else {
-                    httpErrorLog(wsSucc);
-                    alert(t('key_302'));
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setFormMessage('');
+                    setBoxes([]);
+                    setProducts(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
+                alert(t('key_302'));
+            }
+            else {
+                logPromiseError(error);
                 alert(t('key_416'));
-            })
-            .finally(() => {
-                setSavingBoxes(false);
-                cleanBoxCode();
-            });
+            }
+        }).finally(() => {
+            setSavingBoxes(false);
+            cleanBoxCode();
+        });
     }
 
     useEffect(() => {
@@ -436,29 +597,27 @@ function Edit(props: any) {
         const fetchShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCodeQS }), {
             method: 'GET',
             credentials: 'include'
-        })
-            .then(async wsSucc => {
-                if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                    await wsSucc.json()
-                        .then(data => {
-                            setDescription(x => { return { ...x, value: data.Description }; });
-                        })
-                        .catch(error => {
-                            promiseErrorLog(error);
-                            alert(t('key_416'));
-                        });
-                }
-                else {
-                    httpErrorLog(wsSucc);
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setDescription(x => { return { ...x, value: data.Description }; });
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                logHttpError(error);
 
-                    alert(wsSucc.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
-                    history.replace('/Expedition');
-                }
-            })
-            .catch(wsErr => {
-                promiseErrorLog(wsErr);
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
+                history.replace('/Expedition');
+            }
+            else {
+                logPromiseError(error);
                 alert(t('key_416'));
-            });
+            }
+        });
 
         Promise.all([fetchShipment, fetchShipmentProducts()]).finally(() => {
             globalActions.setLoadPage(false);
@@ -539,7 +698,7 @@ function Edit(props: any) {
                                     <div className={'famo-grid rating-panel ' + (savingBoxes ? 'hide' : '')}>
                                         <div className='famo-row'>
                                             <div className='famo-cell text-center'>
-                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.Status === 1 ? total + x.TotalBoxes : total; }, 0)).format(unitFormat)}</span><span className='famo-text-23'>/{numeral(products.reduce((total, x) => { return total + x.TotalBoxes; }, 0)).format(unitFormat)}</span>
+                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.ShipmentStatus === 1 ? total + x.TotalBoxes : total; }, 0)).format(unitFormat)}</span><span className='famo-text-23'>{'/' + numeral(products.reduce((total, x) => { return total + x.TotalBoxes; }, 0)).format(unitFormat)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -551,7 +710,7 @@ function Edit(props: any) {
                                     <div className={'famo-grid rating-panel ' + (savingBoxes ? 'hide' : '')}>
                                         <div className='famo-row'>
                                             <div className='famo-cell text-center'>
-                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.Status === 1 ? total + x.Volume : total; }, 0)).format(volumeFormat)}</span><span className='famo-text-23'>/{numeral(products.reduce((total, x) => { return total + x.Volume; }, 0)).format(volumeFormat) + ' m3'}</span>
+                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.ShipmentStatus === 1 ? total + x.ProductVolume : total; }, 0)).format(volumeFormat)}</span><span className='famo-text-23'>{'/' + numeral(products.reduce((total, x) => { return total + x.ProductVolume; }, 0)).format(volumeFormat) + ' m³'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -579,7 +738,7 @@ function Edit(props: any) {
                                         })}
                                     </div>
                                     {products.filter(x => {
-                                        return x.Status === 0;
+                                        return x.ShipmentStatus === 0;
                                     }).map((x, i) => {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
@@ -641,7 +800,7 @@ function Edit(props: any) {
                                                     <span className='famo-text-10'>{x.Code}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
-                                                    <button type='button' className='famo-button famo-cancel-button button-delete-box' onClick={event => deleteBox(x.Code)}>
+                                                    <button type='button' className='famo-button famo-cancel-button' onClick={event => deleteBox(x.Code)}>
                                                         <span className='fas fa-trash-alt'></span>
                                                     </button>
                                                 </div>
@@ -668,7 +827,7 @@ function Edit(props: any) {
                                         })}
                                     </div>
                                     {products.filter(x => {
-                                        return x.Status === 1;
+                                        return x.ShipmentStatus === 1;
                                     }).map((x, i) => {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
@@ -727,6 +886,9 @@ function Edit(props: any) {
                                                     <span className='famo-text-10'>{y.BoxCode}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-4'>
+                                                    <span className={'famo-text-10 ' + (y.Bin.ID === -1 ? 'famo-color-yellow' : '')}>{y.Bin.ID === -1 ? 'n/a' : y.Bin.Code}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-5'>
                                                     <span className={'fas ' + (y.BoxPrinted ? 'fa-check famo-color-green' : 'fa-times famo-color-red')}></span>
                                                 </div>
                                             </div>
