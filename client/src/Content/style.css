@@ -1,4 +1,10 @@
 @media all {
+  *:not(.famo-input) {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
   .famo-text-5,
   .famo-text-13 {
     font-size: 16px !important;
@@ -14,6 +20,18 @@
   }
   div.famo-input {
     margin-bottom: 7px !important;
+  }
+  .famo-checkbox::before {
+    width: 25px;
+    height: 25px;
+  }
+  .famo-checkbox::after {
+    width: 15px;
+    height: 9px;
+    border-bottom-width: 4px;
+    border-left-width: 4px;
+    top: 6px;
+    left: 5px;
   }
   .famo-button {
     padding: 10px 15px;
@@ -136,10 +154,10 @@
     width: 125px;
   }
   .expedition-components .famo-col-3 {
-    width: 80px;
+    width: 85px;
   }
   .expedition-components .famo-col-4 {
-    width: 55px;
+    width: 65px;
   }
   .expedition-components .famo-col-5 {
     width: 40px;
@@ -197,6 +215,18 @@
   div.famo-input {
     margin-bottom: 6px !important;
   }
+  .famo-checkbox::before {
+    width: 20px;
+    height: 20px;
+  }
+  .famo-checkbox::after {
+    width: 12px;
+    height: 7px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    top: 5px;
+    left: 4px;
+  }
   .famo-button {
     padding: 5px 10px;
   }
@@ -215,10 +245,10 @@
     width: 100px;
   }
   .shipments .famo-col-3 {
-    width: 100px;
+    width: 90px;
   }
   .shipments .famo-col-4 {
-    width: 95px;
+    width: 50px;
   }
   .shipments .famo-col-5 {
     width: 60px;
@@ -241,6 +271,15 @@
     line-height: 1em !important;
     color: #ffffff;
   }
+  .expedition-components .famo-col-1 {
+    width: 115px;
+  }
+  .expedition-components .famo-col-3 {
+    width: 75px;
+  }
+  .expedition-components .famo-col-4 {
+    width: 55px;
+  }
   .expedition-components .fas {
     font-size: 14px !important;
     line-height: 1em !important;
@@ -251,6 +290,9 @@
     width: auto;
   }
   .shipments .famo-col-2 {
+    display: none;
+  }
+  .shipments .famo-col-3 {
     display: none;
   }
   .expedition-details .col-xl-5 {

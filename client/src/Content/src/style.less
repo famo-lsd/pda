@@ -3,6 +3,12 @@
 @import "variables.less";
 
 @media all {
+    *:not(.famo-input) {
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+    }
 
     // All font-size properties of famo-text-* have an increment of 2px.
     .famo-text-5,
@@ -23,6 +29,22 @@
 
     div.famo-input {
         margin-bottom: 7px !important;
+    }
+
+    .famo-checkbox {
+        &::before {
+            width: 25px;
+            height: 25px;
+        }
+
+        &::after {
+            width: 15px;
+            height: 9px;
+            border-bottom-width: 4px;
+            border-left-width: 4px;
+            top: 6px;
+            left: 5px;
+        }
     }
 
     .famo-button {
@@ -150,8 +172,8 @@
 
     .expedition-components {
         .applyCol(1, @width: 105px);
-        .applyCol(3, @width: 60px);
-        .applyCol(4, @width: 35px);
+        .applyCol(3, @width: 65px);
+        .applyCol(4, @width: 45px);
         .applyCol(5, @width: 20px);
 
         .famo-body-row {
@@ -219,6 +241,22 @@
         margin-bottom: 6px !important;
     }
 
+    .famo-checkbox {
+        &::before {
+            width: 20px;
+            height: 20px;
+        }
+
+        &::after {
+            width: 12px;
+            height: 7px;
+            border-bottom-width: 3px;
+            border-left-width: 3px;
+            top: 5px;
+            left: 4px;
+        }
+    }
+
     .famo-button {
         padding: 5px 10px;
     }
@@ -239,8 +277,8 @@
 
     .shipments {
         .applyCol(1, @width: 80px);
-        .applyCol(3, @width: 80px);
-        .applyCol(4, @width: 75px);
+        .applyCol(3, @width: 70px);
+        .applyCol(4, @width: 30px);
         .applyCol(5, @width: @famo_content_fa_button_w);
 
         .famo-button .fas {
@@ -263,6 +301,10 @@
     }
 
     .expedition-components {
+        .applyCol(1, @width: 95px);
+        .applyCol(3, @width: 55px);
+        .applyCol(4, @width: 35px);
+
         .fas {
             .applyIcon(@famo_icon_fs_content, @base_line_height);
         }
@@ -277,6 +319,7 @@
     .shipments {
         .applyCol(1, @width: auto);
         .applyCol(2, none);
+        .applyCol(3, none);
     }
 
     .expedition-details .col-xl-5 {

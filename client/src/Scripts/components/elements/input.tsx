@@ -14,12 +14,12 @@ export enum InputType {
 export interface InputConfig {
     ref?: any;
     label: string;
-    type: InputType,
+    type: InputType;
     className: string;
     name: string;
     value: any;
     autoFocus?: boolean;
-    isDisabled: boolean;
+    isDisabled?: boolean;
     analyze?: boolean;
     localAnalyze?: boolean;
     noData?: boolean;
@@ -86,7 +86,7 @@ const Input = React.forwardRef((props: any, ref: any) => {
             }
             {type === InputType.Checkbox &&
                 <label>
-                    <input ref={ref} type='checkbox' className={className} name={name} checked={value} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: event.target.checked }; })} />
+                    <input ref={ref} type='checkbox' className={className} name={name} checked={value} disabled={isDisabled} onChange={event => set(x => { return { ...x, value: ref.current.checked }; })} />
                     <span className='famo-checkbox'></span>
                 </label>
             }
@@ -148,7 +148,7 @@ export class InputTools {
 
 export class InputAlert {
     public static invalidValue(inputs: Array<string>, t: TFunction) {
-        let message = t('key_192');
+        let message = t('key_192') + ' ';
 
         for (let i = 0, len = inputs.length; i < len; i++) {
             message += inputs[i];
@@ -169,7 +169,7 @@ export class InputAlert {
     }
 
     public static wrongFormat(inputs: Array<string>, t: TFunction) {
-        let message = t('key_191');
+        let message = t('key_191') + ' ';
 
         for (let i = 0, len = inputs.length; i < len; i++) {
             message += inputs[i];

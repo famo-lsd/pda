@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import Input, { InputConfig, InputTools } from './elements/input';
+import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { ContentLoader } from './elements/loader';
@@ -90,47 +90,45 @@ function AddBox(props: any) {
         [globalState, globalActions] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
-            isNumber: false,
             value: '',
-            autoFocus: true,
-            isDisabled: false
+            autoFocus: true
         }),
         [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<BinBox>(null),
         [bins, setBins] = useState<Array<Bin>>([]),
         [binID, setBinID] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Select,
             label: 'Armazém',
             className: 'famo-input famo-text-10',
             name: 'binID',
-            isNumber: false,
-            value: '',
-            isDisabled: false
+            value: ''
         }),
         [orderCode, setOrderCode] = useState<InputConfig>({
+            type: InputType.Text,
             label: t('key_179'),
             className: 'famo-input famo-text-10',
             name: 'orderCode',
-            isNumber: false,
             value: '',
             isDisabled: true
         }),
         [customerName, setCustomerName] = useState<InputConfig>({
+            type: InputType.Text,
             label: t('key_85'),
             className: 'famo-input famo-text-10',
             name: 'customerName',
-            isNumber: false,
             value: '',
             isDisabled: true
         }),
         [expectedShipmentDate, setExpectedShipmentDate] = useState<InputConfig>({
+            type: InputType.Text,
             label: t('key_670'),
             className: 'famo-input famo-text-10',
             name: 'expectedShipmentDate',
-            isNumber: false,
             value: '',
             isDisabled: true
         }),
@@ -423,28 +421,23 @@ function TransferBox(props: any) {
         [globalState, globalActions] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
-            isNumber: false,
             value: '',
-            autoFocus: true,
-            isDisabled: false
+            autoFocus: true
         }),
         [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<BinBox>(null),
         [bins, setBins] = useState<Array<Bin>>([]),
         [binID, setBinID] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Select,
             label: 'Armazém',
             className: 'famo-input famo-text-10',
             name: 'binID',
-            isNumber: false,
-            value: '',
-            isDisabled: false,
-            analyze: false,
-            localAnalyze: false,
-            noData: false
+            value: ''
         }),
         binForm: Array<InputConfig> = [binID],
         setBinForm: Array<any> = [setBinID],
@@ -549,10 +542,9 @@ function TransferBox(props: any) {
             credentials: 'include'
         }).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
-                await result.json()
-                    .then(data => {
-                        setBins(data);
-                    });
+                await result.json().then(data => {
+                    setBins(data);
+                });
             }
             else {
                 throw result;
@@ -729,13 +721,12 @@ function DeleteBox(props: any) {
         [globalState,] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
-            isNumber: false,
             value: '',
-            autoFocus: true,
-            isDisabled: false
+            autoFocus: true
         }),
         [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<BinBox>(null),
@@ -929,13 +920,12 @@ function Order(props: any) {
         [globalState,] = useGlobal(),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
-            isNumber: false,
             value: '',
-            autoFocus: true,
-            isDisabled: false
+            autoFocus: true
         }),
         [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<Box>(null),
@@ -951,7 +941,7 @@ function Order(props: any) {
             x: 400 * 0.5,
             y: 400 * 0.525
         },
-        boxesHeader: Array<string> = [t('key_339'), 'Emb. (s)', ''],
+        boxesHeader: Array<string> = [t('key_339'), 'Emb. (s)', 'Armz.'],
         [boxes, setBoxes] = useState<Array<BinBox>>([]),
         moment = window['moment'],
         numeral = window['numeral'],
@@ -1014,10 +1004,9 @@ function Order(props: any) {
                 credentials: 'include'
             }).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
-                    await result.json()
-                        .then(data => {
-                            setBoxes(data);
-                        });
+                    await result.json().then(data => {
+                        setBoxes(data);
+                    });
                 }
                 else {
                     throw result;

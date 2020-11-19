@@ -1,6 +1,6 @@
 import AudioEffect from '../utils/audio';
 import httpStatus from 'http-status';
-import Input, { InputConfig, InputTools } from './elements/input';
+import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
@@ -74,7 +74,7 @@ function Index(props: any) {
         { history } = props,
         [globalState, globalActions] = useGlobal(),
         [loading, setLoading] = useState<boolean>(false),
-        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_820'), 'Cais (carga)', ''],
+        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb. (s)', 'Cais', ''],
         [shipments, setShipments] = useState<Array<Shipment>>([]),
         [shipmentGates, setShipmentGates] = useState<Array<ShipmentGate>>([]),
         [shipmentCodeSelected, setShipmentCodeSelected] = useState<string>(null),
@@ -82,15 +82,11 @@ function Index(props: any) {
         [shipmentGateModal, setShipmentGateModal] = useState<boolean>(false),
         [modalShipmentGateID, setModalShipmentGateID] = useState<InputConfig>({
             ref: React.createRef(),
-            label: 'Cais (carga)',
+            type: InputType.Select,
+            label: 'Cais',
             className: 'famo-input famo-text-10',
             name: 'gateID',
-            isNumber: false,
-            value: '',
-            isDisabled: false,
-            analyze: false,
-            localAnalyze: false,
-            noData: false
+            value: ''
         }),
         shipmentGateModalForm: Array<InputConfig> = [modalShipmentGateID],
         setShipmentGateModalForm: Array<any> = [setModalShipmentGateID],
@@ -122,22 +118,23 @@ function Index(props: any) {
         });
     }
 
-    function edit(shipmentCode: string, shipmentGate: ShipmentGate) {
-        if (shipmentGate.ID === -1) {
+    function edit(shipment: Shipment) {
+        if (shipment.Gate.ID === -1) {
             setClickOnShipment(true);
-            setShipmentCodeSelected(shipmentCode);
+            setShipmentCodeSelected(shipment.Code);
             setShipmentGateModal(true);
         }
         else {
-            history.push('/Expedition/Edit?shipmentCode=' + shipmentCode);
+            history.push('/Expedition/Edit?shipmentCode=' + shipment.Code);
         }
     }
 
-    function setGate(event: React.MouseEvent<HTMLButtonElement>, shipmentCode: string) {
+    function setGate(event: React.MouseEvent<HTMLButtonElement>, shipment: Shipment) {
         event.stopPropagation();
 
         setClickOnShipment(false);
-        setShipmentCodeSelected(shipmentCode);
+        setShipmentCodeSelected(shipment.Code);
+        setModalShipmentGateID(x => { return { ...x, value: shipment.Gate.ID }; });
         setShipmentGateModal(true);
     }
 
@@ -154,7 +151,7 @@ function Index(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        const fetchShipmentGates = fetch(NODE_SERVER + 'Shipments/Gates' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
+        const getShipmentGates = fetch(NODE_SERVER + 'Shipments/Gates' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
             method: 'GET',
             credentials: 'include'
         }).then(async result => {
@@ -177,7 +174,7 @@ function Index(props: any) {
             }
         });
 
-        Promise.all([getShipments(), fetchShipmentGates]).finally(() => {
+        Promise.all([getShipments(), getShipmentGates]).finally(() => {
             globalActions.setLoadPage(false);
         });
 
@@ -241,6 +238,12 @@ function Index(props: any) {
         }
     }, shipmentGateModalForm);
 
+    useEffect(() => {
+        if (!shipmentGateModal) {
+            setModalShipmentGateID(x => { return { ...x, value: '' }; });
+        }
+    }, [shipmentGateModal])
+
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
@@ -259,7 +262,7 @@ function Index(props: any) {
                         </div>
                         {shipments.map((x, i) => {
                             return (
-                                <div key={i} className='famo-row famo-body-row' onClick={event => edit(x.Code, x.Gate)}>
+                                <div key={i} className='famo-row famo-body-row' onClick={event => edit(x)}>
                                     <div className='famo-cell famo-col-1'>
                                         <span className='famo-text-10'>{x.Code}</span>
                                     </div>
@@ -270,10 +273,10 @@ function Index(props: any) {
                                         <span className='famo-text-10'>{numeral(x.PickedBoxes).format(unitFormat) + '/' + numeral(x.TotalBoxes).format(unitFormat)}</span>
                                     </div>
                                     <div className='famo-cell famo-col-4'>
-                                        <span className={'famo-text-10 ' + (x.Gate.ID === -1 ? 'famo-color-yellow' : '')}>{x.Gate.ID === -1 ? t('key_237') : x.Gate.Label}</span>
+                                        <span className={'famo-text-10 ' + (x.Gate.ID === -1 ? 'famo-color-yellow' : '')}>{x.Gate.ID === -1 ? 'n/a' : x.Gate.Label}</span>
                                     </div>
                                     <div className='famo-cell famo-col-5'>
-                                        <button type='button' className='famo-button famo-normal-button' onClick={event => setGate(event, x.Code)}>
+                                        <button type='button' className='famo-button famo-normal-button' onClick={event => setGate(event, x)}>
                                             <span className='fas fa-truck-loading'></span>
                                         </button>
                                     </div>
@@ -328,34 +331,37 @@ function Edit(props: any) {
         query = queryString.parse(location.search),
         shipmentCodeQS = query.shipmentCode,
         [shipmentCode, setShipmentCode] = useState<InputConfig>({
-            ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_822'),
             className: 'famo-input famo-text-10',
             name: 'shipmentCode',
-            isNumber: false,
             value: shipmentCodeQS.toString(),
-            autoFocus: false,
             isDisabled: true
         }),
         [description, setDescription] = useState<InputConfig>({
-            ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_138'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
-            isNumber: false,
             value: '',
-            autoFocus: false,
             isDisabled: true
         }),
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
-            isNumber: false,
             value: '',
-            autoFocus: true,
-            isDisabled: false
+            autoFocus: true
+        }),
+        [unload, setUnload] = useState<InputConfig>({
+            ref: React.createRef(),
+            type: InputType.Checkbox,
+            label: 'Remover',
+            className: 'famo-input',
+            name: 'unload',
+            value: false
         }),
         [loadingBox, setLoadingBox] = useState<boolean>(false),
         [formMessage, setFormMessage] = useState<string>(''),
@@ -365,7 +371,7 @@ function Edit(props: any) {
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [savingBoxes, setSavingBoxes] = useState<boolean>(false),
         [componentsModal, setComponentsModal] = useState<boolean>(false),
-        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb.', 'Arm.', ''],
+        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb.', 'Armz.', ''],
         [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
         numeral = window['numeral'],
         unitFormat = '0,0',
@@ -389,7 +395,7 @@ function Edit(props: any) {
 
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
                 shipmentCode: shipmentCodeQS,
-                palletID: matchPalletCode ? parseInt(matchPalletCode[0].replace('PL', '').replace('/', '').replace('-', '')) : -1
+                palletID: matchPalletCode ? parseInt(matchPalletCode[0].replace('PL', '').replace('/', '').replace('-', '')) : -1,
             }), {
                 method: 'GET',
                 credentials: 'include'
@@ -397,11 +403,7 @@ function Edit(props: any) {
                 if (result.ok && result.status === httpStatus.OK) {
                     await result.json().then(data => {
                         setFormMessage('');
-                        (data as Array<Box>).forEach(x => {
-                            if (boxes.some(y => { return y.Code !== x.Code; })) {
-                                setBoxes([x, ...boxes]);
-                            }
-                        });
+                        setBoxes([...(data as Array<Box>).filter(x => { return !boxes.some(y => { return y.Code === x.Code; }); }), ...boxes]);
                     });
                 }
                 else {
@@ -431,7 +433,8 @@ function Edit(props: any) {
 
                 fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
                     shipmentCode: shipmentCodeQS,
-                    boxCode: boxCode.value
+                    boxCode: boxCode.value,
+                    unload: unload.value
                 }), {
                     method: 'GET',
                     credentials: 'include'
@@ -455,7 +458,7 @@ function Edit(props: any) {
                         else if (error.status === httpStatus.FORBIDDEN) {
                             await error.json().then(data => {
                                 if (data.reason === 'box') {
-                                    formAlert(t('key_871'));
+                                    formAlert(!unload.value ? t('key_871') : 'A embalagem ainda não foi carregada.');
                                 }
                                 else if (data.reason === 'pallet') {
                                     formAlert(t('key_828'));
@@ -486,7 +489,7 @@ function Edit(props: any) {
         boxCode.ref.current.focus();
     }
 
-    function fetchShipmentProducts() {
+    function getShipmentProducts() {
         return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCodeQS }), {
             method: 'GET',
             credentials: 'include'
@@ -557,7 +560,8 @@ function Edit(props: any) {
         setSavingBoxes(true);
 
         fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
-            shipmentCode: shipmentCodeQS
+            shipmentCode: shipmentCodeQS,
+            unload: unload.value
         }), {
             method: 'POST',
             headers: {
@@ -594,7 +598,7 @@ function Edit(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        const fetchShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCodeQS }), {
+        const getShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCodeQS }), {
             method: 'GET',
             credentials: 'include'
         }).then(async result => {
@@ -619,16 +623,20 @@ function Edit(props: any) {
             }
         });
 
-        Promise.all([fetchShipment, fetchShipmentProducts()]).finally(() => {
+        Promise.all([getShipment, getShipmentProducts()]).finally(() => {
             globalActions.setLoadPage(false);
         });
 
         setInterval(() => {
-            fetchShipmentProducts();
+            getShipmentProducts();
         }, 10000);
 
         SessionStorage.clear();
     }, []);
+
+    useEffect(() => {
+        setBoxes([]);
+    }, [unload]);
 
     return (
         <React.Fragment>
@@ -665,6 +673,14 @@ function Edit(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <Input {...boxCode} isDisabled={loadingBox || savingBoxes} set={setBoxCode} />
+                                        </div>
+                                    </div>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{unload.label}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <Input {...unload} isDisabled={loadingBox || savingBoxes} set={setUnload} />
                                         </div>
                                     </div>
                                     <input type='submit' className='hide' value='' />
@@ -797,7 +813,7 @@ function Edit(props: any) {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
                                                 <div className='famo-cell famo-col-1'>
-                                                    <span className='famo-text-10'>{x.Code}</span>
+                                                    <span className={'famo-text-10 ' + (unload.value ? 'famo-color-red' : '')}>{x.Code}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
                                                     <button type='button' className='famo-button famo-cancel-button' onClick={event => deleteBox(x.Code)}>

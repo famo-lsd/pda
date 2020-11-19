@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import Input, { InputConfig, InputTools } from './elements/input';
+import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import Modal from './elements/modal';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
@@ -33,61 +33,54 @@ function Inventory(props: any) {
         [inventories, setInventories] = useState<Array<ItemJournal>>([]),
         [inventoryCode, setInventoryCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Select,
             label: t('key_806'),
             className: 'famo-input famo-text-10',
             name: 'inventoryCode',
-            isNumber: false,
-            value: '',
-            isDisabled: false
+            value: ''
         }),
         inventoryForm: Array<InputConfig> = [inventoryCode],
         [loading, setLoading] = useState<boolean>(false),
         [inventoryLine, setInventoryLine] = useState<ItemJournalLine>(),
         [productCode, setProductCode] = useState<InputConfig>({
+            type: InputType.Text,
             label: t('key_87'),
             className: 'famo-input famo-text-10',
             name: 'productCode',
-            isNumber: false,
             value: '',
             isDisabled: true
         }),
         [productVariantCode, setProductVariantCode] = useState<InputConfig>({
+            type: InputType.Text,
             label: t('key_464'),
             className: 'famo-input famo-text-10',
             name: 'productVariantCode',
-            isNumber: false,
             value: '',
             isDisabled: true
         }),
         [productDescription, setProductDescription] = useState<InputConfig>({
+            type: InputType.Text,
             label: t('key_138'),
             className: 'famo-input famo-text-10',
             name: 'productDescription',
-            isNumber: false,
             value: '',
             isDisabled: true
         }),
         [locationCode, setLocationCode] = useState<InputConfig>({
+            type: InputType.Text,
             label: t('key_751'),
             className: 'famo-input famo-text-10',
             name: 'locationCode',
-            isNumber: false,
             value: '',
             isDisabled: true
         }),
         [quantity, setQuantity] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Number,
             label: t('key_347'),
             className: 'famo-input famo-text-10',
             name: 'quantity',
-            isNumber: true,
             value: '',
-            isDisabled: false,
-            analyze: false,
-            localAnalyze: false,
-            noData: false,
-            wrongFormat: false,
-            invalidValue: false,
             invalidMessage: t('key_13')
         }),
         inventoryLineForm: Array<InputConfig> = [productCode, productVariantCode, productDescription, locationCode, quantity],
@@ -95,15 +88,11 @@ function Inventory(props: any) {
         [productModal, setProductModal] = useState<boolean>(false),
         [modalProductCode, setModalProductCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_87'),
             className: 'famo-input famo-text-10',
             name: 'productCode',
-            isNumber: false,
-            value: '',
-            isDisabled: false,
-            analyze: false,
-            localAnalyze: false,
-            noData: false
+            value: ''
         }),
         productModalForm: Array<InputConfig> = [modalProductCode],
         setProductModalForm: Array<any> = [setModalProductCode];
@@ -230,7 +219,7 @@ function Inventory(props: any) {
                         productCode: inventoryLine.ProductCode,
                         productVariantCode: inventoryLine.ProductVariantCode,
                         locationCode: inventoryLine.LocationCode,
-                        quantity: !quantity.isNumber ? quantity.value : parseFloat(convertNumeralToJS(quantity.value))
+                        quantity: quantity.type !== InputType.Number ? quantity.value : parseFloat(convertNumeralToJS(quantity.value))
                     }),
                     credentials: 'include'
                 }).then(result => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { Link, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';

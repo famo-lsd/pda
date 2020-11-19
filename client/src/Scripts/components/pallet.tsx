@@ -1,6 +1,6 @@
 import AudioEffect from '../utils/audio';
 import httpStatus from 'http-status';
-import Input, { InputConfig, InputTools } from './elements/input';
+import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
@@ -42,13 +42,12 @@ function Index(props: any) {
         sessionStorageItem = window.sessionStorage.getItem(SS_PALLET_KEY),
         [shipmentCode, setShipmentCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_822'),
             className: 'famo-input famo-text-10',
             name: 'shipmentCode',
-            isNumber: false,
             value: sessionStorageItem ? JSON.parse(window.sessionStorage.getItem(SS_PALLET_KEY)).shipmentCode : '',
-            autoFocus: true,
-            isDisabled: false
+            autoFocus: true
         }),
         [shipmentCodeSubmit, setShipmentCodeSubmit] = useState<string>(null),
         [loading, setLoading] = useState<boolean>(false),
@@ -208,16 +207,12 @@ function Edit(props: any) {
         [boxModal, setBoxModal] = useState<boolean>(false),
         [modalBoxCode, setModalBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
+            type: InputType.Text,
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
-            isNumber: false,
             value: '',
-            autoFocus: true,
-            isDisabled: false,
-            analyze: false,
-            localAnalyze: false,
-            noData: false
+            autoFocus: true
         }),
         boxModalForm: Array<InputConfig> = [modalBoxCode],
         setBoxModalForm: Array<any> = [setModalBoxCode],
@@ -408,7 +403,7 @@ function Edit(props: any) {
         if (query.palletID) {
             globalActions.setLoadPage(true);
 
-            fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
+            fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
                 shipmentCode: query.shipmentCode,
                 palletID: query.palletID
             }), {
