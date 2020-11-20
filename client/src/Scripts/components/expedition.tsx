@@ -74,7 +74,7 @@ function Index(props: any) {
         { history } = props,
         [globalState, globalActions] = useGlobal(),
         [loading, setLoading] = useState<boolean>(false),
-        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb. (s)', 'Cais', ''],
+        shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_900'), t('key_896'), ''],
         [shipments, setShipments] = useState<Array<Shipment>>([]),
         [shipmentGates, setShipmentGates] = useState<Array<ShipmentGate>>([]),
         [shipmentCodeSelected, setShipmentCodeSelected] = useState<string>(null),
@@ -83,7 +83,7 @@ function Index(props: any) {
         [modalShipmentGateID, setModalShipmentGateID] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Select,
-            label: 'Cais',
+            label: t('key_896'),
             className: 'famo-input famo-text-10',
             name: 'gateID',
             value: ''
@@ -358,20 +358,20 @@ function Edit(props: any) {
         [unload, setUnload] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Checkbox,
-            label: 'Remover',
+            label: t('key_901'),
             className: 'famo-input',
             name: 'unload',
             value: false
         }),
         [loadingBox, setLoadingBox] = useState<boolean>(false),
         [formMessage, setFormMessage] = useState<string>(''),
-        productsHeader: Array<string> = [t('key_179'), t('key_54'), 'Emb. (s)'],
+        productsHeader: Array<string> = [t('key_179'), t('key_54'), t('key_900')],
         [products, setProducts] = useState<Array<ShipmentProduct>>([]),
         boxesHeader: Array<string> = [t('key_820'), ''],
         [boxes, setBoxes] = useState<Array<Box>>([]),
         [savingBoxes, setSavingBoxes] = useState<boolean>(false),
         [componentsModal, setComponentsModal] = useState<boolean>(false),
-        componentsHeader: Array<string> = [t('key_87'), t('key_138'), 'Emb.', 'Armz.', ''],
+        componentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_899'), t('key_892'), ''],
         [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
         numeral = window['numeral'],
         unitFormat = '0,0',
@@ -458,7 +458,7 @@ function Edit(props: any) {
                         else if (error.status === httpStatus.FORBIDDEN) {
                             await error.json().then(data => {
                                 if (data.reason === 'box') {
-                                    formAlert(!unload.value ? t('key_871') : 'A embalagem ainda não foi carregada.');
+                                    formAlert(!unload.value ? t('key_871') : t('key_882'));
                                 }
                                 else if (data.reason === 'pallet') {
                                     formAlert(t('key_828'));

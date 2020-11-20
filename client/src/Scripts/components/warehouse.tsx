@@ -54,10 +54,10 @@ function Warehouse(props: any) {
 function Index(props: any) {
     const { t } = useTranslation(),
         buttons: Array<any> = [
-            { label: 'Arrumar embalagem', url: '/Warehouse/Boxes/Add' },
-            { label: 'Consultar encomenda', url: '/Warehouse/Orders' },
-            { label: 'Transferir embalagem', url: '/Warehouse/Boxes/Transfer' },
-            { label: 'Anular embalagem', url: '/Warehouse/Boxes/Delete' }
+            { label: t('key_895'), url: '/Warehouse/Boxes/Add' },
+            { label: t('key_897'), url: '/Warehouse/Orders' },
+            { label: t('key_905'), url: '/Warehouse/Boxes/Transfer' },
+            { label: t('key_891'), url: '/Warehouse/Boxes/Delete' }
         ];
 
     return (
@@ -103,7 +103,7 @@ function AddBox(props: any) {
         [binID, setBinID] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Select,
-            label: 'Armazém',
+            label: t('key_893'),
             className: 'famo-input famo-text-10',
             name: 'binID',
             value: ''
@@ -167,14 +167,14 @@ function AddBox(props: any) {
                 logHttpError(error);
 
                 if (error.status === httpStatus.NOT_FOUND) {
-                    alert('A embalagem não existe.');
+                    alert(t('key_883'));
                 }
                 else if (error.status === httpStatus.FORBIDDEN) {
                     alert(t('key_871'));
                 }
                 else if (error.status === httpStatus.CONFLICT) {
                     await error.json().then(data => {
-                        alert('A embalagem já foi selecionada e encontra-se no armazém:' + ' ' + data.box);
+                        alert(t('key_887') + ' ' + data.box);
                     }).catch(errorAux => {
                         logPromiseError(errorAux);
                         alert(t('key_416'));
@@ -318,7 +318,7 @@ function AddBox(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
-                <Title text={'Arrumar embalagem'} />
+                <Title text={t('key_895')} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -369,7 +369,7 @@ function AddBox(props: any) {
                                                 })}
                                             </Input>
                                             <div className={'famo-input-message ' + (separatedOrder ? '' : 'hide')}>
-                                                <span className='famo-text-15'>Se colocar a embalagem neste armazém, a encomenda vai estar em vários armazéns.</span>
+                                                <span className='famo-text-15'>{t('key_902')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -434,7 +434,7 @@ function TransferBox(props: any) {
         [binID, setBinID] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Select,
-            label: 'Armazém',
+            label: t('key_893'),
             className: 'famo-input famo-text-10',
             name: 'binID',
             value: ''
@@ -466,7 +466,7 @@ function TransferBox(props: any) {
         }).catch(error => {
             if (error as Response) {
                 logHttpError(error);
-                alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_883') : t('key_303'));
             }
             else {
                 logPromiseError(error);
@@ -523,7 +523,7 @@ function TransferBox(props: any) {
         }).catch(error => {
             if (error as Response) {
                 logHttpError(error);
-                alert(error.status === httpStatus.CONFLICT ? 'A encomenda tem embalagens em mais do que um armazém.' : t('key_302'));
+                alert(error.status === httpStatus.CONFLICT ? t('key_885') : t('key_302'));
             }
             else {
                 logPromiseError(error);
@@ -579,7 +579,7 @@ function TransferBox(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
-                <Title text={'Transferir embalagem'} />
+                <Title text={t('key_905')} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -658,7 +658,7 @@ function TransferBox(props: any) {
                                     </div>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
-                                            <span className='famo-text-11'>{'Armazém'}</span>
+                                            <span className='famo-text-11'>{t('key_893')}</span>
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
@@ -671,7 +671,7 @@ function TransferBox(props: any) {
                         </div>
                     </section>
                     <section className='famo-wrapper'>
-                        <Title text={'Destino'} />
+                        <Title text={t('key_898')} />
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
                             {box &&
@@ -701,10 +701,10 @@ function TransferBox(props: any) {
                                 <div className='famo-row'>
                                     <div className='famo-cell text-right'>
                                         <button type='button' className='famo-button famo-confirm-button' disabled={loading} onClick={event => transferOrder()}>
-                                            <span className='famo-text-12'>Transf. encomenda</span>
+                                            <span className='famo-text-12'>{t('key_903')}</span>
                                         </button>
                                         <button type='button' className='famo-button famo-confirm-button' disabled={loading} onClick={event => transferBox()}>
-                                            <span className='famo-text-12'>Transf. embalagem</span>
+                                            <span className='famo-text-12'>{t('key_904')}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -752,7 +752,7 @@ function DeleteBox(props: any) {
         }).catch(error => {
             if (error as Response) {
                 logHttpError(error);
-                alert(error.status === httpStatus.NOT_FOUND ? 'A embalagem não existe.' : t('key_303'));
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_883') : t('key_303'));
             }
             else {
                 logPromiseError(error);
@@ -809,7 +809,7 @@ function DeleteBox(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
-                <Title text={'Anular embalagem'} />
+                <Title text={t('key_891')} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -888,7 +888,7 @@ function DeleteBox(props: any) {
                                     </div>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
-                                            <span className='famo-text-11'>{'Armazém'}</span>
+                                            <span className='famo-text-11'>{t('key_893')}</span>
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
@@ -941,7 +941,7 @@ function Order(props: any) {
             x: 400 * 0.5,
             y: 400 * 0.525
         },
-        boxesHeader: Array<string> = [t('key_339'), 'Emb. (s)', 'Armz.'],
+        boxesHeader: Array<string> = [t('key_339'), t('key_900'), t('key_892')],
         [boxes, setBoxes] = useState<Array<BinBox>>([]),
         moment = window['moment'],
         numeral = window['numeral'],
@@ -970,7 +970,7 @@ function Order(props: any) {
                 logHttpError(error);
 
                 if (error.status === httpStatus.NOT_FOUND) {
-                    alert('A embalagem não existe.');
+                    alert(t('key_883'));
                 }
                 else if (error.status === httpStatus.FORBIDDEN) {
                     alert(t('key_871'));
@@ -1014,7 +1014,7 @@ function Order(props: any) {
             }).catch(error => {
                 if (error as Response) {
                     logHttpError(error);
-                    alert(error.status === httpStatus.NOT_FOUND ? 'A encomenda não existe.' : t('key_303'));
+                    alert(error.status === httpStatus.NOT_FOUND ? t('key_884') : t('key_303'));
                 }
                 else {
                     logPromiseError(error);
@@ -1029,7 +1029,7 @@ function Order(props: any) {
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
-                <Title text={'Consultar encomenda'} />
+                <Title text={t('key_897')} />
                 <div className='famo-content'>
                     <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
                         <div className='famo-row'>
@@ -1109,7 +1109,7 @@ function Order(props: any) {
                                         <div className='col-12 col-lg-4'>
                                             <div className='famo-grid'>
                                                 <div className='famo-cell text-center'>
-                                                    <span className='famo-text-11'>A produzir</span>
+                                                    <span className='famo-text-11'>{t('key_889')}</span>
                                                 </div>
                                             </div>
                                             <div className='victory-container'>
@@ -1122,7 +1122,7 @@ function Order(props: any) {
                                         <div className='col-12 col-lg-4'>
                                             <div className='famo-grid'>
                                                 <div className='famo-cell text-center'>
-                                                    <span className='famo-text-11'>A arrumar</span>
+                                                    <span className='famo-text-11'>{t('key_886')}</span>
                                                 </div>
                                             </div>
                                             <div className='victory-container'>
@@ -1135,7 +1135,7 @@ function Order(props: any) {
                                         <div className='col-12 col-lg-4'>
                                             <div className='famo-grid'>
                                                 <div className='famo-cell text-center'>
-                                                    <span className='famo-text-11'>A expedir</span>
+                                                    <span className='famo-text-11'>{t('key_888')}</span>
                                                 </div>
                                             </div>
                                             <div className='victory-container'>
