@@ -7,6 +7,7 @@ import Pallet from './components/pallet';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import SignIn from './components/signIn';
+import TV from './components/tv';
 import Warehouse from './components/warehouse';
 import { AppLoader } from './components/elements/loader';
 import { autoSignIn } from './utils/authentication';
@@ -122,6 +123,7 @@ function RouteBody(props: any) {
             {!loadSession &&
                 <Switch>
                     <PrivateRoute exact path='/' component={Home} />
+                    <PrivateRoute path='/TV' component={TV} />
                     <PrivateRoute path='/Warehouse' component={Warehouse} />
                     <PrivateRoute path='/Expedition' component={Expedition} />
                     <PrivateRoute path='/Pallet' component={Pallet} />
@@ -205,6 +207,7 @@ function AutoRouteBody(props: any) {
                     <section className='famo-body'>
                         <Switch>
                             <Route exact path='/' render={() => { return <Home />; }} />
+                            <Route path='/TV' render={() => { return <TV />; }} />
                             <Route path='/Warehouse' render={() => { return <Warehouse />; }} />
                             <Route path='/Expedition' render={() => { return <Expedition />; }} />
                             <Route path='/Pallet' render={() => { return <Pallet />; }} />

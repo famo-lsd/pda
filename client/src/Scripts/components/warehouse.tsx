@@ -156,7 +156,7 @@ function AddBox(props: any) {
                     setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
                     setLoading(false);
 
-                    checkOrderInBins(data.OrderCode, data.Bin.ID.toString());
+                    checkBinOrder(data.OrderCode, data.Bin.ID.toString());
                 });
             }
             else {
@@ -204,7 +204,7 @@ function AddBox(props: any) {
         boxCode.ref.current.focus();
     }
 
-    function checkOrderInBins(code: string, binID: string) {
+    function checkBinOrder(code: string, binID: string) {
         setCheckingOrder(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({ code: code, binID: binID }), {
@@ -275,7 +275,7 @@ function AddBox(props: any) {
 
     useEffect(() => {
         if (binID.value) {
-            checkOrderInBins(orderCode.value, binID.value);
+            checkBinOrder(orderCode.value, binID.value);
         }
         saveButtonRef.current?.focus();
     }, [binID.value]);
