@@ -36,8 +36,8 @@ function Pallet() {
 }
 
 function Index(props: any) {
-    const { t } = useTranslation(),
-        { history } = props,
+    const { history } = props,
+        { t } = useTranslation(),
         [globalState,] = useGlobal(),
         sessionStorageItem = window.sessionStorage.getItem(SS_PALLET_KEY),
         [shipmentCode, setShipmentCode] = useState<InputConfig>({
@@ -192,8 +192,8 @@ function Index(props: any) {
 }
 
 function Edit(props: any) {
-    const { t } = useTranslation(),
-        { location, history } = props,
+    const { location, history } = props,
+        { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         [palletID, setPalletID] = useState<any>(query.palletID),

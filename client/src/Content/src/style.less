@@ -69,6 +69,20 @@
         }
     }
 
+    .pda-app-loader {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0px;
+        left: 0px;
+        background-color: #f2f2f2;
+
+        .famo-loader {
+            width: 45px;
+            margin: auto;
+        }
+    }
+
     .pda-back-button {
         padding: 15px !important;
         border-radius: 50%;
@@ -82,17 +96,18 @@
         }
     }
 
-    .pda-app-loader {
-        position: fixed;
+    .pda-victory-container {
         width: 100%;
-        height: 100%;
-        top: 0px;
-        left: 0px;
-        background-color: #f2f2f2;
+        height: 150px;
+        text-align: center;
 
-        .famo-loader {
-            width: 45px;
-            margin: auto;
+        svg {
+            width: 100%;
+            height: 100%;
+
+            tspan {
+                .applyText(normal, normal, 36px, @base_color, @base_line_height);
+            }
         }
     }
 
@@ -196,21 +211,9 @@
         .applyCol(3, @width: 30px);
     }
 
-    .warehouse-charts {
-        .victory-container {
-            width: 100%;
-            height: 150px;
-            text-align: center;
-
-            svg {
-                width: 100%;
-                height: 100%;
-
-                tspan {
-                    .applyText(normal, normal, 36px, @base_color, @base_line_height);
-                }
-            }
-        }
+    .bin-orders {
+        .applyCol(1, @width: 60px);
+        .applyCol(6, @width: 40px);
     }
 }
 

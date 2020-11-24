@@ -1104,7 +1104,7 @@ function Order(props: any) {
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
                             {box &&
-                                <div className={'container warehouse-charts ' + (loading ? 'hide' : '')}>
+                                <div className={'container ' + (loading ? 'hide' : '')}>
                                     <div className='row'>
                                         <div className='col-12 col-lg-4'>
                                             <div className='famo-grid'>
@@ -1112,7 +1112,7 @@ function Order(props: any) {
                                                     <span className='famo-text-11'>{t('key_889')}</span>
                                                 </div>
                                             </div>
-                                            <div className='victory-container'>
+                                            <div className='pda-victory-container'>
                                                 <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
                                                     <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return !x.IsPrinted; }).length }, { x: false, y: boxes.filter(x => { return x.IsPrinted; }).length }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
                                                     <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return !x.IsPrinted; }).length / boxes.length).format(percentageFormat), numeral(boxes.filter(x => { return !x.IsPrinted; }).length).format(unitFormat) + '/' + numeral(boxes.length).format(unitFormat)]} style={[{ fill: '#ff3333' }]} />
@@ -1125,7 +1125,7 @@ function Order(props: any) {
                                                     <span className='famo-text-11'>{t('key_886')}</span>
                                                 </div>
                                             </div>
-                                            <div className='victory-container'>
+                                            <div className='pda-victory-container'>
                                                 <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
                                                     <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length }, { x: false, y: boxes.filter(x => { return !(x.IsPrinted && x.Bin.ID === -1); }).length }]} colorScale={['#3333ff', '#bfbfbf']} labels={() => null} />
                                                     <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length / boxes.length).format(percentageFormat), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID === -1; }).length).format(unitFormat) + '/' + numeral(boxes.length).format(unitFormat)]} style={[{ fill: '#3333ff' }]} />
@@ -1138,7 +1138,7 @@ function Order(props: any) {
                                                     <span className='famo-text-11'>{t('key_888')}</span>
                                                 </div>
                                             </div>
-                                            <div className='victory-container'>
+                                            <div className='pda-victory-container'>
                                                 <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
                                                     <VictoryPie {...vicPieConfig} data={[{ x: true, y: boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length }, { x: false, y: boxes.filter(x => { return !(x.IsPrinted && x.Bin.ID !== -1); }).length }]} colorScale={['#33ff33', '#bfbfbf']} labels={() => null} />
                                                     <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length / boxes.length).format(percentageFormat), numeral(boxes.filter(x => { return x.IsPrinted && x.Bin.ID !== -1; }).length).format(unitFormat) + '/' + numeral(boxes.length).format(unitFormat)]} style={[{ fill: '#33ff33' }]} />

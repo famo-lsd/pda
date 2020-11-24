@@ -48,6 +48,18 @@
   .famo-body .famo-wrapper .famo-form-grid .famo-input-label .famo-input-loader {
     top: 0px;
   }
+  .pda-app-loader {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background-color: #f2f2f2;
+  }
+  .pda-app-loader .famo-loader {
+    width: 45px;
+    margin: auto;
+  }
   .pda-back-button {
     padding: 15px !important;
     border-radius: 50%;
@@ -61,17 +73,22 @@
     line-height: 1em !important;
     color: white;
   }
-  .pda-app-loader {
-    position: fixed;
+  .pda-victory-container {
+    width: 100%;
+    height: 150px;
+    text-align: center;
+  }
+  .pda-victory-container svg {
     width: 100%;
     height: 100%;
-    top: 0px;
-    left: 0px;
-    background-color: #f2f2f2;
   }
-  .pda-app-loader .famo-loader {
-    width: 45px;
-    margin: auto;
+  .pda-victory-container svg tspan {
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-size: 36px !important;
+    line-height: 1em !important;
+    font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
+    color: #000000;
   }
   .form-message {
     display: inline-block;
@@ -180,22 +197,11 @@
   .warehouse-boxes .famo-col-3 {
     width: 50px;
   }
-  .warehouse-charts .victory-container {
-    width: 100%;
-    height: 150px;
-    text-align: center;
+  .bin-orders .famo-col-1 {
+    width: 80px;
   }
-  .warehouse-charts .victory-container svg {
-    width: 100%;
-    height: 100%;
-  }
-  .warehouse-charts .victory-container svg tspan {
-    font-style: normal !important;
-    font-weight: normal !important;
-    font-size: 36px !important;
-    line-height: 1em !important;
-    font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
-    color: #000000;
+  .bin-orders .famo-col-6 {
+    width: 60px;
   }
 }
 @media screen and (max-width: 991px) {

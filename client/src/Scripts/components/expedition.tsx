@@ -70,8 +70,8 @@ function Expedition() {
 }
 
 function Index(props: any) {
-    const { t } = useTranslation(),
-        { history } = props,
+    const { history } = props,
+        { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
         [loading, setLoading] = useState<boolean>(false),
         shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_900'), t('key_896'), ''],
@@ -325,8 +325,8 @@ function Index(props: any) {
 }
 
 function Edit(props: any) {
-    const { t } = useTranslation(),
-        { history, location } = props,
+    const { history, location } = props,
+        { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
         query = queryString.parse(location.search),
         shipmentCodeQS = query.shipmentCode,
