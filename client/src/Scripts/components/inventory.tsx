@@ -1,5 +1,7 @@
+import Http from '../utils/http';
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools, InputType } from './elements/input';
+import Log from '../utils/log';
 import Modal from './elements/modal';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
@@ -7,7 +9,6 @@ import { barcodeScan } from '../utils/barcode';
 import { ContentLoader } from './elements/loader';
 import { convertNumeralToJS } from '../utils/number';
 import { createQueryString } from '../utils/general';
-import { logHttpError, logPromiseError } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
@@ -112,10 +113,9 @@ function Inventory(props: any) {
             inventoryCode: inventoryCode.value,
             productCode: productCode,
             productVariantCode: productVariantCode
-        }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setInventoryLine(data);
@@ -130,11 +130,11 @@ function Inventory(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(error.status === httpStatus.NOT_FOUND ? t('key_809') : t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -171,10 +171,9 @@ function Inventory(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        fetch(NODE_SERVER + 'ERP/Inventories' + createQueryString({}), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'ERP/Inventories' + createQueryString({}), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setInventories(data);
@@ -185,11 +184,11 @@ function Inventory(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }).finally(() => {
@@ -209,7 +208,7 @@ function Inventory(props: any) {
             if (InputTools.areValid(inventoryLineForm)) {
                 setLoading(true);
 
-                fetch(NODE_SERVER + 'ERP/Inventories/Lines' + createQueryString({}), {
+                fetch(NODE_SERVER + 'ERP/Inventories/Lines' + createQueryString({}), Http.addAuthorizationHeader({
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
@@ -220,9 +219,8 @@ function Inventory(props: any) {
                         productVariantCode: inventoryLine.ProductVariantCode,
                         locationCode: inventoryLine.LocationCode,
                         quantity: quantity.type !== InputType.Number ? quantity.value : parseFloat(convertNumeralToJS(quantity.value))
-                    }),
-                    credentials: 'include'
-                }).then(result => {
+                    })
+                })).then(result => {
                     if (result.ok && result.status === httpStatus.OK) {
                         setInventoryLine(null);
                         InputTools.resetValues(inventoryLineForm, setInventoryLineForm);
@@ -234,11 +232,11 @@ function Inventory(props: any) {
                     }
                 }).catch(error => {
                     if (error as Response) {
-                        logHttpError(error);
+                        Log.httpError(error);
                         alert(t('key_302'));
                     }
                     else {
-                        logPromiseError(error);
+                        Log.promiseError(error);
                         alert(t('key_416'));
                     }
                 }).finally(() => {

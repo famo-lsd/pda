@@ -1,3 +1,4 @@
 export const LOG_APP_NAME = 'pda',
-    I18N_SERVER = process.env.REACT_APP_NODE_SERVER,
-    NODE_SERVER = window.location.protocol === 'file:' ? process.env.REACT_APP_NODE_SERVER : window.location.protocol + '//' + window.location.hostname + ':9070/';
+    NODE_SERVER = process.env.REACT_APP_NODE_SERVER,
+    NODE_TOKEN_PREFIX = 'noken',
+    NODE_TOKEN_KEY = 'access_' + NODE_TOKEN_PREFIX;

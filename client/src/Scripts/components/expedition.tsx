@@ -1,13 +1,14 @@
 import AudioEffect from '../utils/audio';
+import Http from '../utils/http';
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools, InputType } from './elements/input';
+import Log from '../utils/log';
 import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
-import { logHttpError, logPromiseError } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { Prompt } from 'react-router'
 import { Route, Redirect, Switch, withRouter } from 'react-router-dom';
@@ -94,10 +95,11 @@ function Index(props: any) {
         unitFormat = '0,0';
 
     function getShipments() {
-        return fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        return fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setShipments(data);
@@ -108,11 +110,11 @@ function Index(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         });
@@ -151,10 +153,11 @@ function Index(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        const getShipmentGates = fetch(NODE_SERVER + 'Shipments/Gates' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        const getShipmentGates = fetch(NODE_SERVER + 'Shipments/Gates' + createQueryString({
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setShipmentGates(data);
@@ -165,11 +168,11 @@ function Index(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         });
@@ -186,7 +189,7 @@ function Index(props: any) {
             if (InputTools.areValid(shipmentGateModalForm)) {
                 setLoading(true);
 
-                fetch(NODE_SERVER + 'Shipments' + createQueryString({}), {
+                fetch(NODE_SERVER + 'Shipments' + createQueryString({}), Http.addAuthorizationHeader({
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -194,9 +197,8 @@ function Index(props: any) {
                     body: JSON.stringify({
                         code: shipmentCodeSelected,
                         gateID: modalShipmentGateID.value
-                    }),
-                    credentials: 'include'
-                }).then(async result => {
+                    })
+                })).then(async result => {
                     if (result.ok && result.status === httpStatus.OK) {
                         await getShipments();
 
@@ -214,11 +216,11 @@ function Index(props: any) {
                     }
                 }).catch(error => {
                     if (error as Response) {
-                        logHttpError(error);
+                        Log.httpError(error);
                         alert(t('key_302'));
                     }
                     else {
-                        logPromiseError(error);
+                        Log.promiseError(error);
                         alert(t('key_416'));
                     }
 
@@ -396,10 +398,9 @@ function Edit(props: any) {
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
                 shipmentCode: shipmentCodeQS,
                 palletID: matchPalletCode ? parseInt(matchPalletCode[0].replace('PL', '').replace('/', '').replace('-', '')) : -1,
-            }), {
-                method: 'GET',
-                credentials: 'include'
-            }).then(async result => {
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     await result.json().then(data => {
                         setFormMessage('');
@@ -411,11 +412,11 @@ function Edit(props: any) {
                 }
             }).catch(error => {
                 if (error as Response) {
-                    logHttpError(error);
+                    Log.httpError(error);
                     formAlert(error.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
                 }
                 else {
-                    logPromiseError(error);
+                    Log.promiseError(error);
                     formAlert(t('key_416'));
                 }
             }).finally(() => {
@@ -435,10 +436,9 @@ function Edit(props: any) {
                     shipmentCode: shipmentCodeQS,
                     boxCode: boxCode.value,
                     unload: unload.value
-                }), {
-                    method: 'GET',
-                    credentials: 'include'
-                }).then(async result => {
+                }), Http.addAuthorizationHeader({
+                    method: 'GET'
+                })).then(async result => {
                     if (result.ok && result.status === httpStatus.OK) {
                         await result.json().then(data => {
                             setFormMessage('');
@@ -450,7 +450,7 @@ function Edit(props: any) {
                     }
                 }).catch(async error => {
                     if (error as Response) {
-                        logHttpError(error);
+                        Log.httpError(error);
 
                         if (error.status === httpStatus.NOT_FOUND) {
                             formAlert(t('key_872'));
@@ -464,7 +464,7 @@ function Edit(props: any) {
                                     formAlert(t('key_828'));
                                 }
                             }).catch(errorAux => {
-                                logPromiseError(errorAux);
+                                Log.promiseError(errorAux);
                                 formAlert(t('key_416'));
                             });
                         }
@@ -473,7 +473,7 @@ function Edit(props: any) {
                         }
                     }
                     else {
-                        logPromiseError(error);
+                        Log.promiseError(error);
                         formAlert(t('key_416'));
                     }
                 }).finally(() => {
@@ -490,10 +490,11 @@ function Edit(props: any) {
     }
 
     function getShipmentProducts() {
-        return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({ shipmentCode: shipmentCodeQS }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        return fetch(NODE_SERVER + 'ERP/Shipments/Products' + createQueryString({
+            shipmentCode: shipmentCodeQS
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setProducts(data);
@@ -504,11 +505,11 @@ function Edit(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         });
@@ -522,10 +523,9 @@ function Edit(props: any) {
             orderCode: orderCode,
             orderLine: orderLine,
             languageCode: globalState.authUser.Language.Code
-        }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setComponentsModal(true);
@@ -537,11 +537,11 @@ function Edit(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }).finally(() => {
@@ -562,14 +562,13 @@ function Edit(props: any) {
         fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
             shipmentCode: shipmentCodeQS,
             unload: unload.value
-        }), {
+        }), Http.addAuthorizationHeader({
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(boxes.map(x => { return x.Code; })),
-            credentials: 'include'
-        }).then(async result => {
+            body: JSON.stringify(boxes.map(x => { return x.Code; }))
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setFormMessage('');
@@ -582,11 +581,11 @@ function Edit(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_302'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }).finally(() => {
@@ -598,10 +597,11 @@ function Edit(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        const getShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({ code: shipmentCodeQS }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        const getShipment = fetch(NODE_SERVER + 'ERP/Shipments' + createQueryString({
+            code: shipmentCodeQS
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setDescription(x => { return { ...x, value: data.Description }; });
@@ -612,13 +612,13 @@ function Edit(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
 
                 alert(error.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
                 history.replace('/Expedition');
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         });

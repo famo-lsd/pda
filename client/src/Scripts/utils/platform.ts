@@ -1,16 +1,16 @@
+import Http from './http';
 import httpStatus from 'http-status';
+import Log from './log';
 import { createQueryString } from './general';
-import { logHttpError, logPromiseError } from './log';
 import { NODE_SERVER } from './variablesRepo';
 import { setMomentLocale } from './date';
 import { setNumeralLocale } from './number';
 import { TFunction } from 'i18next';
 
 export async function isAndroidApp(authUser: any, globalActions: any, t: TFunction) {
-    await fetch(NODE_SERVER + 'Platform/Android' + createQueryString({}), {
-        method: 'GET',
-        credentials: 'include'
-    }).then(async result => {
+    await fetch(NODE_SERVER + 'Platform/Android' + createQueryString({}), Http.addAuthorizationHeader({
+        method: 'GET'
+    })).then(async result => {
         if (result.ok && result.status === httpStatus.OK) {
             await result.json().then(async data => {
                 if (authUser) {
@@ -31,11 +31,11 @@ export async function isAndroidApp(authUser: any, globalActions: any, t: TFuncti
         }
     }).catch(error => {
         if (error as Response) {
-            logHttpError(error);
+            Log.httpError(error);
             alert(t('key_303'));
         }
         else {
-            logPromiseError(error);
+            Log.promiseError(error);
             alert(t('key_416'));
         }
     });

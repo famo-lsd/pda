@@ -1,8 +1,9 @@
 import Authentication from '../utils/authentication';
 import httpStatus from 'http-status';
+import Log from '../utils/log';
 import React, { useEffect, useState } from 'react';
-import { logHttpError, logPromiseError } from '../utils/log';
 import { isAndroidApp } from '../utils/platform';
+import { NODE_TOKEN_KEY } from '../utils/variablesRepo';
 import { Redirect } from 'react-router-dom';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
@@ -72,7 +73,8 @@ function SignIn(props: any) {
             await Authentication.signIn(state.username, state.password).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     await result.json().then(async data => {
-                        await isAndroidApp(data, globalActions, t);
+                        window.localStorage.setItem(NODE_TOKEN_KEY, data.Token);
+                        await isAndroidApp(data.AuthUser, globalActions, t);
                     });
                 }
                 else {
@@ -80,7 +82,7 @@ function SignIn(props: any) {
                 }
             }).catch(error => {
                 if (error as Response) {
-                    logHttpError(error);
+                    Log.httpError(error);
 
                     setState(x => { return { ...x, password: '', passwordErrorMsg: false, authError: true, authHttpCode: error.status }; });
                     if (error.status !== httpStatus.BAD_REQUEST && error.status !== httpStatus.INTERNAL_SERVER_ERROR) {
@@ -88,7 +90,7 @@ function SignIn(props: any) {
                     }
                 }
                 else {
-                    logPromiseError(error);
+                    Log.promiseError(error);
                     alert(t('key_416'));
                 }
             });

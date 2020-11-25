@@ -1,10 +1,11 @@
+import Http from '../utils/http';
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools, InputType } from './elements/input';
+import Log from '../utils/log';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
-import { logHttpError, logPromiseError } from '../utils/log';
 import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
@@ -143,10 +144,12 @@ function AddBox(props: any) {
     function getBox() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Warehouse/Boxes' + createQueryString({
+            code: boxCode.value,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setBox(data);
@@ -164,7 +167,7 @@ function AddBox(props: any) {
             }
         }).catch(async error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
 
                 if (error.status === httpStatus.NOT_FOUND) {
                     alert(t('key_883'));
@@ -176,7 +179,7 @@ function AddBox(props: any) {
                     await error.json().then(data => {
                         alert(t('key_887') + ' ' + data.box);
                     }).catch(errorAux => {
-                        logPromiseError(errorAux);
+                        Log.promiseError(errorAux);
                         alert(t('key_416'));
                     });
                 }
@@ -185,7 +188,7 @@ function AddBox(props: any) {
                 }
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -207,10 +210,12 @@ function AddBox(props: any) {
     function checkBinOrder(code: string, binID: string) {
         setCheckingOrder(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({ code: code, binID: binID }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({
+            code: code,
+            binID: binID
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setSeparatedOrder(data);
@@ -221,11 +226,11 @@ function AddBox(props: any) {
             }
         }).catch(async error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }).finally(() => {
@@ -236,7 +241,7 @@ function AddBox(props: any) {
     function addBox() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({}), {
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({}), Http.addAuthorizationHeader({
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -244,9 +249,8 @@ function AddBox(props: any) {
             body: JSON.stringify({
                 binID: binID.value,
                 code: box.Code
-            }),
-            credentials: 'include'
-        }).then(async result => {
+            })
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 setBox(null);
                 setCheckingOrder(false);
@@ -261,11 +265,11 @@ function AddBox(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_302'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -289,10 +293,11 @@ function AddBox(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setBins(data);
@@ -303,11 +308,11 @@ function AddBox(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }).finally(() => {
@@ -448,10 +453,12 @@ function TransferBox(props: any) {
     function getBox() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+            code: boxCode.value,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setBox(data);
@@ -465,11 +472,11 @@ function TransferBox(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(error.status === httpStatus.NOT_FOUND ? t('key_883') : t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -499,7 +506,9 @@ function TransferBox(props: any) {
     function transfer() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString(transferType === TransferType.Box ? { ID: box.ID } : {}), {
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString(transferType === TransferType.Box ? {
+            ID: box.ID
+        } : {}), Http.addAuthorizationHeader({
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -507,9 +516,8 @@ function TransferBox(props: any) {
             body: JSON.stringify({
                 binID: binID.value,
                 orderCode: box.OrderCode
-            }),
-            credentials: 'include'
-        }).then(async result => {
+            })
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 setBox(null);
                 setLoading(false);
@@ -522,11 +530,11 @@ function TransferBox(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(error.status === httpStatus.CONFLICT ? t('key_885') : t('key_302'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -537,10 +545,11 @@ function TransferBox(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({ languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setBins(data);
@@ -551,11 +560,11 @@ function TransferBox(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }).finally(() => {
@@ -736,10 +745,12 @@ function DeleteBox(props: any) {
     function getBox() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ code: boxCode.value, languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+            code: boxCode.value,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setBox(data);
@@ -751,11 +762,11 @@ function DeleteBox(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(error.status === httpStatus.NOT_FOUND ? t('key_883') : t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -775,13 +786,14 @@ function DeleteBox(props: any) {
         if (window.confirm(t('key_880'))) {
             setLoading(true);
 
-            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ ID: box.ID }), {
+            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+                ID: box.ID
+            }), Http.addAuthorizationHeader({
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            }).then(async result => {
+                }
+            })).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     setBox(null);
                     setLoading(false);
@@ -793,11 +805,11 @@ function DeleteBox(props: any) {
                 }
             }).catch(error => {
                 if (error as Response) {
-                    logHttpError(error);
+                    Log.httpError(error);
                     alert(t('key_302'));
                 }
                 else {
-                    logPromiseError(error);
+                    Log.promiseError(error);
                     alert(t('key_416'));
                 }
 
@@ -952,10 +964,11 @@ function Order(props: any) {
     function getBox() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'ERP/Boxes' + createQueryString({ code: boxCode.value }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'ERP/Boxes' + createQueryString({
+            code: boxCode.value
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json()
                     .then(data => {
@@ -967,7 +980,7 @@ function Order(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
 
                 if (error.status === httpStatus.NOT_FOUND) {
                     alert(t('key_883'));
@@ -980,7 +993,7 @@ function Order(props: any) {
                 }
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -999,10 +1012,12 @@ function Order(props: any) {
 
     useEffect(() => {
         if (box) {
-            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({ orderCode: box.OrderCode, languageCode: globalState.authUser.Language.Code }), {
-                method: 'GET',
-                credentials: 'include'
-            }).then(async result => {
+            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+                orderCode: box.OrderCode,
+                languageCode: globalState.authUser.Language.Code
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     await result.json().then(data => {
                         setBoxes(data);
@@ -1013,11 +1028,11 @@ function Order(props: any) {
                 }
             }).catch(error => {
                 if (error as Response) {
-                    logHttpError(error);
+                    Log.httpError(error);
                     alert(error.status === httpStatus.NOT_FOUND ? t('key_884') : t('key_303'));
                 }
                 else {
-                    logPromiseError(error);
+                    Log.promiseError(error);
                     alert(t('key_416'));
                 }
             }).finally(() => {

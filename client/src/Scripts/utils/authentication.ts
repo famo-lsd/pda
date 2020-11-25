@@ -1,36 +1,13 @@
 import httpStatus from 'http-status';
+import Log from './log';
 import { createQueryString } from './general';
-import { logHttpError, logPromiseError } from './log';
 import { isAndroidApp } from './platform';
-import { NODE_SERVER } from './variablesRepo';
+import { NODE_SERVER, NODE_TOKEN_KEY } from './variablesRepo';
 import { TFunction } from 'i18next';
-
-export async function autoSignIn(globalActions: any, t: TFunction) {
-    await Authentication.autoSignIn()
-        .then(async wsSucc => {
-            if (wsSucc.ok && wsSucc.status === httpStatus.OK) {
-                await wsSucc.json()
-                    .then(async data => {
-                        await isAndroidApp(data, globalActions, t);
-                    })
-                    .catch(error => {
-                        logPromiseError(error);
-                        alert(t('key_416'));
-                    });
-            }
-            else {
-                logHttpError(wsSucc);
-                alert(t('key_306'));
-            }
-        })
-        .catch(wsErr => {
-            logPromiseError(wsErr);
-            alert(t('key_416'));
-        });
-}
+import Http from './http';
 
 export default class Authentication {
-    static signIn = async (username, password) => {
+    public static signIn(username: string, password: string) {
         return fetch(NODE_SERVER + 'Authentication/SignIn' + createQueryString({}), {
             method: 'POST',
             headers: {
@@ -39,22 +16,38 @@ export default class Authentication {
             body: JSON.stringify({
                 username: username,
                 password: password
-            }),
-            credentials: 'include'
+            })
         });
     }
 
-    static autoSignIn = async () => {
-        return fetch(NODE_SERVER + 'Authentication/AutoSignIn' + createQueryString({}), {
-            method: 'GET',
-            credentials: 'include'
+    public static async autoSignIn(globalActions: any, t: TFunction) {
+        await fetch(NODE_SERVER + 'Authentication/AutoSignIn' + createQueryString({}), {
+            method: 'GET'
+        }).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(async data => {
+                    window.localStorage.setItem(NODE_TOKEN_KEY, data.Token);
+                    await isAndroidApp(data.AuthUser, globalActions, t);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_306'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
         });
     }
 
-    static signOut = async () => {
-        return fetch(NODE_SERVER + 'Authentication/SignOut' + createQueryString({}), {
-            method: 'GET',
-            credentials: 'include'
-        });
+    public static signOut() {
+        return fetch(NODE_SERVER + 'Authentication/SignOut' + createQueryString({}), Http.addAuthorizationHeader({
+            method: 'GET'
+        }));
     }
 }

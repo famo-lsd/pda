@@ -1,6 +1,8 @@
 import AudioEffect from '../utils/audio';
+import Http from '../utils/http';
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools, InputType } from './elements/input';
+import Log from '../utils/log';
 import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
@@ -8,7 +10,6 @@ import Title from './elements/title';
 import { barcodeScan } from '../utils/barcode';
 import { createQueryString } from '../utils/general';
 import { ContentLoader } from './elements/loader';
-import { logHttpError, logPromiseError } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { SessionStorage, SS_PALLET_KEY } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
@@ -59,10 +60,9 @@ function Index(props: any) {
 
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
             shipmentCode: shipmentCode
-        }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setShipmentCodeSubmit(shipmentCode);
@@ -75,11 +75,11 @@ function Index(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(error.status === httpStatus.NOT_FOUND ? t('key_825') : t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
 
@@ -241,10 +241,9 @@ function Edit(props: any) {
             fetch(NODE_SERVER + 'ERP/Shipments/Boxes' + createQueryString({
                 shipmentCode: query.shipmentCode,
                 boxCode: code
-            }), {
-                method: 'GET',
-                credentials: 'include'
-            }).then(async result => {
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     await result.json().then(data => {
                         setFormMessage('');
@@ -259,7 +258,7 @@ function Edit(props: any) {
                 }
             }).catch(async error => {
                 if (error as Response) {
-                    logHttpError(error);
+                    Log.httpError(error);
 
                     if (error.status === httpStatus.NOT_FOUND) {
                         formAlert(t('key_872'));
@@ -273,7 +272,7 @@ function Edit(props: any) {
                                 formAlert(t('key_828'));
                             }
                         }).catch(errorAux => {
-                            logPromiseError(errorAux);
+                            Log.promiseError(errorAux);
                             formAlert(t('key_416'));
                         });
                     }
@@ -282,7 +281,7 @@ function Edit(props: any) {
                     }
                 }
                 else {
-                    logPromiseError(error);
+                    Log.promiseError(error);
                     formAlert(t('key_416'));
                 }
             }).finally(() => {
@@ -313,14 +312,13 @@ function Edit(props: any) {
         fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
             shipmentCode: query.shipmentCode,
             palletID: !palletID ? null : palletID
-        }), {
+        }), Http.addAuthorizationHeader({
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(boxes.filter(x => { return x.IsNew; }).map(x => { return x.Code; })),
-            credentials: 'include'
-        }).then(async result => {
+            body: JSON.stringify(boxes.filter(x => { return x.IsNew; }).map(x => { return x.Code; }))
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setPalletID(data.palletID);
@@ -333,11 +331,11 @@ function Edit(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_302'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }).finally(() => {
@@ -355,33 +353,34 @@ function Edit(props: any) {
             fetch(NODE_SERVER + 'ERP/Pallets/' + (isPalletOpen ? 'Close' : 'Reopen') + createQueryString(isPalletOpen ? {
                 shipmentCode: query.shipmentCode,
                 palletID: palletID
-            } : { palletID: palletID }), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(boxes.map(x => { return x.Code; })),
-                credentials: 'include'
-            }).then(result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    setIsPalletOpen(!isPalletOpen);
-                    alert(isPalletOpen ? t('key_812') : t('key_813'));
-                }
-                else {
-                    throw result;
-                }
-            }).catch(error => {
-                if (error as Response) {
-                    logHttpError(error);
-                    alert(t('key_302'));
-                }
-                else {
-                    logPromiseError(error);
-                    alert(t('key_416'));
-                }
-            }).finally(() => {
-                setPalletStatusChange(false);
-            });
+            } : {
+                    palletID: palletID
+                }), Http.addAuthorizationHeader({
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(boxes.map(x => { return x.Code; }))
+                })).then(result => {
+                    if (result.ok && result.status === httpStatus.OK) {
+                        setIsPalletOpen(!isPalletOpen);
+                        alert(isPalletOpen ? t('key_812') : t('key_813'));
+                    }
+                    else {
+                        throw result;
+                    }
+                }).catch(error => {
+                    if (error as Response) {
+                        Log.httpError(error);
+                        alert(t('key_302'));
+                    }
+                    else {
+                        Log.promiseError(error);
+                        alert(t('key_416'));
+                    }
+                }).finally(() => {
+                    setPalletStatusChange(false);
+                });
         }
     }
 
@@ -406,10 +405,9 @@ function Edit(props: any) {
             fetch(NODE_SERVER + 'ERP/Pallets/Boxes' + createQueryString({
                 shipmentCode: query.shipmentCode,
                 palletID: query.palletID
-            }), {
-                method: 'GET',
-                credentials: 'include'
-            }).then(async result => {
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     await result.json().then(data => {
                         // Check if pallet has some shipped boxes.
@@ -428,13 +426,13 @@ function Edit(props: any) {
                 }
             }).catch(error => {
                 if (error as Response) {
-                    logHttpError(error);
+                    Log.httpError(error);
 
                     alert(error.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
                     history.replace('/Pallet');
                 }
                 else {
-                    logPromiseError(error);
+                    Log.promiseError(error);
                     alert(t('key_416'));
                 }
             }).finally(() => {

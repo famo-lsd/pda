@@ -1,8 +1,11 @@
 import '../Content/style.css';
+import Authentication from './utils/authentication';
 import Expedition from './components/expedition';
 import Home from './components/home';
+import Http from './utils/http';
 import httpStatus from 'http-status';
 import Inventory from './components/inventory';
+import Log from './utils/log';
 import Pallet from './components/pallet';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
@@ -10,10 +13,8 @@ import SignIn from './components/signIn';
 import TV from './components/tv';
 import Warehouse from './components/warehouse';
 import { AppLoader } from './components/elements/loader';
-import { autoSignIn } from './utils/authentication';
 import { createQueryString, isMobileBrowser } from './utils/general';
 import { HashRouter, Route, Redirect, Switch, useHistory, useLocation } from 'react-router-dom';
-import { logHttpError, logPromiseError } from './utils/log';
 import { isAndroidApp } from './utils/platform';
 import { NODE_SERVER } from './utils/variablesRepo';
 import { Swipeable } from 'react-swipeable';
@@ -92,10 +93,9 @@ function RouteBody(props: any) {
     useEffect(() => {
         setLoadSession(true);
 
-        fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(async data => {
                     await isAndroidApp(data, globalActions, t);
@@ -108,10 +108,10 @@ function RouteBody(props: any) {
             await isAndroidApp(null, globalActions, t);
 
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
             }
         }).finally(() => {
             setLoadSession(false);
@@ -170,10 +170,9 @@ function AutoRouteBody(props: any) {
     useEffect(() => {
         setLoadSession(true);
 
-        fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        fetch(NODE_SERVER + 'Authentication/Session/User' + createQueryString({}), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(async data => {
                     await isAndroidApp(data, globalActions, t);
@@ -183,13 +182,13 @@ function AutoRouteBody(props: any) {
                 throw result;
             }
         }).catch(async error => {
-            await autoSignIn(globalActions, t);
+            await Authentication.autoSignIn(globalActions, t);
 
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
             }
         }).finally(() => {
             setLoadSession(false);

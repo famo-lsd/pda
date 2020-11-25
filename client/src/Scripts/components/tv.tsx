@@ -1,13 +1,14 @@
+import Http from '../utils/http';
 import httpStatus from 'http-status';
+import Log from '../utils/log';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import { createQueryString } from '../utils/general';
-import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
-import { logHttpError, logPromiseError } from '../utils/log';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { VictoryLabel, VictoryPie } from 'victory';
+import { withRouter } from 'react-router-dom';
 
 interface ShipmentGate {
     ID: number;
@@ -64,14 +65,15 @@ function TV(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        const getBin = fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({ code: binCodeQS, languageCode: globalState.authUser.Language.Code }), {
-            method: 'GET',
-            credentials: 'include'
-        }).then(async result => {
+        const getBin = fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
+            code: binCodeQS,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setBin(data);
-                    console.log(data);
                 });
             }
             else {
@@ -79,22 +81,23 @@ function TV(props: any) {
             }
         }).catch(error => {
             if (error as Response) {
-                logHttpError(error);
+                Log.httpError(error);
                 alert(t('key_303'));
             }
             else {
-                logPromiseError(error);
+                Log.promiseError(error);
                 alert(t('key_416'));
             }
         }),
-            getBinOrders = fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({ binCode: binCodeQS, languageCode: globalState.authUser.Language.Code }), {
-                method: 'GET',
-                credentials: 'include'
-            }).then(async result => {
+            getBinOrders = fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({
+                binCode: binCodeQS,
+                languageCode: globalState.authUser.Language.Code
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
                 if (result.ok && result.status === httpStatus.OK) {
                     await result.json().then(data => {
                         setBinOrders(data);
-                        console.log(data);
                     });
                 }
                 else {
@@ -102,11 +105,11 @@ function TV(props: any) {
                 }
             }).catch(error => {
                 if (error as Response) {
-                    logHttpError(error);
+                    Log.httpError(error);
                     alert(t('key_303'));
                 }
                 else {
-                    logPromiseError(error);
+                    Log.promiseError(error);
                     alert(t('key_416'));
                 }
             });
@@ -172,7 +175,7 @@ function TV(props: any) {
                                     </div>
                                     <div className='pda-victory-container'>
                                         <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
-                                            <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
+                                            <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#33ff33']} labels={() => null} />
                                             <VictoryLabel {...vicLabelConfig} textAnchor='middle' verticalAnchor='middle' text={[numeral(bin.TotalVolume / bin.MaxVolume).format(percentageFormat), numeral(bin.TotalVolume).format(unitFormat) + '/' + numeral(bin.MaxVolume).format(unitFormat) + ' m³']} style={[{ fill: '#ff3333' }]} />
                                         </svg>
                                     </div>
