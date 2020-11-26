@@ -9,24 +9,12 @@ import { barcodeScan } from '../utils/barcode';
 import { ContentLoader } from './elements/loader';
 import { convertNumeralToJS } from '../utils/number';
 import { createQueryString } from '../utils/general';
+import { ItemJournal, ItemJournalLine } from '../utils/interfaces';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { withRouter } from 'react-router-dom';
-
-interface ItemJournal {
-    Code: string;
-    Name: string;
-}
-
-interface ItemJournalLine {
-    Code: string;
-    ProductCode: string;
-    ProductVariantCode: string;
-    ProductDescription: string;
-    LocationCode: string;
-}
 
 function Inventory(props: any) {
     const { t } = useTranslation(),

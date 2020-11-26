@@ -1,39 +1,17 @@
+import '../../Content/tv.css';
 import Http from '../utils/http';
 import httpStatus from 'http-status';
 import Log from '../utils/log';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
+import { Bin, BinOrder } from '../utils/interfaces';
 import { createQueryString } from '../utils/general';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { VictoryLabel, VictoryPie } from 'victory';
 import { withRouter } from 'react-router-dom';
-
-interface ShipmentGate {
-    ID: number;
-    Label: string;
-}
-
-interface Bin {
-    ID: number;
-    Code: string;
-    Label: string;
-    MaxVolume: number;
-    TotalBoxes: number;
-    TotalVolume: number;
-}
-
-interface BinOrder {
-    CustomerName: string;
-    OrderCode: string;
-    OrderCountryCode: string;
-    OrderExpectedShipmentDate: Date;
-    OrderBoxes: number;
-    Bin: Bin;
-    BinOrderBoxes: number;
-    ShipmentGate: ShipmentGate;
-}
+import Title from './elements/title';
 
 function TV(props: any) {
     const { location } = props,
@@ -44,6 +22,7 @@ function TV(props: any) {
         [bin, setBin] = useState<Bin>(),
         binOrdersHeader: Array<string> = ['País', t('key_85'), t('key_179'), t('key_670'), t('key_900'), t('key_896')],
         [binOrders, setBinOrders] = useState<Array<BinOrder>>([]),
+        [time, setTime] = useState<Date>(new Date()),
         vicPieConfig = {
             standalone: false,
             cornerRadius: 10,
@@ -59,11 +38,17 @@ function TV(props: any) {
         moment = window['moment'],
         numeral = window['numeral'],
         dateFormat = 'L',
+        timeFormat = 'LTS',
         percentageFormat = '0.00%',
-        unitFormat = '0,0';
+        unitFormat = '0,0',
+        decimalFormat = '0,0.00';
 
     useEffect(() => {
         globalActions.setLoadPage(true);
+
+        const timer = setInterval(() => {
+            setTime(new Date());
+        }, 1000);
 
         const getBin = fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
             code: binCodeQS,
@@ -117,6 +102,10 @@ function TV(props: any) {
         Promise.all([getBin, getBinOrders]).finally(() => {
             globalActions.setLoadPage(false);
         });
+
+        return () => {
+            clearInterval(timer);
+        };
     }, []);
 
     return (
@@ -139,7 +128,12 @@ function TV(props: any) {
                                     return (
                                         <div key={i} className='famo-row famo-body-row'>
                                             <div className='famo-cell famo-col-1'>
-                                                <img src={'https://www.countryflags.io/' + x.OrderCountryCode.toLowerCase() + '/flat/48.png'} alt={x.OrderCountryCode} />
+                                                <p>
+                                                    <img src={'https://www.countryflags.io/' + x.OrderCountry.Code.toLowerCase() + '/flat/48.png'} alt={x.OrderCountry.Code} />
+                                                </p>
+                                                <p>
+                                                    <span className='famo-text-10'>{x.OrderCountry.Label}</span>
+                                                </p>
                                             </div>
                                             <div className='famo-cell famo-col-2'>
                                                 <span className='famo-text-10'>{x.CustomerName}</span>
@@ -164,6 +158,30 @@ function TV(props: any) {
                     </section>
                 </div>
                 <div className='col-12 col-xl-3'>
+                    <section className='famo-wrapper'>
+                        <div className='famo-content'>
+                            {bin &&
+                                <div className='famo-grid rating-panel'>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell text-center'>
+                                            <span className='famo-text-23'>{bin.Code}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                    <section className='famo-wrapper'>
+                        <div className='famo-content'>
+                            <div className='famo-grid rating-panel'>
+                                <div className='famo-row'>
+                                    <div className='famo-cell text-center'>
+                                        <span className='famo-text-23'>{moment(time).format(timeFormat)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                     <section className='famo-wrapper'>
                         <div className='famo-content'>
                             {bin &&

@@ -11,27 +11,18 @@ import { barcodeScan } from '../utils/barcode';
 import { createQueryString } from '../utils/general';
 import { ContentLoader } from './elements/loader';
 import { NODE_SERVER } from '../utils/variablesRepo';
+import { Pallet, PalletBox } from '../utils/interfaces';
 import { SessionStorage, SS_PALLET_KEY } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { withRouter, Route, Redirect, Switch } from 'react-router-dom';
 
-interface Box {
-    Code: string;
-    OrderCode: string;
-    IsNew: boolean;
-}
-
-interface Pallet {
-    ID: number;
-}
-
-function Pallet() {
+function Pallets() {
     return (
         <Switch>
-            <Route exact path='/Pallet' render={(props) => { return <Index {...props} />; }} />
-            <Route exact path='/Pallet/Edit' render={props => { return <Edit {...props} />; }} />
-            <Route path='/Pallet/*' render={() => { return <Redirect to='/Pallet' />; }} />
+            <Route exact path='/Pallets' render={(props) => { return <Index {...props} />; }} />
+            <Route exact path='/Pallets/Edit' render={props => { return <Edit {...props} />; }} />
+            <Route path='/Pallets/*' render={() => { return <Redirect to='/Pallets' />; }} />
         </Switch>
     );
 }
@@ -200,7 +191,7 @@ function Edit(props: any) {
         [isPalletOpen, setIsPalletOpen] = useState<boolean>(true),
         [isShipped, setIsShipped] = useState<boolean>(false),
         boxesHeader: Array<string> = [t('key_87'), t('key_179'), ''],
-        [boxes, setBoxes] = useState<Array<Box>>([]),
+        [boxes, setBoxes] = useState<Array<PalletBox>>([]),
         [loadingBox, setLoadingBox] = useState<boolean>(false),
         [savingPallet, setSavingPallet] = useState<boolean>(false),
         [palletStatusChange, setPalletStatusChange] = useState<boolean>(false),
@@ -249,7 +240,7 @@ function Edit(props: any) {
                         setFormMessage('');
 
                         // Add property IsNew.
-                        (data as Box).IsNew = true;
+                        (data as PalletBox).IsNew = true;
                         setBoxes([...boxes, data]);
                     });
                 }
@@ -417,7 +408,7 @@ function Edit(props: any) {
                         setIsPalletOpen(data.some(x => { return x.IsPalletOpen }));
 
                         // Add property IsNew.
-                        (data as Array<Box>).forEach(x => { x.IsNew = false; });
+                        (data as Array<PalletBox>).forEach(x => { x.IsNew = false; });
                         setBoxes(data);
                     });
                 }
@@ -573,4 +564,4 @@ function Edit(props: any) {
     }
 }
 
-export default withRouter(Pallet);
+export default withRouter(Pallets);

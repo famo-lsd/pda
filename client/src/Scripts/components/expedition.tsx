@@ -7,6 +7,7 @@ import Modal from './elements/modal';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
+import { Box, Shipment, ShipmentGate, ShipmentProduct, ShipmentProductComponent } from '../utils/interfaces';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
 import { NODE_SERVER } from '../utils/variablesRepo';
@@ -15,50 +16,6 @@ import { Route, Redirect, Switch, withRouter } from 'react-router-dom';
 import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
-
-interface Bin {
-    ID: number;
-    Code: string;
-    Label: string;
-}
-
-interface Box {
-    Code: string;
-}
-
-interface Shipment {
-    Code: string;
-    Description: string;
-    Gate: ShipmentGate;
-    PickedBoxes: number;
-    TotalBoxes: number;
-}
-
-interface ShipmentGate {
-    ID: number;
-    Label: string;
-}
-
-interface ShipmentProduct {
-    ProductCode: string;
-    ProductDescription: string;
-    ProductVolume: number;
-    OrderCode: string;
-    OrderLine: number;
-    PendingBoxes: number;
-    TotalBoxes: number;
-    ShipmentStatus: number;
-}
-
-interface ShipmentProductComponent {
-    ProductCode: string;
-    ProductDescription: string;
-    ComponentCode: string;
-    ComponentDescription: string;
-    Bin: Bin;
-    BoxCode: string;
-    BoxPrinted: boolean;
-}
 
 function Expedition() {
     return (
@@ -377,7 +334,7 @@ function Edit(props: any) {
         [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
         numeral = window['numeral'],
         unitFormat = '0,0',
-        volumeFormat = '0,0.00';
+        decimalFormat = '0,0.00';
 
     function formAlert(message: string) {
         if (globalState.androidApp) {
@@ -726,7 +683,7 @@ function Edit(props: any) {
                                     <div className={'famo-grid rating-panel ' + (savingBoxes ? 'hide' : '')}>
                                         <div className='famo-row'>
                                             <div className='famo-cell text-center'>
-                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.ShipmentStatus === 1 ? total + x.ProductVolume : total; }, 0)).format(volumeFormat)}</span><span className='famo-text-23'>{'/' + numeral(products.reduce((total, x) => { return total + x.ProductVolume; }, 0)).format(volumeFormat) + ' m³'}</span>
+                                                <span className='famo-text-23 famo-color-green'>{numeral(products.reduce((total, x) => { return x.ShipmentStatus === 1 ? total + x.ProductVolume : total; }, 0)).format(decimalFormat)}</span><span className='famo-text-23'>{'/' + numeral(products.reduce((total, x) => { return total + x.ProductVolume; }, 0)).format(decimalFormat) + ' m³'}</span>
                                             </div>
                                         </div>
                                     </div>

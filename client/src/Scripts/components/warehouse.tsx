@@ -4,6 +4,7 @@ import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import Log from '../utils/log';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
+import { Bin, BinBox, Box } from '../utils/interfaces';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
 import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
@@ -11,28 +12,6 @@ import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { VictoryLabel, VictoryPie } from 'victory';
-
-interface Box {
-    Code: string;
-    ProductCode: string;
-    OrderCode: string;
-    CustomerCode: string;
-    CustomerName: string;
-    ExpectedShipmentDate: Date;
-}
-
-interface Bin {
-    ID: number;
-    Code: string;
-    Label: string;
-}
-
-interface BinBox extends Box {
-    ID: number;
-    Bin: Bin;
-    Volume: number;
-    IsPrinted: boolean;
-}
 
 enum TransferType {
     Box = 1,

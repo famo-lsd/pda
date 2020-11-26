@@ -6,7 +6,7 @@ import Http from './utils/http';
 import httpStatus from 'http-status';
 import Inventory from './components/inventory';
 import Log from './utils/log';
-import Pallet from './components/pallet';
+import Pallets from './components/pallets';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import SignIn from './components/signIn';
@@ -126,7 +126,7 @@ function RouteBody(props: any) {
                     <PrivateRoute path='/TV' component={TV} />
                     <PrivateRoute path='/Warehouse' component={Warehouse} />
                     <PrivateRoute path='/Expedition' component={Expedition} />
-                    <PrivateRoute path='/Pallet' component={Pallet} />
+                    <PrivateRoute path='/Pallets' component={Pallets} />
                     <PrivateRoute path='/Inventory' component={Inventory} />
                     <Route exact path='/SignIn' render={routeProps => { return <SignIn {...routeProps} />; }} />
                 </Switch>
@@ -209,7 +209,7 @@ function AutoRouteBody(props: any) {
                             <Route path='/TV' render={() => { return <TV />; }} />
                             <Route path='/Warehouse' render={() => { return <Warehouse />; }} />
                             <Route path='/Expedition' render={() => { return <Expedition />; }} />
-                            <Route path='/Pallet' render={() => { return <Pallet />; }} />
+                            <Route path='/Pallets' render={() => { return <Pallets />; }} />
                             <Route path='/Inventory' render={() => { return <Inventory />; }} />
                         </Switch>
                         {!globalState.androidApp && backButton &&
