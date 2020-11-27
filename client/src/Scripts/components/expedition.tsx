@@ -31,6 +31,7 @@ function Index(props: any) {
     const { history } = props,
         { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
+        numeral = window['numeral'],
         [loading, setLoading] = useState<boolean>(false),
         shipmentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_900'), t('key_896'), ''],
         [shipments, setShipments] = useState<Array<Shipment>>([]),
@@ -48,7 +49,6 @@ function Index(props: any) {
         }),
         shipmentGateModalForm: Array<InputConfig> = [modalShipmentGateID],
         setShipmentGateModalForm: Array<any> = [setModalShipmentGateID],
-        numeral = window['numeral'],
         unitFormat = '0,0';
 
     function getShipments() {
@@ -287,6 +287,7 @@ function Edit(props: any) {
     const { history, location } = props,
         { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
+        numeral = window['numeral'],
         query = queryString.parse(location.search),
         shipmentCodeQS = query.shipmentCode,
         [shipmentCode, setShipmentCode] = useState<InputConfig>({
@@ -332,7 +333,6 @@ function Edit(props: any) {
         [componentsModal, setComponentsModal] = useState<boolean>(false),
         componentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_899'), t('key_892'), ''],
         [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
-        numeral = window['numeral'],
         unitFormat = '0,0',
         decimalFormat = '0,0.00';
 

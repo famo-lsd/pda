@@ -15,6 +15,9 @@
   .famo-text-15 {
     font-size: 14px !important;
   }
+  .famo-text-23 {
+    font-size: 27px !important;
+  }
   .famo-input {
     height: 34px;
   }
@@ -86,7 +89,7 @@
     font-style: normal !important;
     font-weight: normal !important;
     font-size: 36px !important;
-    line-height: 1em !important;
+    line-height: 1.375em !important;
     font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
     color: #000000;
   }
@@ -197,11 +200,57 @@
   .warehouse-boxes .famo-col-3 {
     width: 50px;
   }
-  .bin-orders .famo-col-1 {
-    width: 110px;
+  .tv-body p + p {
+    margin-top: 0px;
   }
-  .bin-orders .famo-col-6 {
-    width: 65px;
+  .tv-body .famo-text-10,
+  .tv-body .famo-text-11 {
+    font-size: 34px !important;
+  }
+  .tv-body .famo-text-23 {
+    font-size: 52px !important;
+  }
+  .tv-body span[class*="famo-text-"] {
+    text-transform: uppercase;
+  }
+  .tv-body .famo-color-green {
+    color: #33ff33 !important;
+  }
+  .tv-body .pda-victory-container {
+    height: 200px;
+  }
+  .tv-body .tv-text-1 {
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-size: 24px !important;
+    line-height: 1.375em !important;
+    font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
+    color: #404040;
+    text-transform: uppercase;
+  }
+  .tv-body .tv-dark-wrapper .famo-content {
+    background-color: #404040;
+  }
+  .tv-body .tv-dark-wrapper span[class*="famo-text-"] {
+    color: #ffffff;
+  }
+  .tv-body .bin-orders .famo-col-1 {
+    width: 120px;
+  }
+  .tv-body .bin-orders .famo-col-3 {
+    width: 265px;
+  }
+  .tv-body .bin-orders .famo-col-4 {
+    width: 210px;
+  }
+  .tv-body .bin-orders .famo-col-5 {
+    width: 185px;
+  }
+  .tv-body .bin-orders .famo-col-6 {
+    width: 100px;
+  }
+  .tv-body .bin-orders-data {
+    overflow-y: hidden;
   }
 }
 @media screen and (max-width: 991px) {
@@ -214,6 +263,9 @@
   .famo-text-12,
   .famo-text-15 {
     font-size: 12px !important;
+  }
+  .famo-text-23 {
+    font-size: 25px !important;
   }
   .famo-input {
     height: 30px;

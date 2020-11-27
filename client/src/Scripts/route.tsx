@@ -196,14 +196,14 @@ function AutoRouteBody(props: any) {
     }, []);
 
     useEffect(() => {
-        setBackButton(location.pathname === '/' ? false : true);
+        setBackButton(location.pathname === '/' || location.pathname === '/TV' ? false : true);
     }, [location.pathname]);
 
     return (
         <React.Fragment>
             {!loadSession &&
                 <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
-                    <section className='famo-body'>
+                    <section className={'famo-body ' + (location.pathname === '/TV' ? 'tv-body' : '')}>
                         <Switch>
                             <Route exact path='/' render={() => { return <Home />; }} />
                             <Route path='/TV' render={() => { return <TV />; }} />

@@ -23,6 +23,10 @@
         font-size: 14px !important;
     }
 
+    .famo-text-23 {
+        font-size: 27px !important;
+    }
+
     .famo-input {
         height: 34px;
     }
@@ -106,7 +110,7 @@
             height: 100%;
 
             tspan {
-                .applyText(normal, normal, 36px, @base_color, @base_line_height);
+                .applyText(normal, normal, 36px, @base_color);
             }
         }
     }
@@ -211,9 +215,58 @@
         .applyCol(3, @width: 30px);
     }
 
-    .bin-orders {
-        .applyCol(1, @width: 90px);
-        .applyCol(6, @width: 45px);
+    .tv-body {
+        p+p {
+            margin-top: 0px;
+        }
+
+        .famo-text-10,
+        .famo-text-11 {
+            font-size: 34px !important;
+        }
+
+        .famo-text-23 {
+            font-size: 52px !important;
+        }
+
+        span[class*="famo-text-"] {
+            text-transform: uppercase;
+        }
+
+        .famo-color-green {
+            color: #33ff33 !important;
+        }
+
+        .pda-victory-container {
+            height: 200px;
+        }
+
+        .tv-text-1 {
+            .applyText(normal, normal, 24px, @base_color_lighten_2);
+            text-transform: uppercase;
+        }
+
+        .tv-dark-wrapper {
+            .famo-content {
+                background-color: @base_color_lighten_2;
+            }
+
+            span[class*="famo-text-"] {
+                color: @color_2;
+            }
+        }
+
+        .bin-orders {
+            .applyCol(1, @width: 100px);
+            .applyCol(3, @width: 245px);
+            .applyCol(4, @width: 190px);
+            .applyCol(5, @width: 165px);
+            .applyCol(6, @width: 80px);
+        }
+
+        .bin-orders-data {
+            overflow-y: hidden;
+        }
     }
 }
 
@@ -234,6 +287,10 @@
     .famo-text-12,
     .famo-text-15 {
         font-size: 12px !important;
+    }
+
+    .famo-text-23 {
+        font-size: 25px !important;
     }
 
     .famo-input {

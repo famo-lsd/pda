@@ -68,6 +68,7 @@ function Index(props: any) {
 function AddBox(props: any) {
     const { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
+        moment = window['moment'],
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Text,
@@ -117,7 +118,6 @@ function AddBox(props: any) {
         boxForm: Array<InputConfig> = [binID, orderCode, customerName, expectedShipmentDate],
         setBoxForm: Array<any> = [setBinID, setOrderCode, setCustomerName, setExpectedShipmentDate],
         saveButtonRef: React.RefObject<HTMLButtonElement> = React.createRef(),
-        moment = window['moment'],
         dateFormat = 'L';
 
     function getBox() {
@@ -403,6 +403,7 @@ function AddBox(props: any) {
 function TransferBox(props: any) {
     const { t } = useTranslation(),
         [globalState, globalActions] = useGlobal(),
+        moment = window['moment'],
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Text,
@@ -426,7 +427,6 @@ function TransferBox(props: any) {
         binForm: Array<InputConfig> = [binID],
         setBinForm: Array<any> = [setBinID],
         [transferType, setTransferType] = useState<TransferType>(null),
-        moment = window['moment'],
         dateFormat = 'L';
 
     function getBox() {
@@ -707,6 +707,7 @@ function TransferBox(props: any) {
 function DeleteBox(props: any) {
     const { t } = useTranslation(),
         [globalState,] = useGlobal(),
+        moment = window['moment'],
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Text,
@@ -718,7 +719,6 @@ function DeleteBox(props: any) {
         }),
         [loading, setLoading] = useState<boolean>(false),
         [box, setBox] = useState<BinBox>(null),
-        moment = window['moment'],
         dateFormat = 'L';
 
     function getBox() {
@@ -909,6 +909,8 @@ function DeleteBox(props: any) {
 function Order(props: any) {
     const { t } = useTranslation(),
         [globalState,] = useGlobal(),
+        moment = window['moment'],
+        numeral = window['numeral'],
         [boxCode, setBoxCode] = useState<InputConfig>({
             ref: React.createRef(),
             type: InputType.Text,
@@ -934,8 +936,6 @@ function Order(props: any) {
         },
         boxesHeader: Array<string> = [t('key_339'), t('key_900'), t('key_892')],
         [boxes, setBoxes] = useState<Array<BinBox>>([]),
-        moment = window['moment'],
-        numeral = window['numeral'],
         dateFormat = 'L',
         percentageFormat = '0.00%',
         unitFormat = '0,0';
