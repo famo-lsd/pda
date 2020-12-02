@@ -22,6 +22,7 @@ export interface BinOrder {
     OrderBoxes: number;
     Bin: Bin;
     BinOrderBoxes: number;
+    AllBinOrderBoxes: number;
     ShipmentGate: ShipmentGate;
 }
 

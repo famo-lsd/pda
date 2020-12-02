@@ -226,7 +226,7 @@
         }
 
         .famo-text-23 {
-            font-size: 52px !important;
+            font-size: 50px !important;
         }
 
         span[class*="famo-text-"] {
@@ -244,6 +244,15 @@
         .tv-text-1 {
             .applyText(normal, normal, 24px, @base_color_lighten_2);
             text-transform: uppercase;
+        }
+
+        .tv-blink-row {
+            .runAnimation(blink-row 2s linear infinite);
+
+            span[class*="tv-text-"],
+            span[class*="famo-text-"]:not([class*="famo-color-"]) {
+                .runAnimation(blink-row-text 2s linear infinite);
+            }
         }
 
         .tv-dark-wrapper {

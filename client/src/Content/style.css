@@ -1,3 +1,53 @@
+@-webkit-keyframes blink-row {
+  50% {
+    background-color: #404040;
+  }
+}
+@-o-keyframes blink-row {
+  50% {
+    background-color: #404040;
+  }
+}
+@-ms-keyframes blink-row {
+  50% {
+    background-color: #404040;
+  }
+}
+@-moz-keyframes blink-row {
+  50% {
+    background-color: #404040;
+  }
+}
+@keyframes blink-row {
+  50% {
+    background-color: #404040;
+  }
+}
+@-webkit-keyframes blink-row-text {
+  50% {
+    color: white;
+  }
+}
+@-o-keyframes blink-row-text {
+  50% {
+    color: white;
+  }
+}
+@-ms-keyframes blink-row-text {
+  50% {
+    color: white;
+  }
+}
+@-moz-keyframes blink-row-text {
+  50% {
+    color: white;
+  }
+}
+@keyframes blink-row-text {
+  50% {
+    color: white;
+  }
+}
 @media all {
   *:not(.famo-input) {
     -webkit-user-select: none;
@@ -208,7 +258,7 @@
     font-size: 34px !important;
   }
   .tv-body .famo-text-23 {
-    font-size: 52px !important;
+    font-size: 50px !important;
   }
   .tv-body span[class*="famo-text-"] {
     text-transform: uppercase;
@@ -227,6 +277,19 @@
     font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
     color: #404040;
     text-transform: uppercase;
+  }
+  .tv-body .tv-blink-row {
+    -webkit-animation: blink-row 2s linear infinite;
+    -moz-animation: blink-row 2s linear infinite;
+    -o-animation: blink-row 2s linear infinite;
+    animation: blink-row 2s linear infinite;
+  }
+  .tv-body .tv-blink-row span[class*="tv-text-"],
+  .tv-body .tv-blink-row span[class*="famo-text-"]:not([class*="famo-color-"]) {
+    -webkit-animation: blink-row-text 2s linear infinite;
+    -moz-animation: blink-row-text 2s linear infinite;
+    -o-animation: blink-row-text 2s linear infinite;
+    animation: blink-row-text 2s linear infinite;
   }
   .tv-body .tv-dark-wrapper .famo-content {
     background-color: #404040;

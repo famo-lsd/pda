@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useRef } from 'react';
+
 export function createQueryString(json: any) {
     let qs = '?timestamp=' + new Date().getTime();
 
@@ -39,4 +41,24 @@ export function loadScript(src: string, ref: React.RefObject<any> = null) {
     return new Promise((resolve, reject) => {
         script.onload = resolve;
     });
+}
+
+export function useInterval(callback, delay) {
+    const savedCallback = useRef<any>();
+
+    // Remember the latest callback.
+    useEffect(() => {
+        savedCallback.current = callback;
+    }, [callback]);
+
+    // Set up the interval.
+    useEffect(() => {
+        function tick() {
+            savedCallback.current();
+        }
+        if (delay !== null) {
+            const id = setInterval(tick, delay);
+            return () => clearInterval(id);
+        }
+    }, [delay]);
 }

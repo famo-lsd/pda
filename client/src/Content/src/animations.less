@@ -1,31 +1,63 @@
-// .slide-top() {
-//     // 0% {
-//     //     height: 100%;
-//     // }
+@import 'baseVariables.less';
 
-//     100% {
-//         height: 0px;
-//         padding-top: 0px;
-//         padding-bottom: 0px;
-//     }
-// }
+// blink-row
+.blinkRow() {
+    0% {}
 
-// @-webkit-keyframes slide-top {
-//     .slide-top();
-// }
+    50% {
+        background-color: @base_color_lighten_2;
+    }
 
-// @-moz-keyframes slide-top {
-//     .slide-top();
-// }
+    100% {}
+}
 
-// @-o-keyframes slide-top {
-//     .slide-top();
-// }
+@-webkit-keyframes blink-row {
+    .blinkRow();
+}
 
-// @-ms-keyframes slide-top {
-//     .slide-top();
-// }
+@-o-keyframes blink-row {
+    .blinkRow();
+}
 
-// @keyframes slide-top {
-//     .slide-top();
-// }
+@-ms-keyframes blink-row {
+    .blinkRow();
+}
+
+@-moz-keyframes blink-row {
+    .blinkRow();
+}
+
+@keyframes blink-row {
+    .blinkRow();
+}
+
+// blink-row-text
+.blinkRowText() {
+    0% {}
+
+    50% {
+        color: white;
+    }
+
+    100% {}
+}
+
+@-webkit-keyframes blink-row-text {
+    .blinkRowText();
+}
+
+@-o-keyframes blink-row-text {
+    .blinkRowText();
+}
+
+@-ms-keyframes blink-row-text {
+    .blinkRowText();
+}
+
+@-moz-keyframes blink-row-text {
+    .blinkRowText();
+}
+
+@keyframes blink-row-text {
+    .blinkRowText();
+}

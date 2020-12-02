@@ -4,7 +4,7 @@ import Log from '../utils/log';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import { Bin, BinOrder } from '../utils/interfaces';
-import { createQueryString } from '../utils/general';
+import { createQueryString, useInterval } from '../utils/general';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,7 @@ function TV(props: any) {
         [binOrdersHeight, setBinOrdersHeight] = useState<number>(-1),
         binOrdersHeader: Array<string> = ['', t('key_85'), t('key_179'), 'Carga', t('key_900'), t('key_896')],
         [binOrders, setBinOrders] = useState<Array<BinOrder>>([]),
+        [autoScrollDown, setAutoScrollDown] = useState<boolean>(true),
         [time, setTime] = useState(moment()),
         vicPieConfig = {
             standalone: false,
@@ -37,14 +38,51 @@ function TV(props: any) {
         unitFormat = '0,0',
         decimalFormat = '0,0.00';
 
+    function getRowColor(binOrder: BinOrder): string {
+        const now = moment();
+
+        let ret = '';
+
+        if (binOrder.AllBinOrderBoxes === binOrder.OrderBoxes) {
+            ret = 'famo-color-green';
+        }
+        else {
+            if (moment(binOrder.OrderExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date'))) {
+                ret = 'famo-color-yellow';
+            }
+            else if (moment(binOrder.OrderExpectedShipmentDate).isSame(now.startOf('date'))) {
+                ret = 'famo-color-red';
+            }
+        }
+
+        return ret;
+    }
+
+    useInterval(() => {
+        setTime(moment());
+    }, 1000);
+
+    useInterval(() => {
+        if (!globalState.loadPage && bin && binOrders.length > 0) {
+            const binOrdersData = document.querySelector('.bin-orders-data'),
+                scrollHeight = binOrdersData.scrollHeight - binOrdersData.clientHeight;
+
+            if (binOrdersData.scrollTop === scrollHeight && autoScrollDown) {
+                setAutoScrollDown(false);
+            }
+
+            if (binOrdersData.scrollTop === 0 && !autoScrollDown) {
+                setAutoScrollDown(true);
+            }
+
+            binOrdersData.scroll(0, autoScrollDown ? (binOrdersData.scrollTop === scrollHeight ? scrollHeight : binOrdersData.scrollTop + 1) : (binOrdersData.scrollTop === 0 ? 0 : binOrdersData.scrollTop - 1));
+        }
+    }, 20);
+
     useEffect(() => {
         globalActions.setLoadPage(true);
 
         setBinOrdersHeight(window.innerHeight - 40 - 30 - 30 - 67);
-
-        const timer = setInterval(() => {
-            setTime(moment());
-        }, 1000);
 
         const getBin = fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
             code: binCodeQS,
@@ -100,38 +138,7 @@ function TV(props: any) {
 
             document.querySelector('.bin-orders-data').scrollTop = 400;
         });
-
-        return () => {
-            clearInterval(timer);
-        };
     }, []);
-
-    useEffect(() => {
-        let scrollTop = null;
-
-        if (!globalState.loadPage && bin && binOrders.length > 0) {
-            scrollTop = setInterval(() => {
-                const binOrdersData = document.querySelector('.bin-orders-data'),
-                    scrollHeight = binOrdersData.scrollHeight - binOrdersData.clientHeight;
-
-let val = binOrdersData.scrollTop + 1 > scrollHeight ? 0 : binOrdersData.scrollTop + 1;
-
-                    binOrdersData.scroll({ 
-                        top: val, 
-                        left: 0, 
-                        behavior: 'smooth'
-                    });
-
-                // binOrdersData.scrollTop = ;
-            }, 25);
-        }
-
-        return () => {
-            if (scrollTop) {
-                clearInterval(scrollTop);
-            }
-        };
-    }, [globalState.loadPage]);
 
     return (
         <section className='container famo-wrapper'>
@@ -155,8 +162,8 @@ let val = binOrdersData.scrollTop + 1 > scrollHeight ? 0 : binOrdersData.scrollT
                                     <div className='famo-row famo-header-row hide'></div>
                                     {binOrders.map((x, i) => {
                                         return (
-                                            <div key={i} className='famo-row famo-body-row'>
-                                                <div className='famo-cell famo-col-1 text-center'>
+                                            <div key={i} className={'famo-row famo-body-row ' + (x.ShipmentGate.ID !== -1 ? 'tv-blink-row' : '')}>
+                                                <div className='famo-cell famo-col-1  text-center'>
                                                     <p>
                                                         <img src={'https://www.countryflags.io/' + x.OrderCountry.Code.toLowerCase() + '/flat/64.png'} alt={x.OrderCountry.Code} />
                                                     </p>
@@ -165,19 +172,19 @@ let val = binOrdersData.scrollTop + 1 > scrollHeight ? 0 : binOrdersData.scrollT
                                                     </p>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
-                                                    <span className={'famo-text-10 ' + (x.BinOrderBoxes === x.OrderBoxes ? 'famo-color-green' : '')}>{x.CustomerName}</span>
+                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{x.CustomerName}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-3'>
-                                                    <span className={'famo-text-10 ' + (x.BinOrderBoxes === x.OrderBoxes ? 'famo-color-green' : '')}>{x.OrderCode}</span>
+                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{x.OrderCode}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-4'>
-                                                    <span className={'famo-text-10 ' + (x.BinOrderBoxes === x.OrderBoxes ? 'famo-color-green' : '')}>{moment(x.OrderExpectedShipmentDate) < moment() ? 'A definir' : moment(x.OrderExpectedShipmentDate).format(dateFormat)}</span>
+                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? 'A definir' : moment(x.OrderExpectedShipmentDate).format(dateFormat)}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-5 text-center'>
-                                                    <span className={'famo-text-10 ' + (x.BinOrderBoxes === x.OrderBoxes ? 'famo-color-green' : '')}>{numeral(x.BinOrderBoxes).format(unitFormat) + '/' + numeral(x.OrderBoxes).format(unitFormat)}</span>
+                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinOrderBoxes).format(unitFormat) + '/' + numeral(x.OrderBoxes).format(unitFormat)}</span>
                                                 </div>
                                                 <div className='famo-cell famo-col-6 text-center'>
-                                                    <span className={'famo-text-10 ' + (x.ShipmentGate.ID === -1 ? 'famo-color-yellow' : (x.BinOrderBoxes === x.OrderBoxes ? 'famo-color-green' : ''))}>{x.ShipmentGate.ID === -1 ? 'n/a' : x.ShipmentGate.Label}</span>
+                                                    <span className={'famo-text-10 ' + (x.ShipmentGate.ID === -1 ? 'famo-color-yellow' : getRowColor(x))}>{x.ShipmentGate.ID === -1 ? 'n/a' : x.ShipmentGate.Label}</span>
                                                 </div>
                                             </div>
                                         );
