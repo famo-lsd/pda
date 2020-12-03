@@ -13,14 +13,14 @@
     max-width: @max_width;
 }
 
-.applyCell(@display: NULL, @max_width: NULL, @width: NULL, @min_width: NULL, @vertical_align: NULL) {
+.applyCell(@display: NULL, @max_width: NULL, @width: NULL, @min_width: NULL, @padding: 10px, @vertical_align: NULL) {
     & when not (@display = NULL) {
         display: @display;
     }
 
     & when not (@max_width = NULL) {
         & when (ispixel(@max_width)) {
-            max-width: @max_width + 20px;
+            max-width: @max_width + (@padding * 2);
         }
 
         & when not (ispixel(@max_width)) {
@@ -30,7 +30,7 @@
 
     & when not (@width = NULL) {
         & when (ispixel(@width)) {
-            width: @width + 20px;
+            width: @width + (@padding * 2);
         }
 
         & when not (ispixel(@width)) {
@@ -40,7 +40,7 @@
 
     & when not (@min_width = NULL) {
         & when (ispixel(@min_width)) {
-            min-width: @min_width + 20px;
+            min-width: @min_width + (@padding * 2);
         }
 
         & when not (ispixel(@min_width)) {
@@ -55,7 +55,7 @@
 
 .applyCol(@n_col, @display: NULL, @max_width: NULL, @width: NULL, @min_width: NULL, @vertical_align: NULL) {
     .famo-col-@{n_col} {
-        .applyCell(@display, @max_width, @width, @min_width, @vertical_align);
+        .applyCell(@display, @max_width, @width, @min_width, 10px, @vertical_align);
     }
 }
 

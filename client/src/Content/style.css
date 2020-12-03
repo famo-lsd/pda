@@ -25,27 +25,27 @@
 }
 @-webkit-keyframes blink-row-text {
   50% {
-    color: white;
+    color: #ffffff;
   }
 }
 @-o-keyframes blink-row-text {
   50% {
-    color: white;
+    color: #ffffff;
   }
 }
 @-ms-keyframes blink-row-text {
   50% {
-    color: white;
+    color: #ffffff;
   }
 }
 @-moz-keyframes blink-row-text {
   50% {
-    color: white;
+    color: #ffffff;
   }
 }
 @keyframes blink-row-text {
   50% {
-    color: white;
+    color: #ffffff;
   }
 }
 @media all {
@@ -263,11 +263,19 @@
   .tv-body span[class*="famo-text-"] {
     text-transform: uppercase;
   }
+  .tv-body .famo-color-red {
+    color: #ff3333 !important;
+  }
   .tv-body .famo-color-green {
-    color: #33ff33 !important;
+    color: #00cc00 !important;
   }
   .tv-body .pda-victory-container {
     height: 200px;
+  }
+  .tv-body .tv-text-1,
+  .tv-body .tv-text-2,
+  .tv-body .tv-text-3 {
+    text-transform: uppercase;
   }
   .tv-body .tv-text-1 {
     font-style: normal !important;
@@ -276,7 +284,22 @@
     line-height: 1.375em !important;
     font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
     color: #404040;
-    text-transform: uppercase;
+  }
+  .tv-body .tv-text-2 {
+    font-style: normal !important;
+    font-weight: bold !important;
+    font-size: 34px !important;
+    line-height: 1.375em !important;
+    font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
+    color: #ffffff;
+  }
+  .tv-body .tv-text-3 {
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-size: 34px !important;
+    line-height: 1.375em !important;
+    font-family: 'Noto Sans', Calibri, 'Trebuchet MS' !important;
+    color: #ffffff;
   }
   .tv-body .tv-blink-row {
     -webkit-animation: blink-row 2s linear infinite;
@@ -291,6 +314,9 @@
     -o-animation: blink-row-text 2s linear infinite;
     animation: blink-row-text 2s linear infinite;
   }
+  .tv-body .tv-famo-logo img {
+    height: 65px;
+  }
   .tv-body .tv-dark-wrapper .famo-content {
     background-color: #404040;
   }
@@ -298,7 +324,7 @@
     color: #ffffff;
   }
   .tv-body .bin-orders .famo-col-1 {
-    width: 120px;
+    width: 130px;
   }
   .tv-body .bin-orders .famo-col-3 {
     width: 265px;
@@ -312,8 +338,58 @@
   .tv-body .bin-orders .famo-col-6 {
     width: 100px;
   }
+  .tv-body .bin-orders .famo-body-row .famo-col-1 span {
+    display: inline-block;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    word-break: break-word;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
+  }
   .tv-body .bin-orders-data {
     overflow-y: hidden;
+  }
+  .tv-footer {
+    position: fixed;
+    left: 0px;
+    bottom: 0px;
+    width: 100%;
+  }
+  .tv-footer .tv-messages {
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: #808080;
+  }
+  .tv-footer .tv-messages .row {
+    margin-top: 0px;
+    margin-bottom: 0px;
+  }
+  .tv-footer .tv-messages .row > div {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+  .tv-footer .tv-messages .row > div:first-child::after {
+    content: '';
+    border: 20px aqua solid;
+  }
+  .tv-footer .tv-messages .tv-message-type {
+    table-layout: fixed;
+  }
+  .tv-footer .tv-messages .tv-message-type span {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .tv-footer .tv-messages .famo-grid {
+    height: 65px;
+  }
+  .tv-footer .tv-messages .famo-grid .famo-cell {
+    vertical-align: middle;
   }
 }
 @media screen and (max-width: 991px) {

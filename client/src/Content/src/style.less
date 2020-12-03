@@ -233,17 +233,34 @@
             text-transform: uppercase;
         }
 
+        .famo-color-red {
+            color: #ff3333 !important;
+        }
+
         .famo-color-green {
-            color: #33ff33 !important;
+            color: #00cc00 !important;
         }
 
         .pda-victory-container {
             height: 200px;
         }
 
+        .tv-text-1,
+        .tv-text-2,
+        .tv-text-3 {
+            text-transform: uppercase;
+        }
+
         .tv-text-1 {
             .applyText(normal, normal, 24px, @base_color_lighten_2);
-            text-transform: uppercase;
+        }
+
+        .tv-text-2 {
+            .applyText(normal, bold, 34px, @color_2);
+        }
+
+        .tv-text-3 {
+            .applyText(normal, normal, 34px, @color_2);
         }
 
         .tv-blink-row {
@@ -252,6 +269,12 @@
             span[class*="tv-text-"],
             span[class*="famo-text-"]:not([class*="famo-color-"]) {
                 .runAnimation(blink-row-text 2s linear infinite);
+            }
+        }
+
+        .tv-famo-logo {
+            img {
+                height: 65px;
             }
         }
 
@@ -266,15 +289,80 @@
         }
 
         .bin-orders {
-            .applyCol(1, @width: 100px);
+            .applyCol(1, @width: 110px);
             .applyCol(3, @width: 245px);
             .applyCol(4, @width: 190px);
             .applyCol(5, @width: 165px);
             .applyCol(6, @width: 80px);
+
+            .famo-body-row {
+                .famo-col-1 {
+                    span {
+                        .applyWordHyphenation();
+                    }
+                }
+            }
         }
 
         .bin-orders-data {
             overflow-y: hidden;
+        }
+    }
+
+    .tv-footer {
+        position: fixed;
+        left: 0px;
+        bottom: 0px;
+        width: 100%;
+
+        .tv-messages {
+            padding-left: @famo_body_content_pad;
+            padding-right: @famo_body_content_pad;
+            background-color: @base_color_lighten_4;
+
+            .row {
+                margin-top: 0px;
+                margin-bottom: 0px;
+
+                &>div {
+                    padding-top: 0px;
+                    padding-bottom: 0px;
+
+                    &:first-child::after {
+                        content: '';
+                        border: 20px aqua solid;
+                    }
+                }
+            }
+
+            .tv-message-type {
+                table-layout: fixed;
+
+                span {
+                    .applyEllipsis();
+                }
+            }
+
+            .famo-grid {
+                height: 65px;
+
+                .famo-cell {
+                    vertical-align: middle;
+                }
+            }
+
+            // .famo-cell {
+            //     padding: 0px @famo_body_content_pad;
+            //     vertical-align: middle;
+
+            //     &:first-child {
+            //         .applyCell(@width: 180px, @padding: 15px);
+
+            //         span {
+            //             .applyEllipsis();
+            //         }
+            //     }
+            // }
         }
     }
 }

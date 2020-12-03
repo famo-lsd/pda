@@ -53,6 +53,12 @@ export interface ItemJournalLine {
     LocationCode: string;
 }
 
+export interface Pagination<T> {
+    Data: Array<T>;
+    CurrentPage: number;
+    PagesNumber: number;
+}
+
 export interface Pallet {
     ID: number;
 }

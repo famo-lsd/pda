@@ -23,7 +23,7 @@ function TV(props: any) {
         [binOrdersHeight, setBinOrdersHeight] = useState<number>(-1),
         binOrdersHeader: Array<string> = ['', t('key_85'), t('key_179'), 'Carga', t('key_900'), t('key_896')],
         [binOrders, setBinOrders] = useState<Array<BinOrder>>([]),
-        [autoScrollDown, setAutoScrollDown] = useState<boolean>(true),
+        [page, setPage] = useState<number>(1),
         [time, setTime] = useState(moment()),
         vicPieConfig = {
             standalone: false,
@@ -48,7 +48,7 @@ function TV(props: any) {
         }
         else {
             if (moment(binOrder.OrderExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date'))) {
-                ret = 'famo-color-yellow';
+                ret = 'famo-color-red';
             }
             else if (moment(binOrder.OrderExpectedShipmentDate).isSame(now.startOf('date'))) {
                 ret = 'famo-color-red';
@@ -62,27 +62,33 @@ function TV(props: any) {
         setTime(moment());
     }, 1000);
 
-    useInterval(() => {
-        if (!globalState.loadPage && bin && binOrders.length > 0) {
-            const binOrdersData = document.querySelector('.bin-orders-data'),
-                scrollHeight = binOrdersData.scrollHeight - binOrdersData.clientHeight;
+    // useInterval(() => {
+    //     const binOrdersData = document.querySelector('.bin-orders-data');
 
-            if (binOrdersData.scrollTop === scrollHeight && autoScrollDown) {
-                setAutoScrollDown(false);
-            }
+    //     if (!globalState.loadPage && bin && binOrders.length > 0 && binOrdersData) {
+    //         const scrollHeight = binOrdersData.scrollHeight - binOrdersData.clientHeight;
 
-            if (binOrdersData.scrollTop === 0 && !autoScrollDown) {
-                setAutoScrollDown(true);
-            }
+    //         if (binOrdersData.scrollTop === scrollHeight && autoScrollDown) {
+    //             setAutoScrollDown(false);
+    //         }
 
-            binOrdersData.scroll(0, autoScrollDown ? (binOrdersData.scrollTop === scrollHeight ? scrollHeight : binOrdersData.scrollTop + 1) : (binOrdersData.scrollTop === 0 ? 0 : binOrdersData.scrollTop - 1));
-        }
-    }, 20);
+    //         if (binOrdersData.scrollTop === 0 && !autoScrollDown) {
+    //             setAutoScrollDown(true);
+    //         }
+
+    //         // binOrdersData.scroll(0, autoScrollDown ? (binOrdersData.scrollTop === scrollHeight ? scrollHeight : binOrdersData.scrollTop + 1) : (binOrdersData.scrollTop === 0 ? 0 : binOrdersData.scrollTop - 1));
+    //         // binOrdersData.scroll(0, binOrdersData.scrollTop === scrollHeight ? 0 : binOrdersData.scrollTop + 1);
+    //     }
+    // }, 20);
 
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        setBinOrdersHeight(window.innerHeight - 40 - 30 - 30 - 67);
+        setBinOrdersHeight(window.innerHeight - document.querySelector('.tv-footer').clientHeight
+            // - document.querySelector('.famo-footer').clientHeight
+            - 30
+            - 30
+            - document.querySelector('.bin-orders .famo-header-row').clientHeight);
 
         const getBin = fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
             code: binCodeQS,
@@ -110,7 +116,8 @@ function TV(props: any) {
         }),
             getBinOrders = fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({
                 binCode: binCodeQS,
-                languageCode: globalState.authUser.Language.Code
+                languageCode: globalState.authUser.Language.Code,
+                page: page
             }), Http.addAuthorizationHeader({
                 method: 'GET'
             })).then(async result => {
@@ -141,116 +148,165 @@ function TV(props: any) {
     }, []);
 
     return (
-        <section className='container famo-wrapper'>
-            <div className='row'>
-                <div className='col-12 col-xl-10'>
-                    <section className='famo-wrapper'>
-                        <div className='famo-content'>
-                            <div className='famo-grid famo-content-grid bin-orders'>
-                                <div className='famo-row famo-header-row'>
-                                    {binOrdersHeader.map((x, i) => {
-                                        return (
-                                            <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
-                                                <span className='famo-text-11'>{x}</span>
-                                            </div>
-                                        );
-                                    })}
+        <React.Fragment>
+            <section className='container famo-wrapper'>
+                <div className='row'>
+                    <div className='col-12 col-xl-2'>
+                        <section className='famo-wrapper'>
+                            <div className='famo-content'>
+                                <div className='famo-grid tv-famo-logo'>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell text-center'>
+                                            <img src={'http://www.famo-code.com/Content/Images/logo-famo-black.png'} alt='FAMO' />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className='bin-orders bin-orders-data' style={{ maxHeight: (binOrdersHeight === -1 ? 'auto' : binOrdersHeight + 'px') }}>
-                                <div className='famo-grid famo-content-grid'>
-                                    <div className='famo-row famo-header-row hide'></div>
-                                    {binOrders.map((x, i) => {
-                                        return (
-                                            <div key={i} className={'famo-row famo-body-row ' + (x.ShipmentGate.ID !== -1 ? 'tv-blink-row' : '')}>
-                                                <div className='famo-cell famo-col-1  text-center'>
-                                                    <p>
-                                                        <img src={'https://www.countryflags.io/' + x.OrderCountry.Code.toLowerCase() + '/flat/64.png'} alt={x.OrderCountry.Code} />
-                                                    </p>
-                                                    <p>
-                                                        <span className='tv-text-1'>{x.OrderCountry.Label}</span>
-                                                    </p>
-                                                </div>
-                                                <div className='famo-cell famo-col-2'>
-                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{x.CustomerName}</span>
-                                                </div>
-                                                <div className='famo-cell famo-col-3'>
-                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{x.OrderCode}</span>
-                                                </div>
-                                                <div className='famo-cell famo-col-4'>
-                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? 'A definir' : moment(x.OrderExpectedShipmentDate).format(dateFormat)}</span>
-                                                </div>
-                                                <div className='famo-cell famo-col-5 text-center'>
-                                                    <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinOrderBoxes).format(unitFormat) + '/' + numeral(x.OrderBoxes).format(unitFormat)}</span>
-                                                </div>
-                                                <div className='famo-cell famo-col-6 text-center'>
-                                                    <span className={'famo-text-10 ' + (x.ShipmentGate.ID === -1 ? 'famo-color-yellow' : getRowColor(x))}>{x.ShipmentGate.ID === -1 ? 'n/a' : x.ShipmentGate.Label}</span>
-                                                </div>
+                        </section>
+                        <section className={'famo-wrapper ' + 'tv-dark-wrapper'}>
+                            <div className='famo-content'>
+                                {bin &&
+                                    <div className='famo-grid rating-panel'>
+                                        <div className='famo-row'>
+                                            <div className='famo-cell text-center'>
+                                                <span className='famo-text-23'>{bin.Code}</span>
                                             </div>
-                                        );
-                                    })}
-                                </div>
+                                        </div>
+                                    </div>
+                                }
                             </div>
-                        </div>
-                    </section>
-                </div>
-                <div className='col-12 col-xl-2'>
-                    <section className={'famo-wrapper ' + 'tv-dark-wrapper'}>
-                        <div className='famo-content'>
-                            {bin &&
+                        </section>
+                        <section className='famo-wrapper'>
+                            <div className='famo-content'>
                                 <div className='famo-grid rating-panel'>
                                     <div className='famo-row'>
                                         <div className='famo-cell text-center'>
-                                            <span className='famo-text-23'>{bin.Code}</span>
+                                            <span className='famo-text-23'>{time.format(dateFormat)}</span>
                                         </div>
                                     </div>
                                 </div>
-                            }
-                        </div>
-                    </section>
-                    <section className='famo-wrapper'>
-                        <div className='famo-content'>
-                            <div className='famo-grid rating-panel'>
-                                <div className='famo-row'>
-                                    <div className='famo-cell text-center'>
-                                        <span className='famo-text-23'>{time.format(dateFormat)}</span>
-                                    </div>
-                                </div>
                             </div>
-                        </div>
-                    </section>
-                    <section className='famo-wrapper'>
-                        <div className='famo-content'>
-                            <div className='famo-grid rating-panel'>
-                                <div className='famo-row'>
-                                    <div className='famo-cell text-center'>
-                                        <span className='famo-text-23'>{time.format(timeFormat)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                    <section className='famo-wrapper'>
-                        <div className='famo-content'>
-                            {bin &&
-                                <React.Fragment>
-                                    <div className='famo-grid'>
+                        </section>
+                        <section className='famo-wrapper'>
+                            <div className='famo-content'>
+                                <div className='famo-grid rating-panel'>
+                                    <div className='famo-row'>
                                         <div className='famo-cell text-center'>
-                                            <span className='famo-text-11'>{'Ocupação'}</span>
+                                            <span className='famo-text-23'>{time.format(timeFormat)}</span>
                                         </div>
                                     </div>
-                                    <div className='pda-victory-container'>
-                                        <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
-                                            <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#33ff33']} labels={() => null} />
-                                        </svg>
+                                </div>
+                            </div>
+                        </section>
+                        <section className='famo-wrapper'>
+                            <div className='famo-content'>
+                                {bin &&
+                                    <React.Fragment>
+                                        <div className='famo-grid'>
+                                            <div className='famo-cell text-center'>
+                                                <span className='famo-text-11'>{'Ocupação'}</span>
+                                            </div>
+                                        </div>
+                                        <div className='pda-victory-container'>
+                                            <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
+                                                <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#33ff33']} labels={() => null} />
+                                            </svg>
+                                        </div>
+                                    </React.Fragment>
+                                }
+                            </div>
+                        </section>
+                    </div>
+                    <div className='col-12 col-xl-10'>
+                        <section className='famo-wrapper'>
+                            <div className='famo-content'>
+                                <div className='famo-grid famo-content-grid bin-orders'>
+                                    <div className='famo-row famo-header-row'>
+                                        {binOrdersHeader.map((x, i) => {
+                                            return (
+                                                <div key={i} className={'famo-cell famo-col-' + (i + 1)}>
+                                                    <span className='famo-text-11'>{x}</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                </React.Fragment>
-                            }
-                        </div>
-                    </section>
+                                </div>
+                                <div className='bin-orders bin-orders-data' style={{ maxHeight: (binOrdersHeight === -1 ? 'auto' : binOrdersHeight + 'px') }}>
+                                    <div className='famo-grid famo-content-grid'>
+                                        <div className='famo-row famo-header-row hide'></div>
+                                        {binOrders.map((x, i) => {
+                                            return (
+                                                <div key={i} className={'famo-row famo-body-row ' + (x.ShipmentGate.ID !== -1 ? 'tv-blink-row' : '')}>
+                                                    <div className='famo-cell famo-col-1  text-center'>
+                                                        <p>
+                                                            <img src={'https://www.countryflags.io/' + x.OrderCountry.Code.toLowerCase() + '/flat/64.png'} alt={x.OrderCountry.Code} />
+                                                        </p>
+                                                        <p>
+                                                            <span className='tv-text-1'>{x.OrderCountry.Label}</span>
+                                                        </p>
+                                                    </div>
+                                                    <div className='famo-cell famo-col-2'>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.CustomerName}</span>
+                                                    </div>
+                                                    <div className='famo-cell famo-col-3'>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.OrderCode}</span>
+                                                    </div>
+                                                    <div className='famo-cell famo-col-4'>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? 'A definir' : moment(x.OrderExpectedShipmentDate).format(dateFormat)}</span>
+                                                    </div>
+                                                    <div className='famo-cell famo-col-5 text-center'>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinOrderBoxes).format(unitFormat) + '/' + numeral(x.OrderBoxes).format(unitFormat)}</span>
+                                                    </div>
+                                                    <div className='famo-cell famo-col-6 text-center'>
+                                                        <span className={'famo-text-10 ' + (x.ShipmentGate.ID === -1 ? 'famo-color-yellow' : getRowColor(x))}>{x.ShipmentGate.ID === -1 ? 'n/a' : x.ShipmentGate.Label}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+            <section className='tv-footer'>
+                <div className='container tv-messages'>
+                    <div className='row'>
+                        <div className='col-12 col-xl-2'>
+                            <div className='famo-grid tv-message-type'>
+                                <div className='famo-row'>
+                                    <div className='famo-cell'>
+                                        <span className='tv-text-2'>Teste</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className='col-12 col-xl-10'>
+                            <div className='famo-grid'>
+                                <div className='famo-row'>
+                                    <div className='famo-cell'>
+                                        <span className='tv-text-3'>{time.format(timeFormat)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                {/* <div className='famo-grid tv-messages'>
+                    <div className='famo-row'>
+                        <div className='famo-cell'>
+                            <span className='tv-text-2'>Teste</span>
+                        </div>
+                        <div className='famo-cell'>
+                            <span className='tv-text-3'>{time.format(timeFormat)}</span>
+                        </div>
+                    </div>
+                </div> */}
+            </section>
+        </React.Fragment>
     );
 }
 
