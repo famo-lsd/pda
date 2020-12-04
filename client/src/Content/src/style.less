@@ -241,8 +241,20 @@
             color: #00cc00 !important;
         }
 
+        .famo-pagination {
+
+            .far,
+            .fas {
+                .applyIcon(28px, @base_line_height, @base_color_lighten_2);
+
+                &:not(:first-child) {
+                    margin-left: 5px;
+                }
+            }
+        }
+
         .pda-victory-container {
-            height: 200px;
+            height: 175px;
         }
 
         .tv-text-1,
@@ -289,40 +301,49 @@
         }
 
         .bin-orders {
-            .applyCol(1, @width: 110px);
+            .applyCol(1, @width: 130px);
             .applyCol(3, @width: 245px);
             .applyCol(4, @width: 190px);
             .applyCol(5, @width: 165px);
             .applyCol(6, @width: 80px);
-
-            .famo-body-row {
-                .famo-col-1 {
-                    span {
-                        .applyWordHyphenation();
-                    }
-                }
-            }
         }
 
         .bin-orders-data {
             overflow-y: hidden;
+
+            .famo-grid {
+                table-layout: fixed;
+            }
+
+            .famo-body-row {
+
+                .famo-col-1,
+                .famo-col-2 {
+                    span {
+                        .applyEllipsis();
+                    }
+                }
+
+                .famo-col-1 {
+                    img {
+                        margin: 12px 0px;
+                    }
+                }
+            }
         }
     }
 
     .tv-footer {
+        @tv_footer_h: 74px;
+
         position: fixed;
         left: 0px;
         bottom: 0px;
         width: 100%;
 
         .tv-messages {
-            padding-left: @famo_body_content_pad;
-            padding-right: @famo_body_content_pad;
-            background-color: @base_color_lighten_4;
-
             .row {
-                margin-top: 0px;
-                margin-bottom: 0px;
+                margin: 0px;
 
                 &>div {
                     padding-top: 0px;
@@ -330,39 +351,62 @@
 
                     &:first-child::after {
                         content: '';
-                        border: 20px aqua solid;
+                        height: 100%;
+                        border: (@tv_footer_h/2) @base_color_lighten_4 solid;
+                        border-color: @base_color_lighten_8 @base_color_lighten_8 @base_color_lighten_4 @base_color_lighten_4;
+                        margin-right: 10px;
+                        position: absolute;
+                        top: 0px;
+                        right: 0px;
                     }
                 }
             }
 
+            .tv-message-type,
+            .tv-message-content {
+                .famo-row {
+                    height: 100%;
+                }
+            }
+
+            .tv-message-type::before,
+            .tv-message-content::after {
+                content: '';
+                width: 10px;
+                height: 100%;
+                background-color: @base_color_lighten_4;
+                position: absolute;
+                top: 0px;
+            }
+
             .tv-message-type {
+                width: calc(~"100% - @{tv_footer_h}");
                 table-layout: fixed;
+
+                &::before {
+                    left: 0px;
+                }
 
                 span {
                     .applyEllipsis();
                 }
             }
 
-            .famo-grid {
-                height: 65px;
-
-                .famo-cell {
-                    vertical-align: middle;
+            .tv-message-content {
+                &::after {
+                    right: 0px;
                 }
             }
 
-            // .famo-cell {
-            //     padding: 0px @famo_body_content_pad;
-            //     vertical-align: middle;
+            .famo-grid {
+                height: @tv_footer_h;
+                background-color: @base_color_lighten_4;
 
-            //     &:first-child {
-            //         .applyCell(@width: 180px, @padding: 15px);
-
-            //         span {
-            //             .applyEllipsis();
-            //         }
-            //     }
-            // }
+                .famo-cell {
+                    padding: 0px 15px;
+                    vertical-align: middle;
+                }
+            }
         }
     }
 }

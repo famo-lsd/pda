@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 import Log from '../utils/log';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
-import { Bin, BinOrder } from '../utils/interfaces';
+import { Bin, BinOrder, Message, Pagination } from '../utils/interfaces';
 import { createQueryString, useInterval } from '../utils/general';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
@@ -22,8 +22,7 @@ function TV(props: any) {
         [bin, setBin] = useState<Bin>(),
         [binOrdersHeight, setBinOrdersHeight] = useState<number>(-1),
         binOrdersHeader: Array<string> = ['', t('key_85'), t('key_179'), 'Carga', t('key_900'), t('key_896')],
-        [binOrders, setBinOrders] = useState<Array<BinOrder>>([]),
-        [page, setPage] = useState<number>(1),
+        [binOrders, setBinOrders] = useState<Pagination<BinOrder>>(null),
         [time, setTime] = useState(moment()),
         vicPieConfig = {
             standalone: false,
@@ -32,11 +31,40 @@ function TV(props: any) {
             padAngle: 3,
             padding: { top: 25, bottom: 5 }
         },
+        [messages, setMessages] = useState<Array<Message>>(null),
+        [messageIndex, setMessageIndex] = useState<number>(0),
+        [messageTransition, setMessageTransition] = useState<boolean>(false),
         dateFormat = 'L',
         timeFormat = 'LTS',
-        percentageFormat = '0.00%',
-        unitFormat = '0,0',
-        decimalFormat = '0,0.00';
+        unitFormat = '0,0';
+
+    function getBinOrders(page: number) {
+        return fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({
+            binCode: binCodeQS,
+            languageCode: globalState.authUser.Language.Code,
+            page: page
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBinOrders(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        });
+    }
 
     function getRowColor(binOrder: BinOrder): string {
         const now = moment();
@@ -47,10 +75,7 @@ function TV(props: any) {
             ret = 'famo-color-green';
         }
         else {
-            if (moment(binOrder.OrderExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date'))) {
-                ret = 'famo-color-red';
-            }
-            else if (moment(binOrder.OrderExpectedShipmentDate).isSame(now.startOf('date'))) {
+            if (moment(binOrder.OrderExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date')) || moment(binOrder.OrderExpectedShipmentDate).isSame(now.startOf('date'))) {
                 ret = 'famo-color-red';
             }
         }
@@ -58,34 +83,56 @@ function TV(props: any) {
         return ret;
     }
 
+    function getMessages() {
+        return fetch(NODE_SERVER + 'TV/Messages' + createQueryString({
+            date: moment().format('YYYY-MM-DDTHH:mm:ss'),
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setMessages(data);
+                    setMessageIndex(0);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        });
+    }
+
     useInterval(() => {
         setTime(moment());
     }, 1000);
 
-    // useInterval(() => {
-    //     const binOrdersData = document.querySelector('.bin-orders-data');
+    useInterval(() => {
+        getBinOrders(binOrders ? (binOrders.CurrentPage === binOrders.PagesNumber ? 1 : binOrders.CurrentPage + 1) : 1);
+    }, 10000);
 
-    //     if (!globalState.loadPage && bin && binOrders.length > 0 && binOrdersData) {
-    //         const scrollHeight = binOrdersData.scrollHeight - binOrdersData.clientHeight;
+    useInterval(() => {
+        if (messages && messages.length > 0) {
+            setMessageIndex(messageIndex + 1 === messages.length ? 0 : messageIndex + 1);
+        }
+    }, 5000);
 
-    //         if (binOrdersData.scrollTop === scrollHeight && autoScrollDown) {
-    //             setAutoScrollDown(false);
-    //         }
-
-    //         if (binOrdersData.scrollTop === 0 && !autoScrollDown) {
-    //             setAutoScrollDown(true);
-    //         }
-
-    //         // binOrdersData.scroll(0, autoScrollDown ? (binOrdersData.scrollTop === scrollHeight ? scrollHeight : binOrdersData.scrollTop + 1) : (binOrdersData.scrollTop === 0 ? 0 : binOrdersData.scrollTop - 1));
-    //         // binOrdersData.scroll(0, binOrdersData.scrollTop === scrollHeight ? 0 : binOrdersData.scrollTop + 1);
-    //     }
-    // }, 20);
+    useInterval(() => {
+        getMessages();
+    }, 1800000);
 
     useEffect(() => {
         globalActions.setLoadPage(true);
 
         setBinOrdersHeight(window.innerHeight - document.querySelector('.tv-footer').clientHeight
-            // - document.querySelector('.famo-footer').clientHeight
             - 30
             - 30
             - document.querySelector('.bin-orders .famo-header-row').clientHeight);
@@ -113,37 +160,10 @@ function TV(props: any) {
                 Log.promiseError(error);
                 alert(t('key_416'));
             }
-        }),
-            getBinOrders = fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({
-                binCode: binCodeQS,
-                languageCode: globalState.authUser.Language.Code,
-                page: page
-            }), Http.addAuthorizationHeader({
-                method: 'GET'
-            })).then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json().then(data => {
-                        setBinOrders(data);
-                    });
-                }
-                else {
-                    throw result;
-                }
-            }).catch(error => {
-                if (error as Response) {
-                    Log.httpError(error);
-                    alert(t('key_303'));
-                }
-                else {
-                    Log.promiseError(error);
-                    alert(t('key_416'));
-                }
-            });
+        });
 
-        Promise.all([getBin, getBinOrders]).finally(() => {
+        Promise.all([getBin, getBinOrders(1), getMessages()]).finally(() => {
             globalActions.setLoadPage(false);
-
-            document.querySelector('.bin-orders-data').scrollTop = 400;
         });
     }, []);
 
@@ -209,7 +229,7 @@ function TV(props: any) {
                                         </div>
                                         <div className='pda-victory-container'>
                                             <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
-                                                <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#33ff33']} labels={() => null} />
+                                                <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
                                             </svg>
                                         </div>
                                     </React.Fragment>
@@ -234,12 +254,12 @@ function TV(props: any) {
                                 <div className='bin-orders bin-orders-data' style={{ maxHeight: (binOrdersHeight === -1 ? 'auto' : binOrdersHeight + 'px') }}>
                                     <div className='famo-grid famo-content-grid'>
                                         <div className='famo-row famo-header-row hide'></div>
-                                        {binOrders.map((x, i) => {
+                                        {binOrders && binOrders.Data.map((x, i) => {
                                             return (
                                                 <div key={i} className={'famo-row famo-body-row ' + (x.ShipmentGate.ID !== -1 ? 'tv-blink-row' : '')}>
-                                                    <div className='famo-cell famo-col-1  text-center'>
+                                                    <div className='famo-cell famo-col-1 text-center'>
                                                         <p>
-                                                            <img src={'https://www.countryflags.io/' + x.OrderCountry.Code.toLowerCase() + '/flat/64.png'} alt={x.OrderCountry.Code} />
+                                                            <img src={'https://flagcdn.com/h40/' + x.OrderCountry.Code.toLowerCase() + '.png'} height='42' alt={x.OrderCountry.Code} onError={(event) => { (event.target as any).src = NODE_SERVER + 'Images/no-flag.png' }} />
                                                         </p>
                                                         <p>
                                                             <span className='tv-text-1'>{x.OrderCountry.Label}</span>
@@ -264,6 +284,17 @@ function TV(props: any) {
                                             );
                                         })}
                                     </div>
+                                    {binOrders &&
+                                        <div className='famo-grid famo-pagination'>
+                                            <div className='famo-cell text-center'>
+                                                {[...Array(binOrders.PagesNumber)].map((x, i) => {
+                                                    return (
+                                                        <span key={i} className={((i + 1) > binOrders.CurrentPage ? 'far' : 'fas') + ' fa-circle'}></span>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </section>
@@ -277,34 +308,26 @@ function TV(props: any) {
                             <div className='famo-grid tv-message-type'>
                                 <div className='famo-row'>
                                     <div className='famo-cell'>
-                                        <span className='tv-text-2'>Teste</span>
+                                        {messages && messages.length > 0 &&
+                                            <span className='tv-text-2'>{messages[messageIndex].Type.Label}</span>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div className='col-12 col-xl-10'>
-                            <div className='famo-grid'>
+                            <div className='famo-grid tv-message-content'>
                                 <div className='famo-row'>
                                     <div className='famo-cell'>
-                                        <span className='tv-text-3'>{time.format(timeFormat)}</span>
+                                        {messages && messages.length > 0 &&
+                                            <span className='tv-text-3'>{messages[messageIndex].Text}</span>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-
-                {/* <div className='famo-grid tv-messages'>
-                    <div className='famo-row'>
-                        <div className='famo-cell'>
-                            <span className='tv-text-2'>Teste</span>
-                        </div>
-                        <div className='famo-cell'>
-                            <span className='tv-text-3'>{time.format(timeFormat)}</span>
-                        </div>
-                    </div>
-                </div> */}
             </section>
         </React.Fragment>
     );

@@ -53,6 +53,17 @@ export interface ItemJournalLine {
     LocationCode: string;
 }
 
+export interface MessageType {
+    ID: number;
+    Label: string;
+}
+
+export interface Message {
+    ID: number;
+    Type: MessageType;
+    Text: string;
+}
+
 export interface Pagination<T> {
     Data: Array<T>;
     CurrentPage: number;
