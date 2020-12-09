@@ -96,7 +96,7 @@ function Index(props: any) {
 
     function editPallet(palletID?: number) {
         window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: shipmentCodeSubmit }));
-        history.push('/Pallet/Edit?shipmentCode=' + shipmentCodeSubmit + (palletID ? '&palletID=' + palletID : ''));
+        history.push('/Pallets/Edit?shipmentCode=' + shipmentCodeSubmit + (palletID ? '&palletID=' + palletID : ''));
     }
 
     useEffect(() => {
@@ -420,7 +420,7 @@ function Edit(props: any) {
                     Log.httpError(error);
 
                     alert(error.status === httpStatus.NOT_FOUND ? t('key_873') : t('key_303'));
-                    history.replace('/Pallet');
+                    history.replace('/Pallets');
                 }
                 else {
                     Log.promiseError(error);
@@ -445,7 +445,7 @@ function Edit(props: any) {
     }, boxModalForm);
 
     if (!query.shipmentCode) {
-        return <Redirect to='/Pallet' />;
+        return <Redirect to='/Pallets' />;
     }
     else {
         return (
