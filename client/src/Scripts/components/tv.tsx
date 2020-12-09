@@ -5,6 +5,7 @@ import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import { Bin, BinOrder, Message, Pagination } from '../utils/interfaces';
 import { createQueryString, useInterval } from '../utils/general';
+import { CSSTransition } from 'react-transition-group';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +22,7 @@ function TV(props: any) {
         binCodeQS = query.binCode,
         [bin, setBin] = useState<Bin>(),
         [binOrdersHeight, setBinOrdersHeight] = useState<number>(-1),
-        binOrdersHeader: Array<string> = ['', t('key_85'), t('key_179'), 'Carga', t('key_900'), t('key_896')],
+        binOrdersHeader: Array<string> = ['', t('key_85'), t('key_179'), t('key_907'), t('key_900'), t('key_896')],
         [binOrders, setBinOrders] = useState<Pagination<BinOrder>>(null),
         [time, setTime] = useState(moment()),
         vicPieConfig = {
@@ -33,7 +34,6 @@ function TV(props: any) {
         },
         [messages, setMessages] = useState<Array<Message>>(null),
         [messageIndex, setMessageIndex] = useState<number>(0),
-        [messageTransition, setMessageTransition] = useState<boolean>(false),
         dateFormat = 'L',
         timeFormat = 'LTS',
         unitFormat = '0,0';
@@ -183,7 +183,7 @@ function TV(props: any) {
                                 </div>
                             </div>
                         </section>
-                        <section className={'famo-wrapper ' + 'tv-dark-wrapper'}>
+                        <section className='famo-wrapper tv-dark-wrapper'>
                             <div className='famo-content'>
                                 {bin &&
                                     <div className='famo-grid rating-panel'>
@@ -224,7 +224,7 @@ function TV(props: any) {
                                     <React.Fragment>
                                         <div className='famo-grid'>
                                             <div className='famo-cell text-center'>
-                                                <span className='famo-text-11'>{'Ocupação'}</span>
+                                                <span className='famo-text-11'>{t('key_908')}</span>
                                             </div>
                                         </div>
                                         <div className='pda-victory-container'>
@@ -272,7 +272,7 @@ function TV(props: any) {
                                                         <span className={'famo-text-10 ' + getRowColor(x)}>{x.OrderCode}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-4'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? 'A definir' : moment(x.OrderExpectedShipmentDate).format(dateFormat)}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? t('key_906') : moment(x.OrderExpectedShipmentDate).format(dateFormat)}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-5 text-center'>
                                                         <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinOrderBoxes).format(unitFormat) + '/' + numeral(x.OrderBoxes).format(unitFormat)}</span>
@@ -319,9 +319,13 @@ function TV(props: any) {
                             <div className='famo-grid tv-message-content'>
                                 <div className='famo-row'>
                                     <div className='famo-cell'>
-                                        {messages && messages.length > 0 &&
-                                            <span className='tv-text-3'>{messages[messageIndex].Text}</span>
-                                        }
+                                        {messages && messages.map((x, i) => {
+                                            return (
+                                                <CSSTransition key={i} in={i === messageIndex} timeout={250} classNames="transition">
+                                                    <span className={'tv-text-3 ' + (i !== messageIndex ? 'hide' : '')}>{x.Text}</span>
+                                                </CSSTransition>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>

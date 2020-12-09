@@ -362,6 +362,16 @@
                 }
             }
 
+            .famo-grid {
+                height: @tv_footer_h;
+                background-color: @base_color_lighten_4;
+
+                .famo-cell {
+                    padding: 0px 15px;
+                    vertical-align: middle;
+                }
+            }
+
             .tv-message-type,
             .tv-message-content {
                 .famo-row {
@@ -396,15 +406,18 @@
                 &::after {
                     right: 0px;
                 }
-            }
 
-            .famo-grid {
-                height: @tv_footer_h;
-                background-color: @base_color_lighten_4;
+                .transition-enter {
+                    transform: translateY(100%);
+                }
 
-                .famo-cell {
-                    padding: 0px 15px;
-                    vertical-align: middle;
+                .transition-enter-active {
+                    transform: translateY(0%);
+                    transition: transform 0.25s;
+                }
+
+                .tv-text-3 {
+                    display: inline-block;
                 }
             }
         }

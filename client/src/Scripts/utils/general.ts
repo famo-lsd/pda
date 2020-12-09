@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 export function createQueryString(json: any) {
     let qs = '?timestamp=' + new Date().getTime();

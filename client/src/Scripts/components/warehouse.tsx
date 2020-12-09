@@ -257,19 +257,6 @@ function AddBox(props: any) {
     }
 
     useEffect(() => {
-        if (binID.value) {
-            checkBinOrder(orderCode.value, binID.value);
-        }
-        saveButtonRef.current?.focus();
-    }, [binID.value]);
-
-    useEffect(() => {
-        if (!loading) {
-            saveButtonRef.current?.focus();
-        }
-    }, [loading]);
-
-    useEffect(() => {
         globalActions.setLoadPage(true);
 
         fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
@@ -298,6 +285,19 @@ function AddBox(props: any) {
             globalActions.setLoadPage(false);
         });
     }, []);
+
+    useEffect(() => {
+        if (binID.value) {
+            checkBinOrder(orderCode.value, binID.value);
+        }
+        saveButtonRef.current?.focus();
+    }, [binID.value]);
+
+    useEffect(() => {
+        if (!loading) {
+            saveButtonRef.current?.focus();
+        }
+    }, [loading]);
 
     return (
         <React.Fragment>
@@ -510,7 +510,7 @@ function TransferBox(props: any) {
         }).catch(error => {
             if (error as Response) {
                 Log.httpError(error);
-                alert(error.status === httpStatus.CONFLICT ? t('key_885') : t('key_302'));
+                alert(t('key_302'));
             }
             else {
                 Log.promiseError(error);

@@ -388,6 +388,14 @@
     top: 0px;
     right: 0px;
   }
+  .tv-footer .tv-messages .famo-grid {
+    height: 74px;
+    background-color: #808080;
+  }
+  .tv-footer .tv-messages .famo-grid .famo-cell {
+    padding: 0px 15px;
+    vertical-align: middle;
+  }
   .tv-footer .tv-messages .tv-message-type .famo-row,
   .tv-footer .tv-messages .tv-message-content .famo-row {
     height: 100%;
@@ -418,13 +426,15 @@
   .tv-footer .tv-messages .tv-message-content::after {
     right: 0px;
   }
-  .tv-footer .tv-messages .famo-grid {
-    height: 74px;
-    background-color: #808080;
+  .tv-footer .tv-messages .tv-message-content .transition-enter {
+    transform: translateY(100%);
   }
-  .tv-footer .tv-messages .famo-grid .famo-cell {
-    padding: 0px 15px;
-    vertical-align: middle;
+  .tv-footer .tv-messages .tv-message-content .transition-enter-active {
+    transform: translateY(0%);
+    transition: transform 0.25s;
+  }
+  .tv-footer .tv-messages .tv-message-content .tv-text-3 {
+    display: inline-block;
   }
 }
 @media screen and (max-width: 991px) {
