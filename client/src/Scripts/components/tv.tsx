@@ -4,10 +4,11 @@ import Log from '../utils/log';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import { Bin, BinOrder, Message, Pagination } from '../utils/interfaces';
-import { createQueryString, useInterval } from '../utils/general';
+import { createQueryString } from '../utils/general';
 import { CSSTransition } from 'react-transition-group';
 import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
+import { useInterval } from '@restart/hooks';
 import { useTranslation } from 'react-i18next';
 import { VictoryPie } from 'victory';
 import { withRouter } from 'react-router-dom';
@@ -20,6 +21,7 @@ function TV(props: any) {
         numeral = window['numeral'],
         query = queryString.parse(location.search),
         binCodeQS = query.binCode,
+        [orderFirst, setOrderFirst] = useState<boolean>(true),
         [bin, setBin] = useState<Bin>(),
         [binOrdersHeight, setBinOrdersHeight] = useState<number>(-1),
         binOrdersHeader: Array<string> = ['', t('key_85'), t('key_179'), t('key_907'), t('key_900'), t('key_896')],
@@ -37,6 +39,33 @@ function TV(props: any) {
         dateFormat = 'L',
         timeFormat = 'LTS',
         unitFormat = '0,0';
+
+    function getBin() {
+        return fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
+            code: binCodeQS,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBin(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        });
+    }
 
     function getBinOrders(page: number) {
         return fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({
@@ -75,7 +104,7 @@ function TV(props: any) {
             ret = 'famo-color-green';
         }
         else {
-            if (moment(binOrder.OrderExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date')) || moment(binOrder.OrderExpectedShipmentDate).isSame(now.startOf('date'))) {
+            if (binOrder.OrderExpectedShipmentDate && (moment(binOrder.OrderExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date')) || moment(binOrder.OrderExpectedShipmentDate).isSame(now.startOf('date')))) {
                 ret = 'famo-color-red';
             }
         }
@@ -112,22 +141,26 @@ function TV(props: any) {
     }
 
     useInterval(() => {
+        setOrderFirst(!orderFirst);
+    }, 3600000);
+
+    useInterval(() => {
         setTime(moment());
     }, 1000);
 
     useInterval(() => {
-        getBinOrders(binOrders ? (binOrders.CurrentPage === binOrders.PagesNumber ? 1 : binOrders.CurrentPage + 1) : 1);
+        Promise.all([getBin(), getBinOrders(binOrders ? (binOrders.CurrentPage === binOrders.PagesNumber ? 1 : binOrders.CurrentPage + 1) : 1)]);
     }, 10000);
+
+    useInterval(() => {
+        getMessages();
+    }, 1800000);
 
     useInterval(() => {
         if (messages && messages.length > 0) {
             setMessageIndex(messageIndex + 1 === messages.length ? 0 : messageIndex + 1);
         }
     }, 5000);
-
-    useInterval(() => {
-        getMessages();
-    }, 1800000);
 
     useEffect(() => {
         globalActions.setLoadPage(true);
@@ -137,32 +170,7 @@ function TV(props: any) {
             - 30
             - document.querySelector('.bin-orders .famo-header-row').clientHeight);
 
-        const getBin = fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
-            code: binCodeQS,
-            languageCode: globalState.authUser.Language.Code
-        }), Http.addAuthorizationHeader({
-            method: 'GET'
-        })).then(async result => {
-            if (result.ok && result.status === httpStatus.OK) {
-                await result.json().then(data => {
-                    setBin(data);
-                });
-            }
-            else {
-                throw result;
-            }
-        }).catch(error => {
-            if (error as Response) {
-                Log.httpError(error);
-                alert(t('key_303'));
-            }
-            else {
-                Log.promiseError(error);
-                alert(t('key_416'));
-            }
-        });
-
-        Promise.all([getBin, getBinOrders(1), getMessages()]).finally(() => {
+        Promise.all([getBin(), getBinOrders(1), getMessages()]).finally(() => {
             globalActions.setLoadPage(false);
         });
     }, []);
@@ -171,7 +179,7 @@ function TV(props: any) {
         <React.Fragment>
             <section className='container famo-wrapper'>
                 <div className='row'>
-                    <div className='col-12 col-xl-2'>
+                    <div className={'col-12 col-xl-2 ' + (orderFirst ? 'order-first' : 'order-last')}>
                         <section className='famo-wrapper'>
                             <div className='famo-content'>
                                 <div className='famo-grid tv-famo-logo'>
@@ -237,7 +245,7 @@ function TV(props: any) {
                             </div>
                         </section>
                     </div>
-                    <div className='col-12 col-xl-10'>
+                    <div className={'col-12 col-xl-10 ' + (!orderFirst ? 'order-first' : 'order-last')}>
                         <section className='famo-wrapper'>
                             <div className='famo-content'>
                                 <div className='famo-grid famo-content-grid bin-orders'>
@@ -272,7 +280,7 @@ function TV(props: any) {
                                                         <span className={'famo-text-10 ' + getRowColor(x)}>{x.OrderCode}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-4'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? t('key_906') : moment(x.OrderExpectedShipmentDate).format(dateFormat)}</span>
+                                                        <span className={'famo-text-10 ' + (!x.OrderExpectedShipmentDate ? 'famo-color-yellow' : getRowColor(x))}>{!x.OrderExpectedShipmentDate ? 'n/a' : (moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? t('key_906') : moment(x.OrderExpectedShipmentDate).format(dateFormat))}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-5 text-center'>
                                                         <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinOrderBoxes).format(unitFormat) + '/' + numeral(x.OrderBoxes).format(unitFormat)}</span>
