@@ -50,7 +50,6 @@ function TV(props: any) {
         })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
-                    setLastBinCode(binCodeQS as string);
                     setBin(data);
                 });
             }
@@ -151,7 +150,9 @@ function TV(props: any) {
     }, 1000);
 
     useInterval(() => {
-        Promise.all([getBin(), getBinOrders(binOrders ? (lastBinCode === binCodeQS ? (binOrders.CurrentPage === binOrders.PagesNumber ? 1 : binOrders.CurrentPage + 1) : 1) : 1)]);
+        Promise.all([getBin(), getBinOrders(binOrders ? (lastBinCode === binCodeQS ? (binOrders.CurrentPage === binOrders.PagesNumber ? 1 : binOrders.CurrentPage + 1) : 1) : 1)]).finally(() => {
+            setLastBinCode(binCodeQS as string);
+        });
     }, 10000);
 
     useInterval(() => {
