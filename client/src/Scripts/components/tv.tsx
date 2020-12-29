@@ -157,7 +157,7 @@ function TV(props: any) {
 
     useInterval(() => {
         getMessages();
-    }, 1800000);
+    }, 1800001);
 
     useInterval(() => {
         if (messages && messages.length > 0) {
