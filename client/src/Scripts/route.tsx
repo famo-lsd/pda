@@ -150,7 +150,7 @@ function AutoRouteBody(props: any) {
     function swipingPage(event) {
         if (!isMobileBrowser() && (event.dir === 'Up' || event.dir === 'Down')) {
             if (scrollTop === -1) {
-                elemToScroll = (event.event.path as Array<any>).some(x => {
+                elemToScroll = (event.event.composedPath() as Array<any>).some(x => {
                     const className = (x as HTMLElement).className;
 
                     return !className ? false : className.indexOf('famo-modal') !== -1;
