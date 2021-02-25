@@ -95,7 +95,7 @@
         "parents": {
           "/manifest/application": [
             {
-              "xml": "<application android:hardwareAccelerated=\"false\" />",
+              "xml": "<application android:usesCleartextTraffic=\"true\" />",
               "count": 3,
               "mode": "merge",
               "id": "config.xml",
@@ -109,7 +109,7 @@
               }
             },
             {
-              "xml": "<application android:usesCleartextTraffic=\"true\" />",
+              "xml": "<application android:layerType=\"hardware\" />",
               "count": 2,
               "mode": "merge",
               "id": "config.xml",
@@ -123,7 +123,7 @@
               }
             },
             {
-              "xml": "<application android:layerType=\"hardware\" />",
+              "xml": "<application android:hardwareAccelerated=\"false\" />",
               "count": 1,
               "mode": "merge",
               "id": "config.xml",
