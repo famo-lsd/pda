@@ -242,10 +242,21 @@ function AddBox(props: any) {
             else {
                 throw result;
             }
-        }).catch(error => {
+        }).catch(async error => {
             if (error as Response) {
                 Log.httpError(error);
-                alert(t('key_302'));
+
+                if (error.status === httpStatus.CONFLICT) {
+                    await error.json().then(data => {
+                        alert(t('key_887') + ' ' + data.box);
+                    }).catch(errorAux => {
+                        Log.promiseError(errorAux);
+                        alert(t('key_416'));
+                    });
+                }
+                else {
+                    alert(t('key_302'));
+                }
             }
             else {
                 Log.promiseError(error);
