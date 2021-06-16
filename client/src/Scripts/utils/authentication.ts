@@ -1,10 +1,10 @@
+import Http from './http';
 import httpStatus from 'http-status';
 import Log from './log';
 import { createQueryString } from './general';
 import { isAndroidApp } from './platform';
 import { NODE_SERVER, NODE_TOKEN_KEY } from './variablesRepo';
 import { TFunction } from 'i18next';
-import Http from './http';
 
 export default class Authentication {
     public static signIn(username: string, password: string) {

@@ -42,12 +42,12 @@
         }
 
         &::after {
+            top: 6px;
+            left: 5px;
             width: 15px;
             height: 9px;
             border-bottom-width: 4px;
             border-left-width: 4px;
-            top: 6px;
-            left: 5px;
         }
     }
 
@@ -75,10 +75,10 @@
 
     .pda-app-loader {
         position: fixed;
-        width: 100%;
-        height: 100%;
         top: 0px;
         left: 0px;
+        width: 100%;
+        height: 100%;
         background-color: #f2f2f2;
 
         .famo-loader {
@@ -88,11 +88,11 @@
     }
 
     .pda-back-button {
+        position: fixed;
+        bottom: 20px;
+        left: 15px;
         padding: 15px !important;
         border-radius: 50%;
-        position: fixed;
-        left: 15px;
-        bottom: 20px;
         z-index: 100;
 
         .fas {
@@ -233,12 +233,12 @@
             text-transform: uppercase;
         }
 
-        .famo-color-red {
-            color: #ff3333 !important;
-        }
-
         .famo-color-green {
             color: #00cc00 !important;
+        }
+
+        .famo-color-red {
+            color: #ff3333 !important;
         }
 
         .famo-pagination {
@@ -337,8 +337,8 @@
         @tv_footer_h: 74px;
 
         position: fixed;
-        left: 0px;
         bottom: 0px;
+        left: 0px;
         width: 100%;
 
         .tv-messages {
@@ -351,13 +351,13 @@
 
                     &:first-child::after {
                         content: '';
+                        position: absolute;
+                        top: 0px;
+                        right: 0px;
                         height: 100%;
                         border: (@tv_footer_h/2) @base_color_lighten_4 solid;
                         border-color: @base_color_lighten_8 @base_color_lighten_8 @base_color_lighten_4 @base_color_lighten_4;
                         margin-right: 10px;
-                        position: absolute;
-                        top: 0px;
-                        right: 0px;
                     }
                 }
             }
@@ -382,11 +382,11 @@
             .tv-message-type::before,
             .tv-message-content::after {
                 content: '';
+                position: absolute;
+                top: 0px;
                 width: 10px;
                 height: 100%;
                 background-color: @base_color_lighten_4;
-                position: absolute;
-                top: 0px;
             }
 
             .tv-message-type {
@@ -462,12 +462,12 @@
         }
 
         &::after {
+            top: 5px;
+            left: 4px;
             width: 12px;
             height: 7px;
             border-bottom-width: 3px;
             border-left-width: 3px;
-            top: 5px;
-            left: 4px;
         }
     }
 
