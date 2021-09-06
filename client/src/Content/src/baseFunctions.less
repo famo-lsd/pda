@@ -7,10 +7,10 @@
 
 .applyEllipsis(@display: inline-block, @max_width: 100%) {
     display: @display;
-    white-space: nowrap;
+    max-width: @max_width;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: @max_width;
+    white-space: nowrap;
 }
 
 .applyCell(@display: NULL, @max_width: NULL, @width: NULL, @min_width: NULL, @padding: 10px, @vertical_align: NULL) {
@@ -60,6 +60,10 @@
 }
 
 .applyIcon(@font_size, @param_line_height: NULL, @color: NULL, @position: NULL) {
+    & when not (@position = NULL) {
+        position: @position;
+    }
+
     font-size: @font_size !important;
 
     & when not (@param_line_height = NULL) {
@@ -72,10 +76,6 @@
 
     & when not (@color = NULL) {
         color: @color;
-    }
-
-    & when not (@position = NULL) {
-        position: @position;
     }
 }
 
@@ -97,14 +97,14 @@
 }
 
 .applySliderThumb() {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    border: none;
     width: 16px;
     height: 16px;
+    border: none;
+    border-radius: 50%;
+    -webkit-appearance: none;
+    -moz-appearance: none;
     background-color: @base_color;
     cursor: pointer;
-    border-radius: 50%;
 }
 
 .applyWordHyphenation() {
@@ -118,9 +118,9 @@
 .applyWordWrapping() {
     display: inline-block;
     overflow-wrap: break-word;
-    word-wrap: break-word;
     -ms-word-break: break-all;
     word-break: break-word;
+    word-wrap: break-word;
 }
 
 .basePrintConfigs() {
@@ -162,8 +162,8 @@
             display: table !important;
 
             .famo-row {
-                page-break-inside: avoid;
                 break-inside: avoid;
+                page-break-inside: avoid;
             }
         }
 
@@ -191,8 +191,8 @@
             }
 
             .famo-file {
-                page-break-inside: avoid;
                 break-inside: avoid;
+                page-break-inside: avoid;
             }
         }
     }
@@ -248,8 +248,8 @@
     }
 
     display: inline-block;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-font-smoothing: antialiased;
+    font-family: 'Font Awesome 5 Free';
+    font-style: normal;
 
     & when (@is_solid = true) {
         font-weight: 900;
@@ -259,8 +259,8 @@
         font-weight: 400;
     }
 
-    font-style: normal;
-    font-family: 'Font Awesome 5 Free';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: auto;
 }
 
@@ -283,9 +283,9 @@
     }
 
     &.collapsed span:before {
-        -ms-transform: rotateZ(@turned_degrees);
         -webkit-transform: rotateZ(@turned_degrees);
         -moz-transform: rotateZ(@turned_degrees);
+        -ms-transform: rotateZ(@turned_degrees);
         -o-transform: rotateZ(@turned_degrees);
         transform: rotateZ(@turned_degrees);
     }
@@ -304,22 +304,21 @@
 }
 
 .printBootstrap() {
-    -webkit-box-flex: 0;
     -webkit-flex: 0 0 @famo_bootstrap_col_w;
     -ms-flex: 0 0 @famo_bootstrap_col_w;
     flex: 0 0 @famo_bootstrap_col_w;
+    -webkit-box-flex: 0;
     max-width: @famo_bootstrap_col_w;
 }
 
-.putBackgroundImg(@url_img, @repeat, @position, @size) {
-    background-image: url(@url_img);
-    background-repeat: @repeat;
+.putBackgroundImg(@image, @position, @repeat, @size) {
+    background-image: url(@image);
     background-position: @position;
+    background-repeat: @repeat;
     background-size: @size;
 }
 
-// CSS para os botoes do slideshow e do modal.
-.putButtonsForSM() {
+.putButtons() {
     & > .famo-buttons {
         position: absolute;
         top: 25px;
@@ -327,11 +326,14 @@
         z-index: 120;
 
         .famo-button {
-            .applyIcon(28px, @base_line_height, @base_color_lighten_5);
             float: right;
 
             &:not(:last-child) {
                 margin-left: 10px;
+            }
+
+            .fas {
+                .applyIcon(28px, @base_line_height, @base_color_lighten_5);
             }
         }
     }

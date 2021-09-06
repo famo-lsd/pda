@@ -60,7 +60,7 @@
     }
 
     .famo-body .famo-wrapper {
-        .famo-title span {
+        .famo-title span[class*="famo-text-"] {
             cursor: default;
 
             &::before {
@@ -144,7 +144,7 @@
 
         .famo-body-row {
             .famo-col-4 {
-                span {
+                span[class*="famo-text-"] {
                     .applyWordWrapping();
                 }
             }
@@ -163,7 +163,7 @@
 
             .famo-col-2,
             .famo-col-3 {
-                span {
+                span[class*="famo-text-"] {
                     .applyWordWrapping();
                 }
             }
@@ -199,7 +199,7 @@
 
             .famo-col-1,
             .famo-col-2 {
-                span {
+                span[class*="famo-text-"] {
                     .applyWordWrapping();
                 }
             }
@@ -220,6 +220,10 @@
             margin-top: 0px;
         }
 
+        span[class*="famo-text-"] {
+            text-transform: uppercase;
+        }
+
         .famo-text-10,
         .famo-text-11 {
             font-size: 34px !important;
@@ -227,10 +231,6 @@
 
         .famo-text-23 {
             font-size: 50px !important;
-        }
-
-        span[class*="famo-text-"] {
-            text-transform: uppercase;
         }
 
         .famo-color-green {
@@ -278,8 +278,8 @@
         .tv-blink-row {
             .runAnimation(blink-row 2s linear infinite);
 
-            span[class*="tv-text-"],
-            span[class*="famo-text-"]:not([class*="famo-color-"]) {
+            span[class*="famo-text-"]:not([class*="famo-color-"]),
+            span[class*="tv-text-"] {
                 .runAnimation(blink-row-text 2s linear infinite);
             }
         }
@@ -319,7 +319,9 @@
 
                 .famo-col-1,
                 .famo-col-2 {
-                    span {
+
+                    span[class*="famo-text-"],
+                    span[class*="tv-text-"] {
                         .applyEllipsis();
                     }
                 }
@@ -397,7 +399,7 @@
                     left: 0px;
                 }
 
-                span {
+                span[class*="tv-text-"] {
                     .applyEllipsis();
                 }
             }
