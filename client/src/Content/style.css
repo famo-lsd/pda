@@ -92,10 +92,10 @@
   * > .famo-button:not(:first-child) {
     margin-left: 4px;
   }
-  .famo-body .famo-wrapper .famo-title span {
+  .famo-body .famo-wrapper .famo-title span[class*="famo-text-"] {
     cursor: default;
   }
-  .famo-body .famo-wrapper .famo-title span::before {
+  .famo-body .famo-wrapper .famo-title span[class*="famo-text-"]::before {
     content: none;
   }
   .famo-body .famo-wrapper .famo-form-grid .famo-input-label .famo-input-loader {
@@ -174,7 +174,7 @@
   .shipments .famo-col-5 {
     width: 70px;
   }
-  .shipments .famo-body-row .famo-col-4 span {
+  .shipments .famo-body-row .famo-col-4 span[class*="famo-text-"] {
     display: inline-block;
     overflow-wrap: break-word;
     -ms-word-break: break-all;
@@ -192,8 +192,8 @@
   .expedition-products .famo-col-3 {
     width: 80px;
   }
-  .expedition-products .famo-body-row .famo-col-2 span,
-  .expedition-products .famo-body-row .famo-col-3 span {
+  .expedition-products .famo-body-row .famo-col-2 span[class*="famo-text-"],
+  .expedition-products .famo-body-row .famo-col-3 span[class*="famo-text-"] {
     display: inline-block;
     overflow-wrap: break-word;
     -ms-word-break: break-all;
@@ -232,8 +232,8 @@
   .expedition-components .famo-col-5 {
     width: 40px;
   }
-  .expedition-components .famo-body-row .famo-col-1 span,
-  .expedition-components .famo-body-row .famo-col-2 span {
+  .expedition-components .famo-body-row .famo-col-1 span[class*="famo-text-"],
+  .expedition-components .famo-body-row .famo-col-2 span[class*="famo-text-"] {
     display: inline-block;
     overflow-wrap: break-word;
     -ms-word-break: break-all;
@@ -253,15 +253,15 @@
   .tv-body p + p {
     margin-top: 0px;
   }
+  .tv-body span[class*="famo-text-"] {
+    text-transform: uppercase;
+  }
   .tv-body .famo-text-10,
   .tv-body .famo-text-11 {
     font-size: 34px !important;
   }
   .tv-body .famo-text-23 {
     font-size: 50px !important;
-  }
-  .tv-body span[class*="famo-text-"] {
-    text-transform: uppercase;
   }
   .tv-body .famo-color-green {
     color: #00cc00 !important;
@@ -317,8 +317,8 @@
     -o-animation: blink-row 2s linear infinite;
     animation: blink-row 2s linear infinite;
   }
-  .tv-body .tv-blink-row span[class*="tv-text-"],
-  .tv-body .tv-blink-row span[class*="famo-text-"]:not([class*="famo-color-"]) {
+  .tv-body .tv-blink-row span[class*="famo-text-"]:not([class*="famo-color-"]),
+  .tv-body .tv-blink-row span[class*="tv-text-"] {
     -webkit-animation: blink-row-text 2s linear infinite;
     -moz-animation: blink-row-text 2s linear infinite;
     -o-animation: blink-row-text 2s linear infinite;
@@ -354,8 +354,10 @@
   .tv-body .bin-orders-data .famo-grid {
     table-layout: fixed;
   }
-  .tv-body .bin-orders-data .famo-body-row .famo-col-1 span,
-  .tv-body .bin-orders-data .famo-body-row .famo-col-2 span {
+  .tv-body .bin-orders-data .famo-body-row .famo-col-1 span[class*="famo-text-"],
+  .tv-body .bin-orders-data .famo-body-row .famo-col-2 span[class*="famo-text-"],
+  .tv-body .bin-orders-data .famo-body-row .famo-col-1 span[class*="tv-text-"],
+  .tv-body .bin-orders-data .famo-body-row .famo-col-2 span[class*="tv-text-"] {
     display: inline-block;
     max-width: 100%;
     overflow: hidden;
@@ -416,7 +418,7 @@
   .tv-footer .tv-messages .tv-message-type::before {
     left: 0px;
   }
-  .tv-footer .tv-messages .tv-message-type span {
+  .tv-footer .tv-messages .tv-message-type span[class*="tv-text-"] {
     display: inline-block;
     max-width: 100%;
     overflow: hidden;
