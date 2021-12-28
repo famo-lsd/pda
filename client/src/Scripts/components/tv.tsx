@@ -101,11 +101,11 @@ function TV(props: any) {
 
         let ret = '';
 
-        if (binOrder.AllBinOrderBoxes === binOrder.OrderBoxes) {
+        if (binOrder.AllBinBoxesQuantity === binOrder.BoxesQuantity) {
             ret = 'famo-color-green';
         }
         else {
-            if (binOrder.OrderExpectedShipmentDate && (moment(binOrder.OrderExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date')) || moment(binOrder.OrderExpectedShipmentDate).isSame(now.startOf('date')))) {
+            if (binOrder.ExpectedShipmentDate && (moment(binOrder.ExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date')) || moment(binOrder.ExpectedShipmentDate).isSame(now.startOf('date')))) {
                 ret = 'famo-color-red';
             }
         }
@@ -270,23 +270,23 @@ function TV(props: any) {
                                                 <div key={i} className={'famo-row famo-body-row ' + (x.ShipmentGate.ID !== -1 ? 'tv-blink-row' : '')}>
                                                     <div className='famo-cell famo-col-1 text-center'>
                                                         <p>
-                                                            <img src={'https://flagcdn.com/h40/' + x.OrderCountry.Code.toLowerCase() + '.png'} height='42' alt={x.OrderCountry.Code} onError={(event) => { (event.target as any).src = NODE_SERVER + 'Images/no-flag.png' }} />
+                                                            <img src={'https://flagcdn.com/h40/' + x.Country.Code.toLowerCase() + '.png'} height='42' alt={x.Country.Code} onError={(event) => { (event.target as any).src = NODE_SERVER + 'Images/no-flag.png' }} />
                                                         </p>
                                                         <p>
-                                                            <span className='tv-text-1'>{x.OrderCountry.Label}</span>
+                                                            <span className='tv-text-1'>{x.Country.Label}</span>
                                                         </p>
                                                     </div>
                                                     <div className='famo-cell famo-col-2'>
                                                         <span className={'famo-text-10 ' + getRowColor(x)}>{x.CustomerName}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-3'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.OrderCode}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.Code}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-4'>
-                                                        <span className={'famo-text-10 ' + (!x.OrderExpectedShipmentDate ? 'famo-color-yellow' : getRowColor(x))}>{!x.OrderExpectedShipmentDate ? 'n/a' : (moment(x.OrderExpectedShipmentDate).isBefore(moment().startOf('date')) ? t('key_906') : moment(x.OrderExpectedShipmentDate).format(dateFormat))}</span>
+                                                        <span className={'famo-text-10 ' + (!x.ExpectedShipmentDate ? 'famo-color-yellow' : getRowColor(x))}>{!x.ExpectedShipmentDate ? 'n/a' : (moment(x.ExpectedShipmentDate).isBefore(moment().startOf('date')) ? t('key_906') : moment(x.ExpectedShipmentDate).format(dateFormat))}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-5 text-center'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinOrderBoxes).format(unitFormat) + '/' + numeral(x.OrderBoxes).format(unitFormat)}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinBoxesQuantity).format(unitFormat) + '/' + numeral(x.BoxesQuantity).format(unitFormat)}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-6 text-center'>
                                                         <span className={'famo-text-10 ' + (x.ShipmentGate.ID === -1 ? 'famo-color-yellow' : getRowColor(x))}>{x.ShipmentGate.ID === -1 ? 'n/a' : x.ShipmentGate.Label}</span>

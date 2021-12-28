@@ -8,7 +8,9 @@ import { Bin, BinBox, Box } from '../utils/interfaces';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
 import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { SalesOrder } from '../utils/interfaces';
 import { NODE_SERVER } from '../utils/variablesRepo';
+import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { VictoryLabel, VictoryPie } from 'victory';
@@ -39,6 +41,10 @@ function Index(props: any) {
             { label: t('key_905'), url: '/Warehouse/Boxes/Transfer' },
             { label: t('key_891'), url: '/Warehouse/Boxes/Delete' }
         ];
+
+    useEffect(() => {
+        SessionStorage.clear();
+    }, []);
 
     return (
         <div className='container'>
@@ -295,6 +301,8 @@ function AddBox(props: any) {
         }).finally(() => {
             globalActions.setLoadPage(false);
         });
+
+        SessionStorage.clear();
     }, []);
 
     useEffect(() => {
@@ -560,6 +568,8 @@ function TransferBox(props: any) {
         }).finally(() => {
             globalActions.setLoadPage(false);
         });
+
+        SessionStorage.clear();
     }, []);
 
     useEffect(() => {
@@ -808,6 +818,10 @@ function DeleteBox(props: any) {
         }
     }
 
+    useEffect(() => {
+        SessionStorage.clear();
+    }, []);
+
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
@@ -919,20 +933,22 @@ function DeleteBox(props: any) {
 
 function Order(props: any) {
     const { t } = useTranslation(),
-        [globalState,] = useGlobal(),
+        [globalState, globalActions] = useGlobal(),
         moment = window['moment'],
         numeral = window['numeral'],
-        [boxCode, setBoxCode] = useState<InputConfig>({
+        [orders, setOrders] = useState<Array<SalesOrder>>([]),
+        [orderCode, setOrderCode] = useState<InputConfig>({
             ref: React.createRef(),
-            type: InputType.Text,
-            label: t('key_819'),
+            type: InputType.Select,
+            label: t('key_179'),
             className: 'famo-input famo-text-10',
-            name: 'boxCode',
-            value: '',
-            autoFocus: true
+            name: 'orderCode',
+            value: ''
         }),
+        orderForm: Array<InputConfig> = [orderCode],
+        setOrderForm: Array<any> = [setOrderCode],
         [loading, setLoading] = useState<boolean>(false),
-        [box, setBox] = useState<Box>(null),
+        [order, setOrder] = useState<SalesOrder>(null),
         vicPieConfig = {
             standalone: false,
             cornerRadius: 10,
@@ -951,19 +967,19 @@ function Order(props: any) {
         percentageFormat = '0.00%',
         unitFormat = '0,0';
 
-    function getBox() {
+    function getOrder() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'ERP/Boxes' + createQueryString({
-            code: boxCode.value
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+            orderCode: orderCode.value,
+            languageCode: globalState.authUser.Language.Code
         }), Http.addAuthorizationHeader({
             method: 'GET'
         })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
-                await result.json()
-                    .then(data => {
-                        setBox(data);
-                    });
+                await result.json().then(data => {
+                    setBoxes(data);
+                });
             }
             else {
                 throw result;
@@ -971,105 +987,85 @@ function Order(props: any) {
         }).catch(error => {
             if (error as Response) {
                 Log.httpError(error);
-
-                if (error.status === httpStatus.NOT_FOUND) {
-                    alert(t('key_883'));
-                }
-                else if (error.status === httpStatus.FORBIDDEN) {
-                    alert(t('key_871'));
-                }
-                else {
-                    alert(t('key_303'));
-                }
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_884') : t('key_303'));
             }
             else {
                 Log.promiseError(error);
                 alert(t('key_416'));
             }
 
-            setBox(null);
             setBoxes([]);
-            setLoading(false);
 
-            cleanBoxCode();
+            cleanOrderForm();
+        }).finally(() => {
+            setLoading(false);
         });
     }
 
-    function cleanBoxCode() {
-        setBoxCode(x => { return { ...x, value: '' }; });
-        boxCode.ref.current.focus();
+    function cleanOrderForm() {
+        InputTools.resetValues(orderForm, setOrderForm);
     }
 
     useEffect(() => {
-        if (box) {
-            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
-                orderCode: box.OrderCode,
-                languageCode: globalState.authUser.Language.Code
-            }), Http.addAuthorizationHeader({
-                method: 'GET'
-            })).then(async result => {
-                if (result.ok && result.status === httpStatus.OK) {
-                    await result.json().then(data => {
-                        setBoxes(data);
-                    });
-                }
-                else {
-                    throw result;
-                }
-            }).catch(error => {
-                if (error as Response) {
-                    Log.httpError(error);
-                    alert(error.status === httpStatus.NOT_FOUND ? t('key_884') : t('key_303'));
-                }
-                else {
-                    Log.promiseError(error);
-                    alert(t('key_416'));
-                }
-            }).finally(() => {
-                setLoading(false);
-            });
-        }
-    }, [box]);
+        globalActions.setLoadPage(true);
+
+        fetch(NODE_SERVER + 'ERP/Packages/Pending/Orders' + createQueryString({}), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setOrders(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            globalActions.setLoadPage(false);
+        });
+
+        SessionStorage.clear();
+    }, []);
 
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
                 <Title text={t('key_897')} />
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getOrder(); }}>
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
-                                <span className='famo-text-11'>{boxCode.label}</span>
+                                <span className='famo-text-11'>{orderCode.label}</span>
                             </div>
                             <div className='famo-cell'>
-                                <Input {...boxCode} isDisabled={loading} set={setBoxCode} />
+                                <Input {...orderCode} isDisabled={loading} set={setOrderCode} >
+                                    <option key=''></option>
+                                    {orders.map((x, i) => {
+                                        return <option key={i} value={x.Code}>{x.Code}</option>
+                                    })}
+                                </Input>
                             </div>
                         </div>
                         <input type='submit' className='hide' value='' />
                     </form>
-                    <div className='famo-grid famo-buttons'>
-                        <div className='famo-row'>
-                            <div className='famo-cell text-right'>
-                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => cleanBoxCode()}>
-                                    <span className='famo-text-12'>{t('key_829')}</span>
-                                </button>
-                                {!globalState.androidApp &&
-                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getBox()}>
-                                        <span className='famo-text-12'>{t('key_323')}</span>
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </section>
-            {(loading || box) &&
+            {(loading || order) &&
                 <React.Fragment>
                     <section className='famo-wrapper'>
                         <Title text={t('key_179')} />
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
-                            {box &&
+                            {orderCode.value !== '' &&
                                 <div className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')}>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
@@ -1077,7 +1073,7 @@ function Order(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{box.OrderCode}</span>
+                                                <span className='famo-text-10'>{order.Code}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1087,7 +1083,7 @@ function Order(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{box.CustomerName}</span>
+                                                <span className='famo-text-10'>{order.CustomerName}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1097,7 +1093,7 @@ function Order(props: any) {
                                         </div>
                                         <div className='famo-cell'>
                                             <div className='famo-input'>
-                                                <span className='famo-text-10'>{moment(box.ExpectedShipmentDate).format(dateFormat)}</span>
+                                                <span className='famo-text-10'>{moment(order.ExpectedShipmentDate).format(dateFormat)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1108,7 +1104,7 @@ function Order(props: any) {
                     <section className='famo-wrapper'>
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
-                            {box &&
+                            {order &&
                                 <div className={'container ' + (loading ? 'hide' : '')}>
                                     <div className='row'>
                                         <div className='col-12 col-lg-4'>
@@ -1158,7 +1154,7 @@ function Order(props: any) {
                     <section className='famo-wrapper'>
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
-                            {box &&
+                            {order &&
                                 <div className={'famo-grid famo-content-grid warehouse-boxes ' + (loading ? 'hide' : '')}>
                                     <div className='famo-row famo-header-row'>
                                         {boxesHeader.map((x, i) => {

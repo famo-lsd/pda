@@ -15,14 +15,14 @@ export interface BinBox extends Box {
 }
 
 export interface BinOrder {
+    Code: string;
     CustomerName: string;
-    OrderCode: string;
-    OrderCountry: Country;
-    OrderExpectedShipmentDate: Date;
-    OrderBoxes: number;
+    Country: Country;
+    ExpectedShipmentDate: Date;
+    BoxesQuantity: number;
     Bin: Bin;
-    BinOrderBoxes: number;
-    AllBinOrderBoxes: number;
+    BinBoxesQuantity: number;
+    AllBinBoxesQuantity: number;
     ShipmentGate: ShipmentGate;
 }
 
@@ -76,6 +76,12 @@ export interface Pallet {
 
 export interface PalletBox extends Box {
     IsNew: boolean;
+}
+
+export interface SalesOrder {
+    Code: string;
+    CustomerName: string;
+    ExpectedShipmentDate: Date;
 }
 
 export interface Shipment {
