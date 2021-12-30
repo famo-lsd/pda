@@ -104,8 +104,11 @@ function TV(props: any) {
         if (binOrder.AllBinBoxesQuantity === binOrder.BoxesQuantity) {
             ret = 'famo-color-green';
         }
-        else {
-            if (binOrder.ExpectedShipmentDate && (moment(binOrder.ExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date')) || moment(binOrder.ExpectedShipmentDate).isSame(now.startOf('date')))) {
+        else if (binOrder.ExpectedShipmentDate) {
+            if (moment(binOrder.ExpectedShipmentDate).subtract({ days: 2 }).isSame(now.startOf('date'))) {
+                ret = 'famo-color-yellow';
+            }
+            else if (moment(binOrder.ExpectedShipmentDate).subtract({ days: 2 }).isBefore(now.startOf('date'))) {
                 ret = 'famo-color-red';
             }
         }
@@ -283,10 +286,10 @@ function TV(props: any) {
                                                         <span className={'famo-text-10 ' + getRowColor(x)}>{x.Code}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-4'>
-                                                        <span className={'famo-text-10 ' + (!x.ExpectedShipmentDate ? 'famo-color-yellow' : getRowColor(x))}>{!x.ExpectedShipmentDate ? 'n/a' : (moment(x.ExpectedShipmentDate).isBefore(moment().startOf('date')) ? t('key_906') : moment(x.ExpectedShipmentDate).format(dateFormat))}</span>
+                                                        <span className={'famo-text-10 ' + (!x.ExpectedShipmentDate ? 'famo-color-yellow' : getRowColor(x))}>{!x.ExpectedShipmentDate ? 'n/a' : moment(x.ExpectedShipmentDate).format(dateFormat)}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-5 text-center'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BinBoxesQuantity).format(unitFormat) + '/' + numeral(x.BoxesQuantity).format(unitFormat)}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.AllBinBoxesQuantity).format(unitFormat) + '/' + numeral(x.BoxesQuantity).format(unitFormat)}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-6 text-center'>
                                                         <span className={'famo-text-10 ' + (x.ShipmentGate.ID === -1 ? 'famo-color-yellow' : getRowColor(x))}>{x.ShipmentGate.ID === -1 ? 'n/a' : x.ShipmentGate.Label}</span>

@@ -970,16 +970,18 @@ function Order(props: any) {
     function getOrder() {
         setLoading(true);
 
-        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
-            orderCode: orderCode.value,
-            languageCode: globalState.authUser.Language.Code
+        fetch(NODE_SERVER + 'ERP/Orders' + createQueryString({
+            code: orderCode.value
         }), Http.addAuthorizationHeader({
             method: 'GET'
         })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
-                await result.json().then(data => {
-                    setBoxes(data);
-                });
+                await result.json()
+                    .then(data => {
+                        setOrder(data);
+                    }).catch(error => {
+                        console.log(error);
+                    });
             }
             else {
                 throw result;
@@ -987,18 +989,23 @@ function Order(props: any) {
         }).catch(error => {
             if (error as Response) {
                 Log.httpError(error);
-                alert(error.status === httpStatus.NOT_FOUND ? t('key_884') : t('key_303'));
+                if (error.status === httpStatus.NOT_FOUND) {
+                    alert(t('key_884'));
+                }
+                else {
+                    alert(t('key_303'));
+                }
             }
             else {
                 Log.promiseError(error);
                 alert(t('key_416'));
             }
 
+            setOrder(null);
             setBoxes([]);
+            setLoading(false);
 
             cleanOrderForm();
-        }).finally(() => {
-            setLoading(false);
         });
     }
 
@@ -1036,12 +1043,53 @@ function Order(props: any) {
         SessionStorage.clear();
     }, []);
 
+    useEffect(() => {
+        if (orderCode.value !== '') {
+            getOrder();
+        }
+        else {
+            setOrder(null);
+            setBoxes([]);
+        }
+    }, orderForm);
+
+    useEffect(() => {
+        if (order) {
+            fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+                orderCode: orderCode.value,
+                languageCode: globalState.authUser.Language.Code
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json().then(data => {
+                        setBoxes(data);
+                    });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    Log.httpError(error);
+                    alert(error.status === httpStatus.NOT_FOUND ? t('key_884') : t('key_303'));
+                }
+                else {
+                    Log.promiseError(error);
+                    alert(t('key_416'));
+                }
+            }).finally(() => {
+                setLoading(false);
+            });
+        }
+    }, [order]);
+
     return (
         <React.Fragment>
             <section className='famo-wrapper'>
                 <Title text={t('key_897')} />
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getOrder(); }}>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate>
                         <div className='famo-row'>
                             <div className='famo-cell famo-input-label'>
                                 <span className='famo-text-11'>{orderCode.label}</span>
@@ -1065,7 +1113,7 @@ function Order(props: any) {
                         <Title text={t('key_179')} />
                         <div className='famo-content'>
                             <ContentLoader hide={!loading} />
-                            {orderCode.value !== '' &&
+                            {order &&
                                 <div className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')}>
                                     <div className='famo-row'>
                                         <div className='famo-cell famo-input-label'>
