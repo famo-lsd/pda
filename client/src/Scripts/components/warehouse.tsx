@@ -4,7 +4,7 @@ import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import Log from '../utils/log';
 import React, { useEffect, useState } from 'react';
 import Title from './elements/title';
-import { Bin, BinBox, Box } from '../utils/interfaces';
+import { Bin, BinBox } from '../utils/interfaces';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
 import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
