@@ -1016,7 +1016,7 @@ function Order(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        fetch(NODE_SERVER + 'ERP/Packages/Pending/Orders' + createQueryString({}), Http.addAuthorizationHeader({
+        fetch(NODE_SERVER + 'ERP/Warehouse/Pending/Orders' + createQueryString({}), Http.addAuthorizationHeader({
             method: 'GET'
         })).then(async result => {
             if (result.ok && result.status === httpStatus.OK) {
