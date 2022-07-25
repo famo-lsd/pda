@@ -10,7 +10,8 @@ function Home(props: any) {
             { label: t('key_894'), image: 'btn-armazem.png', url: '/Warehouse' },
             { label: t('key_877'), image: 'btn-expedicao.png', url: '/Expedition' },
             { label: t('key_826'), image: 'btn-palete.png', url: '/Pallets' },
-            { label: t('key_806'), image: 'btn-inventario.png', url: '/Inventory' }
+            { label: t('key_806'), image: 'btn-inventario.png', url: '/Inventory' },
+            { label: 'Receber OT', image: 'btn-inventario.png', url: '/ReceiveOT' }
         ];
 
     useEffect(() => {

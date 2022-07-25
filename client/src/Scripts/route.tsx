@@ -5,6 +5,7 @@ import Home from './components/home';
 import Http from './utils/http';
 import httpStatus from 'http-status';
 import Inventory from './components/inventory';
+import ReceiveOT from './components/receiveOT';
 import Log from './utils/log';
 import Pallets from './components/pallets';
 import PropTypes from 'prop-types';
@@ -128,6 +129,7 @@ function RouteBody(props: any) {
                     <PrivateRoute path='/Expedition' component={Expedition} />
                     <PrivateRoute path='/Pallets' component={Pallets} />
                     <PrivateRoute path='/Inventory' component={Inventory} />
+                    <PrivateRoute path='/ReceiveOT' component={ReceiveOT} />
                     <Route exact path='/SignIn' render={routeProps => { return <SignIn {...routeProps} />; }} />
                 </Switch>
             }
@@ -211,6 +213,7 @@ function AutoRouteBody(props: any) {
                             <Route path='/Expedition' render={() => { return <Expedition />; }} />
                             <Route path='/Pallets' render={() => { return <Pallets />; }} />
                             <Route path='/Inventory' render={() => { return <Inventory />; }} />
+                            <Route path='/ReceiveOT' render={() => { return <ReceiveOT />; }} />
                         </Switch>
                         {!globalState.androidApp && backButton &&
                             <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (!globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>

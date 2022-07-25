@@ -117,3 +117,10 @@ export interface ShipmentProductComponent {
     BoxCode: string;
     BoxPrinted: boolean;
 }
+
+export interface TransferOrder{
+    Code: string;
+    From: string;
+    To: string;
+    Car: string;
+}
