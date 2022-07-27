@@ -12,6 +12,7 @@ import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import SignIn from './components/signIn';
 import TV from './components/tv';
+import TVReception from './components/tvReception';
 import Warehouse from './components/warehouse';
 import { AppLoader } from './components/elements/loader';
 import { createQueryString, isMobileBrowser } from './utils/general';
@@ -125,6 +126,7 @@ function RouteBody(props: any) {
                 <Switch>
                     <PrivateRoute exact path='/' component={Home} />
                     <PrivateRoute path='/TV' component={TV} />
+                    <PrivateRoute path='/TVReception' component={TVReception} />
                     <PrivateRoute path='/Warehouse' component={Warehouse} />
                     <PrivateRoute path='/Expedition' component={Expedition} />
                     <PrivateRoute path='/Pallets' component={Pallets} />
@@ -198,17 +200,18 @@ function AutoRouteBody(props: any) {
     }, []);
 
     useEffect(() => {
-        setBackButton(location.pathname === '/' || location.pathname === '/TV' ? false : true);
+        setBackButton(location.pathname === '/' || location.pathname === '/TV' || location.pathname === '/TVReception' ? false : true);
     }, [location.pathname]);
 
     return (
         <React.Fragment>
             {!loadSession &&
                 <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
-                    <section className={'famo-body ' + (location.pathname === '/TV' ? 'tv-body' : '')}>
+                    <section className={'famo-body ' + (location.pathname === '/TV' || location.pathname === '/TVReception' ? 'tv-body' : '')}>
                         <Switch>
                             <Route exact path='/' render={() => { return <Home />; }} />
                             <Route path='/TV' render={() => { return <TV />; }} />
+                            <Route path='/TVReception' render={() => { return <TVReception />; }} />
                             <Route path='/Warehouse' render={() => { return <Warehouse />; }} />
                             <Route path='/Expedition' render={() => { return <Expedition />; }} />
                             <Route path='/Pallets' render={() => { return <Pallets />; }} />
