@@ -246,6 +246,11 @@ function TV(props: any) {
                                                 <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
                                             </svg>
                                         </div>
+                                        <div className='famo-grid'>
+                                            <div className='famo-cell text-center'>
+                                                <span className='famo-text-10'>{numeral(bin.TotalVolume).format(unitFormat)} m3</span>
+                                            </div>
+                                        </div>
                                     </React.Fragment>
                                 }
                             </div>

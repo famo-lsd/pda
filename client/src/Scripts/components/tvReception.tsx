@@ -12,6 +12,7 @@ import { useInterval } from '@restart/hooks';
 import { useTranslation } from 'react-i18next';
 import { VictoryPie } from 'victory';
 import { withRouter } from 'react-router-dom';
+import { setDecimalDelimiter } from '../utils/number';
 
 function TVReception(props: any) {
     const { location } = props,
@@ -203,7 +204,7 @@ function TVReception(props: any) {
                                     <div className='famo-grid rating-panel'>
                                         <div className='famo-row'>
                                             <div className='famo-cell text-center'>
-                                                <span className='famo-text-23'>{bin.Code}</span>
+                                                <span className='famo-text-23'>{bin.Label ? bin.Label : bin.Code}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -245,6 +246,11 @@ function TVReception(props: any) {
                                             <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
                                                 <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
                                             </svg>
+                                        </div>
+                                        <div className='famo-grid'>
+                                            <div className='famo-cell text-center'>
+                                                <span className='famo-text-10'>{numeral(bin.TotalVolume).format(unitFormat)} m3</span>
+                                            </div>
                                         </div>
                                     </React.Fragment>
                                 }
