@@ -2,7 +2,7 @@ import Http from '../utils/http';
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import Log from '../utils/log';
-import React, { useEffect, useState } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import Title from './elements/title';
 import { Bin, BinBox } from '../utils/interfaces';
 import { ContentLoader } from './elements/loader';
@@ -14,6 +14,7 @@ import { SessionStorage } from '../utils/sessionStorage';
 import { useGlobal } from '../utils/globalHooks';
 import { useTranslation } from 'react-i18next';
 import { VictoryLabel, VictoryPie } from 'victory';
+import { stringify } from 'query-string';
 
 enum TransferType {
     Box = 1,
@@ -26,6 +27,7 @@ function Warehouse(props: any) {
             <Route exact path='/Warehouse' render={(props) => { return <Index {...props} />; }} />
             <Route exact path='/Warehouse/Boxes/Add' render={(props) => { return <AddBox {...props} />; }} />
             <Route exact path='/Warehouse/Boxes/Transfer' render={(props) => { return <TransferBox {...props} />; }} />
+            <Route exact path='/Warehouse/Boxes/TransferMany' render={(props) => { return <TransferBoxes {...props} />; }} />
             <Route exact path='/Warehouse/Boxes/Delete' render={(props) => { return <DeleteBox {...props} />; }} />
             <Route exact path='/Warehouse/Orders' render={(props) => { return <Order {...props} />; }} />
             <Route path='/Warehouse/*' render={() => { return <Redirect to='/Warehouse' />; }} />
@@ -39,6 +41,7 @@ function Index(props: any) {
             { label: t('key_895'), url: '/Warehouse/Boxes/Add' },
             { label: t('key_897'), url: '/Warehouse/Orders' },
             { label: t('key_905'), url: '/Warehouse/Boxes/Transfer' },
+            { label: 'Transferir várias embalagens', url: '/Warehouse/Boxes/TransferMany' },
             { label: t('key_891'), url: '/Warehouse/Boxes/Delete' }
         ];
 
@@ -722,6 +725,355 @@ function TransferBox(props: any) {
                     }
                 </React.Fragment>
             }
+        </React.Fragment>);
+}
+
+
+function TransferBoxes(props: any) {
+    const { t } = useTranslation(),
+        [globalState, globalActions] = useGlobal(),
+        numeral = window['numeral'],
+        moment = window['moment'],
+        [boxCode, setBoxCode] = useState<InputConfig>({
+            ref: React.createRef(),
+            type: InputType.Text,
+            label: t('key_819'),
+            className: 'famo-input famo-text-10',
+            name: 'boxCode',
+            value: '',
+            autoFocus: true
+        }),
+        [loading, setLoading] = useState<boolean>(false),
+        [box, setBox] = useState<BinBox>(null),
+        [orderCode, setOrderCode] = useState<string>(null),
+        [boxes, setBoxes] = useState<Array<BinBox>>([]),
+        [bins, setBins] = useState<Array<Bin>>([]),
+        [binID, setBinID] = useState<InputConfig>({
+            ref: React.createRef(),
+            type: InputType.Select,
+            label: t('key_893'),
+            className: 'famo-input famo-text-10',
+            name: 'binID',
+            value: ''
+        }),
+        binForm: Array<InputConfig> = [binID],
+        setBinForm: Array<any> = [setBinID],
+        [transferType, setTransferType] = useState<TransferType>(null),
+        dateFormat = 'L';
+
+    function getBox() {
+        setLoading(true);
+
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+            code: boxCode.value,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBox(data);
+                    setLoading(false);
+
+                    InputTools.resetValues(binForm, setBinForm);
+                });
+
+                cleanBoxCode();
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_883') : t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+
+            setBox(null);
+            setLoading(false);
+
+            InputTools.resetValues(binForm, setBinForm);
+            cleanBoxCode();
+        });
+    }
+
+    function UpdateValues() {
+        if (box != null) {
+            if (boxes.length < 1) {
+                setOrderCode(box.OrderCode);
+                updateBoxes();
+            }
+            else if (box.OrderCode === orderCode) {
+                updateBoxes();
+            }
+            else {
+                alert('A embalagem ' + box.Code + ' não pertence à encomenda ' + orderCode + '!');
+            }
+        }
+    }
+
+    function cleanBoxCode() {
+        setBoxCode(x => { return { ...x, value: '' }; });
+        boxCode.ref.current.focus();
+    }
+
+    function updateBoxes() {
+        if (box && !boxes.some(x => { return x.Code === box.Code; })) {
+            boxes.push(box);
+            setBox(null);
+        }
+        else if (box) {
+            alert('A embalagem ' + box.Code + ' já foi introduzida!');
+        }
+    }
+
+    function transferOrder() {
+        setTransferType(TransferType.Order);
+        InputTools.analyze(binForm, setBinForm);
+    }
+
+    function transferBox() {
+        setTransferType(TransferType.Box);
+        InputTools.analyze(binForm, setBinForm);
+    }
+
+    function transfer(boxToTransfer) {
+        setLoading(true);
+
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+            ID: boxToTransfer.ID
+        }), Http.addAuthorizationHeader({
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                binID: binID.value,
+                orderCode: boxToTransfer.OrderCode
+            })
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                setBox(null);
+                setLoading(false);
+
+                InputTools.resetValues(binForm, setBinForm);
+                cleanBoxCode();
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_302'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+
+            setLoading(false);
+        });
+    }
+
+    useEffect(() => {
+        globalActions.setLoadPage(true);
+
+        fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setBins(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            globalActions.setLoadPage(false);
+        });
+
+        SessionStorage.clear();
+    }, []);
+
+    useEffect(() => {
+        if (InputTools.areAnalyzed(binForm)) {
+            if (InputTools.areValid(binForm)) {
+                boxes.forEach(x => transfer(x));
+                setBoxes([]);
+                setBox(null);
+                alert('As embalagens foram transferidas com sucesso!');
+                cleanBoxCode();
+            }
+            else {
+                InputTools.popUpAlerts(binForm, t);
+            }
+
+            InputTools.resetValidations(binForm, setBinForm);
+        }
+    }, binForm);
+
+    useEffect(() => {
+        UpdateValues();
+    }, [box])
+
+    return (
+        <React.Fragment>
+            <section className='famo-wrapper'>
+                <Title text={'Transferir várias embalagens'} />
+                <div className='famo-content'>
+                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate onSubmit={event => { event.preventDefault(); getBox(); }}>
+                        <div className='famo-row'>
+                            <div className='famo-cell famo-input-label'>
+                                <span className='famo-text-11'>{boxCode.label}</span>
+                            </div>
+                            <div className='famo-cell'>
+                                <Input {...boxCode} isDisabled={loading} set={setBoxCode} />
+                            </div>
+                        </div>
+                        <input type='submit' className='hide' value='' />
+                    </form>
+                    <div className='famo-grid famo-buttons'>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => cleanBoxCode()}>
+                                    <span className='famo-text-12'>{t('key_829')}</span>
+                                </button>
+                                {!globalState.androidApp &&
+                                    <button type='button' className='famo-button famo-normal-button' disabled={loading} onClick={event => getBox()}>
+                                        <span className='famo-text-12'>{t('key_323')}</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {!loading && boxes.length > 0 &&
+                <React.Fragment>
+                    <section className='famo-wrapper'>
+                        <Title text={'Detalhe da encomenda'} />
+                        <div className='famo-content'>
+                            <ContentLoader hide={!loading} />
+                            <div className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')}>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_179')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <div className='famo-input'>
+                                            <span className='famo-text-10'>{boxes[0].OrderCode}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_85')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <div className='famo-input'>
+                                            <span className='famo-text-10'>{boxes[0].CustomerName}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='famo-row'>
+                                    <div className='famo-cell famo-input-label'>
+                                        <span className='famo-text-11'>{t('key_670')}</span>
+                                    </div>
+                                    <div className='famo-cell'>
+                                        <div className='famo-input'>
+                                            <span className='famo-text-10'>{moment(boxes[0].ExpectedShipmentDate).format(dateFormat)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                <React.Fragment>
+                    <section className='famo-wrapper'>
+                        <div className='famo-content'>
+                            <ContentLoader hide={!loading} />
+                            <div className={'famo-grid famo-content-grid ' + (!loading ? '' : 'hide')}>
+                                <div className='famo-row famo-header-row'>
+                                    <div className='famo-cell famo-col-1'>
+                                        <span className='famo-text-11'>{'Embalagens (' + boxes.length + ')'}</span>
+                                    </div>
+                                    <div className='famo-cell famo-col-2'>
+                                        <span className='famo-text-11'>Bin</span>
+                                    </div>
+                                </div>
+                                {boxes.map((x, i) => {
+                                    return (
+                                        <div key={i} className='famo-row famo-body-row'>
+                                            <div className='famo-cell famo-col-1'>
+                                                <span className={'famo-text-10 '}>{x.Code}</span>
+                                            </div>
+                                            <div className='famo-cell famo-col-2'>
+                                                <span className={'famo-text-10 '}>{x.Bin.Code}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                </React.Fragment>
+                    <section className='famo-wrapper'>
+                        <Title text={t('key_898')} />
+                        <div className='famo-content'>
+                            <ContentLoader hide={!loading} />
+                            {boxes.length > 0 && bins.length > 0 &&
+                                <form className={'famo-grid famo-form-grid ' + (loading ? 'hide' : '')} noValidate>
+                                    <div className='famo-row'>
+                                        <div className='famo-cell famo-input-label'>
+                                            <span className='famo-text-11'>{binID.label}</span>
+                                        </div>
+                                        <div className='famo-cell'>
+                                            <Input {...binID} set={setBinID}>
+                                                <option key={-1} value=''></option>
+                                                {bins.map((x, i) => {
+                                                    return <option key={i} value={x.ID}>{x.Code}</option>
+                                                })}
+                                            </Input>
+                                        </div>
+                                    </div>
+                                </form>
+                            }
+                        </div>
+                    </section>
+                    {boxes.length > 0 && bins.length > 0 &&
+                        <section className='famo-wrapper'>
+                            <div className='famo-grid'>
+                                <div className='famo-row'>
+                                    <div className='famo-cell text-right'>
+                                        <button type='button' className='famo-button famo-confirm-button' disabled={loading} onClick={event => transferBox()}>
+                                            <span className='famo-text-12'>{t('key_904')}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    }
+                </React.Fragment>
+            }
+
         </React.Fragment>);
 }
 
