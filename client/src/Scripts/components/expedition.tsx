@@ -400,7 +400,7 @@ function Edit(props: any) {
                         await result.json().then(data => {
                             setFormMessage('');
                             if ((products.filter(function (product) {return product.OrderCode === (data as Box).OrderCode && product.ProductCode.startsWith((data as Box).ProductCode)}))[0].PendingBoxes > 0) {
-                                if (window.confirm('O produto inserido não está totalmente produzido. Deseja introduzir a embalagem ?')) {
+                                if (window.confirm('O produto inserido não está totalmente produzido! Deseja introduzir a embalagem ?')) {
                                     setBoxes([(data as Box), ...boxes]);
                                 }
                             }

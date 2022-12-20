@@ -124,3 +124,17 @@ export interface TransferOrder{
     To: string;
     Car: string;
 }
+
+export interface NavisionOrder{
+    Code: string;
+    CustomerCode: string;
+    CustomerName: string;
+    ExpectedShipmentDate: Date;
+}
+
+export interface TVToBoxOrder{
+    Order: NavisionOrder;
+    Country: Country;
+    BoxesQuantity: number;
+    AllBinBoxesQuantity: number;
+}
