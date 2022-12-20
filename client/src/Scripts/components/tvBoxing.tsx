@@ -127,25 +127,22 @@ function TVBoxing(props: any) {
     // }
 
     //Funcao para a cor das letras. Para ja fica comentado. Nao se ve utilidade
-    // function getRowColor(toBoxOrder: TVToBoxOrder): string {
-    //     const now = moment();
+    function getRowColor(toBoxOrder: TVToBoxOrder): string {
+        const now = moment();
 
-    //     let ret = '';
+        let ret = '';
 
-    //     if (toBoxOrder.AllBinBoxesQuantity === binOrder.BoxesQuantity) {
-    //         ret = 'famo-color-green';
-    //     }
-    //     else if (binOrder.ExpectedShipmentDate) {
-    //         if (moment(binOrder.ExpectedShipmentDate).subtract({ days: 2 }).isSame(now.startOf('date'))) {
-    //             ret = 'famo-color-yellow';
-    //         }
-    //         else if (moment(binOrder.ExpectedShipmentDate).subtract({ days: 2 }).isBefore(now.startOf('date'))) {
-    //             ret = 'famo-color-red';
-    //         }
-    //     }
+        if (toBoxOrder.Order.ExpectedShipmentDate) {
+            if (moment(toBoxOrder.Order.ExpectedShipmentDate).subtract({ days: 1 }).isSame(now.startOf('date'))) {
+                ret = 'famo-color-yellow';
+            }
+            else if (moment(toBoxOrder.Order.ExpectedShipmentDate).subtract({ days: 1 }).isBefore(now.startOf('date'))) {
+                ret = 'famo-color-red';
+            }
+        }
 
-    //     return ret;
-    // }
+        return ret;
+    }
 
     function getMessages() {
         return fetch(NODE_SERVER + 'TV/Messages' + createQueryString({
@@ -312,19 +309,19 @@ function TVBoxing(props: any) {
                                                         </p>
                                                     </div>
                                                     <div className='famo-cell famo-col-2'>
-                                                        <span className={'famo-text-10 ' /*+ getRowColor(x)*/}>{x.Order.CustomerName}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.CustomerName}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-3'>
-                                                        <span className={'famo-text-10 ' /*+ getRowColor(x)*/}>{x.Order.Code}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.Code}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-4'>
-                                                        <span className={'famo-text-10 ' /*+ (!x.ExpectedShipmentDate ? 'famo-color-yellow' : getRowColor(x))*/}>{!x.Order.ExpectedShipmentDate ? 'n/a' : moment(x.Order.ExpectedShipmentDate).format(dateFormat)}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{!x.Order.ExpectedShipmentDate ? 'n/a' : moment(x.Order.ExpectedShipmentDate).format(dateFormat)}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-5 text-center'>
-                                                        <span className={'famo-text-10 ' /*+ getRowColor(x)*/}>{numeral(x.AllBinBoxesQuantity).format(unitFormat)}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.AllBinBoxesQuantity).format(unitFormat)}</span>
                                                     </div>
                                                     <div className='famo-cell famo-col-6 text-center'>
-                                                        <span className={'famo-text-10 ' /*+ (x.ShipmentGate.ID === -1 ? 'famo-color-yellow' : getRowColor(x))*/}>{numeral(x.BoxesQuantity).format(unitFormat)}</span>
+                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BoxesQuantity).format(unitFormat)}</span>
                                                     </div>
                                                 </div>
                                             );
