@@ -10,9 +10,7 @@ import { NODE_SERVER } from '../utils/variablesRepo';
 import { useGlobal } from '../utils/globalHooks';
 import { useInterval } from '@restart/hooks';
 import { useTranslation } from 'react-i18next';
-//import { VictoryPie } from 'victory';
 import { withRouter } from 'react-router-dom';
-//import { setDecimalDelimiter } from '../utils/number';
 
 function TVBoxing(props: any) {
     const { location } = props,
@@ -21,15 +19,14 @@ function TVBoxing(props: any) {
         moment = window['moment'],
         numeral = window['numeral'],
         query = queryString.parse(location.search),
-        //binCodeQS = query.binCode,
         machineCenters = query.machineCenters,
         [toBoxOrders, setToBoxOrders] = useState<Pagination<TVToBoxOrder>>(null),
-        //[lastBinCode, setLastBinCode] = useState<string>(),
+        [weekOrders, setWeekOrders] = useState<Pagination<TVToBoxOrder>>(null),
+        [isWeek, setIsWeek] = useState<boolean>(true),
+        [isSearching, setIsSearching] = useState<boolean>(true),
         [orderFirst, setOrderFirst] = useState<boolean>(true),
-        //[bin, setBin] = useState<Bin>(),
         [toBoxOrdersHeight, settoBoxOrdersHeight] = useState<number>(-1),
         toBoxOrdersHeader: Array<string> = ['', t('key_85'), t('key_179'), t('key_907'), 'EMB.(S)', 'TOTAL'],
-        //[binOrders, setBinOrders] = useState<Pagination<BinOrder>>(null),
         [time, setTime] = useState(moment()),
         vicPieConfig = {
             standalone: false,
@@ -44,34 +41,8 @@ function TVBoxing(props: any) {
         timeFormat = 'LTS',
         unitFormat = '0,0';
 
-    // function getBin() {
-    //     return fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
-    //         code: binCodeQS,
-    //         languageCode: globalState.authUser.Language.Code
-    //     }), Http.addAuthorizationHeader({
-    //         method: 'GET'
-    //     })).then(async result => {
-    //         if (result.ok && result.status === httpStatus.OK) {
-    //             await result.json().then(data => {
-    //                 setBin(data);
-    //             });
-    //         }
-    //         else {
-    //             throw result;
-    //         }
-    //     }).catch(error => {
-    //         if (error as Response) {
-    //             Log.httpError(error);
-    //             alert(t('key_303'));
-    //         }
-    //         else {
-    //             Log.promiseError(error);
-    //             alert(t('key_416'));
-    //         }
-    //     });
-    // }
-
     function getToBoxOrders(page: number) {
+        setIsSearching(true);
         return fetch(NODE_SERVER + 'TV/TVToBoxOrders' + createQueryString({
             machineCenters: machineCenters,
             page: page
@@ -95,36 +66,42 @@ function TVBoxing(props: any) {
                 Log.promiseError(error);
                 alert(t('key_416'));
             }
+        }).finally(() => {
+            setIsSearching(false)
+            setIsWeek(false);
         });
     }
 
-    // function getBinOrders(page: number) {
-    //     return fetch(NODE_SERVER + 'Warehouse/Bins/Orders' + createQueryString({
-    //         binCode: binCodeQS,
-    //         languageCode: globalState.authUser.Language.Code,
-    //         page: page
-    //     }), Http.addAuthorizationHeader({
-    //         method: 'GET'
-    //     })).then(async result => {
-    //         if (result.ok && result.status === httpStatus.OK) {
-    //             await result.json().then(data => {
-    //                 setBinOrders(data);
-    //             });
-    //         }
-    //         else {
-    //             throw result;
-    //         }
-    //     }).catch(error => {
-    //         if (error as Response) {
-    //             Log.httpError(error);
-    //             alert(t('key_303'));
-    //         }
-    //         else {
-    //             Log.promiseError(error);
-    //             alert(t('key_416'));
-    //         }
-    //     });
-    // }
+    function getWeekOrders(page: number) {
+        setIsSearching(true);
+        return fetch(NODE_SERVER + 'TV/TVWeekOrders' + createQueryString({
+            machineCenters: machineCenters,
+            page: page
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setWeekOrders(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            setIsSearching(false)
+            setIsWeek(true);
+        });
+    }
 
     //Funcao para a cor das letras. Para ja fica comentado. Nao se ve utilidade
     function getRowColor(toBoxOrder: TVToBoxOrder): string {
@@ -181,7 +158,29 @@ function TVBoxing(props: any) {
     }, 1000);
 
     useInterval(() => {
-        getToBoxOrders(toBoxOrders ? (toBoxOrders.CurrentPage === toBoxOrders.PagesNumber ? 1 : toBoxOrders.CurrentPage + 1) : 1)
+        if (!isSearching) {
+            if (isWeek) {
+                if (weekOrders != null) {
+                    if (weekOrders.CurrentPage === weekOrders.PagesNumber || weekOrders.PagesNumber === 0) {
+                        getToBoxOrders(1);
+                    }
+                    else {
+                        getWeekOrders(weekOrders.CurrentPage + 1);
+                    }
+                }
+            }
+            else {
+                if (toBoxOrders != null) {
+                    if (toBoxOrders.CurrentPage === toBoxOrders.PagesNumber || toBoxOrders.PagesNumber === 0) {
+                        getWeekOrders(1);
+                        setIsWeek(true);
+                    }
+                    else {
+                        getToBoxOrders(toBoxOrders.CurrentPage + 1);
+                    }
+                }
+            }
+        }
     }, 8000);
 
     useInterval(() => {
@@ -201,6 +200,9 @@ function TVBoxing(props: any) {
             - 30
             - 30
             - document.querySelector('.to-box-orders .famo-header-row').clientHeight);
+
+        setIsWeek(false);
+        setIsSearching(false);
 
         Promise.all([getToBoxOrders(1), getMessages()]).finally(() => {
             globalActions.setLoadPage(false);
@@ -228,7 +230,7 @@ function TVBoxing(props: any) {
                                 <div className='famo-grid rating-panel'>
                                     <div className='famo-row'>
                                         <div className='famo-cell text-center'>
-                                            <span className='famo-text-23'>PRONTO A EMBALAR</span>
+                                            <span className='famo-text-23'> {isWeek ? 'ENCOMENDAS EM FALTA' : 'PRONTO A EMBALAR'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -256,29 +258,6 @@ function TVBoxing(props: any) {
                                 </div>
                             </div>
                         </section>
-                        {/* <section className='famo-wrapper'>
-                            <div className='famo-content'>
-                                {bin &&
-                                    <React.Fragment>
-                                        <div className='famo-grid'>
-                                            <div className='famo-cell text-center'>
-                                                <span className='famo-text-11'>{t('key_908')}</span>
-                                            </div>
-                                        </div>
-                                        <div className='pda-victory-container'>
-                                            <svg width={400} height={400} viewBox={'0, 0, 400, 400'}>
-                                                <VictoryPie {...vicPieConfig} data={[{ x: true, y: bin.TotalVolume }, { x: false, y: bin.MaxVolume - bin.TotalVolume }]} colorScale={['#ff3333', '#bfbfbf']} labels={() => null} />
-                                            </svg>
-                                        </div>
-                                        <div className='famo-grid'>
-                                            <div className='famo-cell text-center'>
-                                                <span className='famo-text-10'>{numeral(bin.TotalVolume).format(unitFormat)} m3</span>
-                                            </div>
-                                        </div>
-                                    </React.Fragment>
-                                }
-                            </div>
-                        </section> */}
                     </div>
                     <div className={'col-12 col-xl-10 ' + (!orderFirst ? 'order-first' : 'order-last')}>
                         <section className='famo-wrapper'>
@@ -297,37 +276,69 @@ function TVBoxing(props: any) {
                                 <div className='to-box-orders to-box-orders-data' style={{ maxHeight: (toBoxOrdersHeight === -1 ? 'auto' : toBoxOrdersHeight + 'px') }}>
                                     <div className='famo-grid famo-content-grid'>
                                         <div className='famo-row famo-header-row hide'></div>
-                                        {toBoxOrders && toBoxOrders.Data.map((x, i) => {
-                                            return (
-                                                <div key={i} className={'famo-row famo-body-row'}>
-                                                    <div className='famo-cell famo-col-1 text-center'>
-                                                        <p>
-                                                            <img src={'https://flagcdn.com/h40/' + x.Country.Code.toLowerCase() + '.png'} height='42' alt={x.Country.Code} onError={(event) => { (event.target as any).src = NODE_SERVER + 'Images/no-flag.png' }} />
-                                                        </p>
-                                                        <p>
-                                                            <span className='tv-text-1'>{x.Country.Label}</span>
-                                                        </p>
+                                        {!isWeek ?
+                                            toBoxOrders && toBoxOrders.Data.map((x, i) => {
+                                                return (
+                                                    <div key={i} className={'famo-row famo-body-row'}>
+                                                        <div className='famo-cell famo-col-1 text-center'>
+                                                            <p>
+                                                                <img src={'https://flagcdn.com/h40/' + x.Country.Code.toLowerCase() + '.png'} height='42' alt={x.Country.Code} onError={(event) => { (event.target as any).src = NODE_SERVER + 'Images/no-flag.png' }} />
+                                                            </p>
+                                                            <p>
+                                                                <span className='tv-text-1'>{x.Country.Label}</span>
+                                                            </p>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-2'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.CustomerName}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-3'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.Code}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-4'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{!x.Order.ExpectedShipmentDate ? 'n/a' : moment(x.Order.ExpectedShipmentDate).format(dateFormat)}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-5 text-center'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.AllBinBoxesQuantity).format(unitFormat)}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-6 text-center'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BoxesQuantity).format(unitFormat)}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className='famo-cell famo-col-2'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.CustomerName}</span>
+                                                );
+                                            }) :
+                                            weekOrders && weekOrders.Data.map((x, i) => {
+                                                return (
+                                                    <div key={i} className={'famo-row famo-body-row'}>
+                                                        <div className='famo-cell famo-col-1 text-center'>
+                                                            <p>
+                                                                <img src={'https://flagcdn.com/h40/' + x.Country.Code.toLowerCase() + '.png'} height='42' alt={x.Country.Code} onError={(event) => { (event.target as any).src = NODE_SERVER + 'Images/no-flag.png' }} />
+                                                            </p>
+                                                            <p>
+                                                                <span className='tv-text-1'>{x.Country.Label}</span>
+                                                            </p>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-2'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.CustomerName}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-3'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.Code}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-4'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{!x.Order.ExpectedShipmentDate ? 'n/a' : moment(x.Order.ExpectedShipmentDate).format(dateFormat)}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-5 text-center'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.AllBinBoxesQuantity).format(unitFormat)}</span>
+                                                        </div>
+                                                        <div className='famo-cell famo-col-6 text-center'>
+                                                            <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BoxesQuantity).format(unitFormat)}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className='famo-cell famo-col-3'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{x.Order.Code}</span>
-                                                    </div>
-                                                    <div className='famo-cell famo-col-4'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{!x.Order.ExpectedShipmentDate ? 'n/a' : moment(x.Order.ExpectedShipmentDate).format(dateFormat)}</span>
-                                                    </div>
-                                                    <div className='famo-cell famo-col-5 text-center'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.AllBinBoxesQuantity).format(unitFormat)}</span>
-                                                    </div>
-                                                    <div className='famo-cell famo-col-6 text-center'>
-                                                        <span className={'famo-text-10 ' + getRowColor(x)}>{numeral(x.BoxesQuantity).format(unitFormat)}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })
+                                        }
                                     </div>
-                                    {toBoxOrders &&
+                                    {!isWeek ?
+                                        toBoxOrders &&
                                         <div className='famo-grid famo-pagination'>
                                             <div className='famo-cell text-center'>
                                                 {[...Array(toBoxOrders.PagesNumber)].map((x, i) => {
@@ -337,7 +348,16 @@ function TVBoxing(props: any) {
                                                 })}
                                             </div>
                                         </div>
-                                    }
+                                        : weekOrders &&
+                                        <div className='famo-grid famo-pagination'>
+                                            <div className='famo-cell text-center'>
+                                                {[...Array(weekOrders.PagesNumber)].map((x, i) => {
+                                                    return (
+                                                        <span key={i} className={((i + 1) > weekOrders.CurrentPage ? 'far' : 'fas') + ' fa-circle'}></span>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>}
                                 </div>
                             </div>
                         </section>
