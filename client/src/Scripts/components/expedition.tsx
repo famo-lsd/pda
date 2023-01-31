@@ -722,24 +722,25 @@ function Edit(props: any) {
                                     }).map((x, i) => {
                                         return (
                                             <div key={i} className='famo-row famo-body-row'>
-                                                <div className='famo-cell famo-col-1'>
+                                                <div className='famo-cell famo-col-1'> 
+                                                {/* SF059 */}
                                                     <button type='button' className='famo-button famo-transparent-button famo-loader-button text-left' onClick={event => getProductComponents(event.currentTarget, x.OrderCode)}>
-                                                        <span className={'fas fa-spinner fa-spin ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '') + ' hide'}></span>
-                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.OrderCode}</span>
+                                                        <span className={'fas fa-spinner fa-spin ' + (products.filter(y => {return y.OrderCode === x.OrderCode}).some(z => z.PendingBoxes > 0) ? (x.PendingBoxes > 0 ? 'famo-color-red' : 'famo-color-yellow-new ') : '') + ' hide'}></span>
+                                                        <span className={'famo-text-10 ' + (products.filter(y => {return y.OrderCode === x.OrderCode}).some(z => z.PendingBoxes > 0) ? (x.PendingBoxes > 0 ? 'famo-color-red' : 'famo-color-yellow-new ') : '')}>{x.OrderCode}</span>
                                                     </button>
                                                 </div>
                                                 <div className='famo-cell famo-col-2'>
                                                     <p>
-                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.ProductCode}</span>
+                                                        <span className={'famo-text-10 ' + (products.filter(y => {return y.OrderCode === x.OrderCode}).some(z => z.PendingBoxes > 0) ? (x.PendingBoxes > 0 ? 'famo-color-red' : 'famo-color-yellow-new ') : '')}>{x.ProductCode}</span>
                                                     </p>
                                                     <p>
-                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{x.ProductDescription}</span>
+                                                        <span className={'famo-text-10 ' + (products.filter(y => {return y.OrderCode === x.OrderCode}).some(z => z.PendingBoxes > 0) ? (x.PendingBoxes > 0 ? 'famo-color-red' : 'famo-color-yellow-new ') : '')}>{x.ProductDescription}</span>
                                                     </p>
                                                 </div>
                                                 <div className='famo-cell famo-col-3 text-center'>
                                                     <button type='button' className='famo-button famo-transparent-button famo-loader-button' onClick={event => getProductComponents(event.currentTarget, x.OrderCode, x.OrderLine)}>
-                                                        <span className={'fas fa-spinner fa-spin ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '') + ' hide'}></span>
-                                                        <span className={'famo-text-10 ' + (x.PendingBoxes > 0 ? 'famo-color-red' : '')}>{numeral(x.PendingBoxes).format(unitFormat)}/{numeral(x.TotalBoxes).format(unitFormat)}</span>
+                                                        <span className={'fas fa-spinner fa-spin ' + (products.filter(y => {return y.OrderCode === x.OrderCode}).some(z => z.PendingBoxes > 0) ? (x.PendingBoxes > 0 ? 'famo-color-red' : 'famo-color-yellow-new ') : '') + ' hide'}></span>
+                                                        <span className={'famo-text-10 ' + (products.filter(y => {return y.OrderCode === x.OrderCode}).some(z => z.PendingBoxes > 0) ? (x.PendingBoxes > 0 ? 'famo-color-red' : 'famo-color-yellow-new ') : '')}>{numeral(x.PendingBoxes).format(unitFormat)}/{numeral(x.TotalBoxes).format(unitFormat)}</span>
                                                     </button>
                                                 </div>
                                             </div>

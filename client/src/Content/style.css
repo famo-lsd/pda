@@ -438,6 +438,9 @@
   .tv-footer .tv-messages .tv-message-content .tv-text-3 {
     display: inline-block;
   }
+  .famo-color-yellow-new {
+    color: #faaa00 !important;
+  }
 }
 @media screen and (max-width: 991px) {
   .famo-text-5,
