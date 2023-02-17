@@ -494,7 +494,7 @@ function TVChart(props: any) {
                             </div>
                         </section>
                         <section className='famo-wrapper'>
-                            <div className='famo-content'>
+                            <div className='famo-content mh-320'>
                                 <div className='row'>
                                     <div className='col-6'>
                                         {productionOrders && productionOrders[4] >= 0 &&
@@ -518,7 +518,7 @@ function TVChart(props: any) {
                                                                 style={{
                                                                     data: {
                                                                         fill: ({ datum }) => {
-                                                                            const color = datum.y > 30 ? "green" : "red";
+                                                                            const color = datum.y > 60 ? "green" : "red";
                                                                             return datum.x === 1 ? color : "transparent";
                                                                         }
                                                                     }
@@ -540,7 +540,7 @@ function TVChart(props: any) {
                                                     </div>
                                                     <div className='col-6'>
                                                         <div className='famo-grid mt-20'>
-                                                            <div className='famo-row'>
+                                                            <div className='famo-row '>
                                                                 <div className='famo-cell'>
                                                                     <span className='famo-text-10'>Total</span>
                                                                 </div>
@@ -592,7 +592,7 @@ function TVChart(props: any) {
                                                                 style={{
                                                                     data: {
                                                                         fill: ({ datum }) => {
-                                                                            const color = datum.y > 30 ? "green" : "red";
+                                                                            const color = datum.y > 60 ? "green" : "red";
                                                                             return datum.x === 1 ? color : "transparent";
                                                                         }
                                                                     }

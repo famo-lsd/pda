@@ -211,7 +211,7 @@ function AutoRouteBody(props: any) {
         <React.Fragment>
             {!loadSession &&
                 <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
-                    <section className={'famo-body ' + (location.pathname === '/TV' || location.pathname === '/TVReception' || location.pathname === '/TVBoxing' || location.pathname === '/TVChart' ? 'tv-body' : '')}>
+                    <section className={'famo-body ' + (location.pathname === '/TV' || location.pathname === '/TVReception' || location.pathname === '/TVBoxing' || location.pathname === '/TVChart' ? 'tv-body' : '') + (location.pathname === '/TVChart' ? ' ov-y-hidden ' : '')}>
                         <Switch>
                             <Route exact path='/' render={() => { return <Home />; }} />
                             <Route path='/TV' render={() => { return <TV />; }} />

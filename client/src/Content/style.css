@@ -64,11 +64,17 @@
   .mb-125 {
     margin-bottom: 125px !important;
   }
+  .mh-320 {
+    max-height: 320px;
+  }
   .d-none {
     display: none;
   }
   .d-block {
     display: block;
+  }
+  .ov-y-hidden {
+    overflow-y: hidden !important;
   }
   .indicators-row {
     display: flex;
