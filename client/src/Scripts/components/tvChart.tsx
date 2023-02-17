@@ -493,11 +493,12 @@ function TVChart(props: any) {
                                 </div>
                             </div>
                         </section>
+                        {(productionOrders[1] > 0 || productionOrders[3] > 0) &&
                         <section className='famo-wrapper'>
                             <div className='famo-content mh-320'>
                                 <div className='row'>
                                     <div className='col-6'>
-                                        {productionOrders && productionOrders[4] >= 0 &&
+                                        {productionOrders && productionOrders[4] >= 0 && productionOrders[1] > 0 &&
                                             <React.Fragment>
                                                 <div className='famo-grid'>
                                                     <div className='famo-cell text-center'>
@@ -571,7 +572,7 @@ function TVChart(props: any) {
                                         }
                                     </div>
                                     <div className='col-6'>
-                                        {indicators && productionOrders[5] &&
+                                        {indicators && productionOrders[5] && productionOrders[3] > 0 &&
                                             <React.Fragment>
                                                 <div className='famo-grid'>
                                                     <div className='famo-cell text-center'>
@@ -648,10 +649,11 @@ function TVChart(props: any) {
                                 </div>
                             </div>
                         </section>
+                        }
                     </div>
                 </div>
             </section>
-            {/* <section className='tv-footer'>
+            <section className='tv-footer'>
                 <div className='container tv-messages'>
                     <div className='row'>
                         <div className='col-12 col-xl-2'>
@@ -682,7 +684,7 @@ function TVChart(props: any) {
                         </div>
                     </div>
                 </div>
-            </section> */}
+            </section>
         </React.Fragment>
     );
 }
