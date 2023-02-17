@@ -138,3 +138,21 @@ export interface TVToBoxOrder{
     BoxesQuantity: number;
     AllBinBoxesQuantity: number;
 }
+
+export interface Warehouse{
+    ID: number;
+    Location: string;
+}
+
+export interface WorkCenter{
+    ID: number;
+    Code: string;
+    Label: string;
+    Image: string;
+    Order: number;
+    IsActive: boolean;
+    PrintFirstOpe: boolean;
+    PrintLastOpe: boolean;
+    Warehouse: Warehouse;
+
+}

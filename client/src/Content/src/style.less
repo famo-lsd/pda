@@ -10,6 +10,41 @@
         user-select: none;
     }
 
+    .mt-20{
+        margin-top: 20px !important; 
+    }
+
+    .mt-125{
+        margin-top: 125px !important; 
+    }
+
+    .mb-125{
+        margin-bottom: 125px !important;
+    }
+
+    .d-none{
+        display: none;
+    }
+
+    .d-block{
+        display: block;
+    }
+
+    .indicators-row{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow: hidden;
+
+        .col-6{
+            transition: all 1.2s;
+        }
+    }
+
+    .indicators-right{
+        transform: translateX(-200%);
+    }
+
     // All font-size properties of famo-text-* have an increment of 2px.
     .famo-text-5,
     .famo-text-13 {
@@ -231,6 +266,10 @@
 
         .famo-text-23 {
             font-size: 45px !important;
+        }
+
+        .famo-text-60 {
+            font-size: 60px !important;
         }
 
         .famo-color-green {

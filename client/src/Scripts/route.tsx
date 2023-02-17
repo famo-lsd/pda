@@ -15,6 +15,7 @@ import TV from './components/tv';
 import TVReception from './components/tvReception';
 import TVBoxing from './components/tvBoxing';
 import Warehouse from './components/warehouse';
+import TVChart from './components/tvChart';
 import { AppLoader } from './components/elements/loader';
 import { createQueryString, isMobileBrowser } from './utils/general';
 import { HashRouter, Route, Redirect, Switch, useHistory, useLocation } from 'react-router-dom';
@@ -134,6 +135,7 @@ function RouteBody(props: any) {
                     <PrivateRoute path='/Pallets' component={Pallets} />
                     <PrivateRoute path='/Inventory' component={Inventory} />
                     <PrivateRoute path='/ReceiveOT' component={ReceiveOT} />
+                    <PrivateRoute path='/TVChart' component={TVChart} />
                     <Route exact path='/SignIn' render={routeProps => { return <SignIn {...routeProps} />; }} />
                 </Switch>
             }
@@ -202,14 +204,14 @@ function AutoRouteBody(props: any) {
     }, []);
 
     useEffect(() => {
-        setBackButton(location.pathname === '/' || location.pathname === '/TV' || location.pathname === '/TVReception' || location.pathname === '/TVBoxing' ? false : true);
+        setBackButton(location.pathname === '/' || location.pathname === '/TV' || location.pathname === '/TVChart' || location.pathname === '/TVReception' || location.pathname === '/TVBoxing' ? false : true);
     }, [location.pathname]);
 
     return (
         <React.Fragment>
             {!loadSession &&
                 <Swipeable trackMouse={true} trackTouch={false} onSwiping={event => swipingPage(event)} onSwiped={event => swipedPage(event)} >
-                    <section className={'famo-body ' + (location.pathname === '/TV' || location.pathname === '/TVReception' || location.pathname === '/TVBoxing' ? 'tv-body' : '')}>
+                    <section className={'famo-body ' + (location.pathname === '/TV' || location.pathname === '/TVReception' || location.pathname === '/TVBoxing' || location.pathname === '/TVChart' ? 'tv-body' : '')}>
                         <Switch>
                             <Route exact path='/' render={() => { return <Home />; }} />
                             <Route path='/TV' render={() => { return <TV />; }} />
@@ -220,6 +222,7 @@ function AutoRouteBody(props: any) {
                             <Route path='/Pallets' render={() => { return <Pallets />; }} />
                             <Route path='/Inventory' render={() => { return <Inventory />; }} />
                             <Route path='/ReceiveOT' render={() => { return <ReceiveOT />; }} />
+                            <Route path='/TVChart' render={() => { return <TVChart />; }} />
                         </Switch>
                         {!globalState.androidApp && backButton &&
                             <button type='button' className={'famo-button famo-normal-button pda-back-button ' + (!globalState.loadPage ? '' : 'hide')} onClick={event => history.goBack()}>
