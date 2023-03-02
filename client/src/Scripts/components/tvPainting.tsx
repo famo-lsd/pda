@@ -1,5 +1,7 @@
 import Http from '../utils/http';
+import httpStatus from 'http-status';
 import Log from '../utils/log';
+import { CSSTransition } from 'react-transition-group';
 import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
 import { Message, PaintingChainItems } from '../utils/interfaces';
@@ -24,8 +26,8 @@ function TVPainting(props: any) {
         [time, setTime] = useState(moment()),
         [lastColor, setLastColor] = useState<string>(),
         [activeIndex, setActiveIndex] = useState(0), //Index da coluna do grafico
-        //[messages, setMessages] = useState<Array<Message>>(null),
-        //[messageIndex, setMessageIndex] = useState<number>(0),
+        [messages, setMessages] = useState<Array<Message>>(null),
+        [messageIndex, setMessageIndex] = useState<number>(0),
         dateFormat = 'L',
         timeFormat = 'LTS',
         maxBars = 10,
@@ -84,33 +86,33 @@ function TVPainting(props: any) {
         setPagesArr(newPagesArr);
     }, [pages]);
 
-    // function getMessages() {
-    //     return fetch(NODE_SERVER + 'TV/Messages' + createQueryString({
-    //         date: moment().format('YYYY-MM-DDTHH:mm:ss'),
-    //         languageCode: globalState.authUser.Language.Code
-    //     }), Http.addAuthorizationHeader({
-    //         method: 'GET'
-    //     })).then(async result => {
-    //         if (result.ok && result.status === httpStatus.OK) {
-    //             await result.json().then(data => {
-    //                 setMessages(data);
-    //                 setMessageIndex(0);
-    //             });
-    //         }
-    //         else {
-    //             throw result;
-    //         }
-    //     }).catch(error => {
-    //         if (error as Response) {
-    //             Log.httpError(error);
-    //             alert(t('key_303'));
-    //         }
-    //         else {
-    //             Log.promiseError(error);
-    //             alert(t('key_416'));
-    //         }
-    //     });
-    // }
+    function getMessages() {
+        return fetch(NODE_SERVER + 'TV/Messages' + createQueryString({
+            date: moment().format('YYYY-MM-DDTHH:mm:ss'),
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setMessages(data);
+                    setMessageIndex(0);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        });
+    }
 
     useInterval(() => {
         setTime(moment());
@@ -120,15 +122,15 @@ function TVPainting(props: any) {
         Promise.all([getTVChainItemsQuantities(), getTVPaintingColor()])
     }, 15000);
 
-    // useInterval(() => {
-    //     getMessages();
-    // }, 1800000);
+    useInterval(() => {
+        getMessages();
+    }, 1800000);
 
-    // useInterval(() => {
-    //     if (messages && messages.length > 0) {
-    //         setMessageIndex(messageIndex + 1 === messages.length ? 0 : messageIndex + 1);
-    //     }
-    // }, 5000);
+    useInterval(() => {
+        if (messages && messages.length > 0) {
+            setMessageIndex(messageIndex + 1 === messages.length ? 0 : messageIndex + 1);
+        }
+    }, 5000);
 
     useEffect(() => {
         const timerId = setTimeout(() => {
@@ -144,7 +146,7 @@ function TVPainting(props: any) {
     useEffect(() => {
         globalActions.setLoadPage(true);
 
-        Promise.all([getTVChainItemsQuantities(), getTVPaintingColor()]).finally(() => {
+        Promise.all([getTVChainItemsQuantities(), getTVPaintingColor(), getMessages()]).finally(() => {
             globalActions.setLoadPage(false);
         });
     }, []);
@@ -282,7 +284,7 @@ function TVPainting(props: any) {
                     </div>
                 </div>
             </section>
-            {/* <section className='tv-footer'>
+            <section className='tv-footer'>
                 <div className='container tv-messages'>
                     <div className='row'>
                         <div className='col-12 col-xl-2'>
@@ -313,7 +315,7 @@ function TVPainting(props: any) {
                         </div>
                     </div>
                 </div>
-            </section> */}
+            </section>
         </React.Fragment>
     );
 }
