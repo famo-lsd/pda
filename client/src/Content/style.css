@@ -477,6 +477,18 @@
   .famo-color-yellow-new {
     color: #faaa00 !important;
   }
+  .painting-carousel-container {
+    display: flex;
+    flex-flow: row;
+    overflow: hidden;
+    position: relative;
+  }
+  .painting-carousel-item {
+    display: none;
+  }
+  .painting-carousel-item.active {
+    display: block;
+  }
 }
 @media screen and (max-width: 991px) {
   .famo-text-5,

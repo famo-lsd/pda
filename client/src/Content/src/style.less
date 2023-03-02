@@ -476,6 +476,31 @@
     .famo-color-yellow-new{
         color: rgb(250,170,0) !important;
     }
+
+        //Carousel - TVPainting
+        .painting-carousel-container {
+            display: flex;
+            flex-flow: row;
+            overflow: hidden;
+            position: relative;
+        }
+      
+       .painting-carousel-item {
+            //opacity: 0;
+            //transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* add this */
+            display: none;
+            //top: 0;
+            //left: 0;
+            //width: 100%; /* add this */
+            //transition: display 0.5s ease-in-out;
+       }
+      
+      .painting-carousel-item.active {
+            //opacity: 1;
+            display: block;
+            //transform: translateX(0); /* add this */
+      }
+
 }
 
 //** ECRAS MUITO GRANDES

@@ -154,5 +154,14 @@ export interface WorkCenter{
     PrintFirstOpe: boolean;
     PrintLastOpe: boolean;
     Warehouse: Warehouse;
+}
 
+export interface Color{
+    CrossReference: string;
+    Hexadecimal: string;
+}
+
+export interface PaintingChainItems{
+    Color: Color;
+    Quantity: number;
 }
