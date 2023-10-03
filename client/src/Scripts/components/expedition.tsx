@@ -347,6 +347,7 @@ function Edit(props: any) {
     }
 
     function addBox() {
+        setFormMessage('');
         if (boxCode.value.startsWith('PL')) {
             const matchPalletCode = boxCode.value.match(/PL.*?(\/|\-)/g);
 
@@ -400,13 +401,9 @@ function Edit(props: any) {
                         await result.json().then(data => {
                             setFormMessage('');
                             if ((products.filter(function (product) {return product.OrderCode === (data as Box).OrderCode && product.ProductCode.startsWith((data as Box).ProductCode)}))[0].PendingBoxes > 0) {
-                                if (window.confirm('O produto inserido não está totalmente produzido! Deseja introduzir a embalagem ?')) {
-                                    setBoxes([(data as Box), ...boxes]);
-                                }
+                                formAlert('O produto inserido não está totalmente produzido!');
                             }
-                            else {
-                                setBoxes([(data as Box), ...boxes]);
-                            }
+                            setBoxes([(data as Box), ...boxes]);
                         });
                     }
                     else {
