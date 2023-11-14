@@ -2,9 +2,10 @@ import Http from '../utils/http';
 import httpStatus from 'http-status';
 import Input, { InputConfig, InputTools, InputType } from './elements/input';
 import Log from '../utils/log';
+import Modal from './elements/modal';
 import React, { Component, useEffect, useState } from 'react';
 import Title from './elements/title';
-import { Bin, BinBox } from '../utils/interfaces';
+import { Bin, BinBox, ShipmentProductComponent } from '../utils/interfaces';
 import { ContentLoader } from './elements/loader';
 import { createQueryString } from '../utils/general';
 import { Link, Redirect, Route, Switch, withRouter } from 'react-router-dom';
@@ -1317,6 +1318,9 @@ function Order(props: any) {
         [boxes, setBoxes] = useState<Array<BinBox>>([]),
         dateFormat = 'L',
         percentageFormat = '0.00%',
+        [componentsModal, setComponentsModal] = useState<boolean>(false),
+        componentsHeader: Array<string> = [t('key_87'), t('key_138'), t('key_899'), t('key_892'), ''],
+        [components, setComponents] = useState<Array<Array<ShipmentProductComponent>>>([[]]),
         unitFormat = '0,0';
 
     function getOrder() {
@@ -1363,6 +1367,42 @@ function Order(props: any) {
 
     function cleanOrderForm() {
         InputTools.resetValues(orderForm, setOrderForm);
+    }
+
+    function getProductComponents(button: HTMLElement, productCode: string, orderCode: string) {
+        // button.querySelector('.fas').classList.remove('hide');
+        // button.querySelector('span[class*="famo-text-"]').classList.add('hide');
+
+        fetch(NODE_SERVER + 'ERP/Shipments/Products/Components' + createQueryString({
+            orderCode: orderCode,
+            orderLine: 0,
+            productCode: productCode,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setComponentsModal(true);
+                    setComponents(data);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(error => {
+            if (error as Response) {
+                Log.httpError(error);
+                alert(t('key_303'));
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+        }).finally(() => {
+            // button.querySelector('.fas').classList.add('hide');
+            // button.querySelector('span[class*="famo-text-"]').classList.remove('hide');
+        });
     }
 
     useEffect(() => {
@@ -1586,7 +1626,7 @@ function Order(props: any) {
                                             const binProductBoxes = vBox as Array<BinBox>;
 
                                             return (
-                                                <div key={i} className='famo-row famo-body-row'>
+                                                <div key={i} className='famo-row famo-body-row' style={{ cursor: 'pointer'}} onClick={event => getProductComponents(event.currentTarget, kProd, order.Code)}>
                                                     <div className='famo-cell famo-col-1'>
                                                         <span className='famo-text-10'>{kProd}</span>
                                                     </div>
@@ -1606,6 +1646,52 @@ function Order(props: any) {
                     </section>
                 </React.Fragment>
             }
+            <Modal visible={componentsModal} setVisible={setComponentsModal}>
+                {components.filter(x => { return x.length > 0; }).map((x, i) => {
+                    const productCode = x[0].ProductCode,
+                        productDescription = x[0].ProductDescription;
+
+                    return (
+                        <section key={i} className='famo-wrapper'>
+                            <Title text={productCode + ' - ' + productDescription} />
+                            <div className='famo-content'>
+                                <div className='famo-grid famo-content-grid expedition-components'>
+                                    <div className='famo-row famo-header-row'>
+                                        {componentsHeader.map((y, l) => {
+                                            return (
+                                                <div key={l} className={'famo-cell famo-col-' + (l + 1)}>
+                                                    <span className='famo-text-11'>{y}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {x.map((y, l) => {
+                                        return (
+                                            <div key={l} className='famo-row famo-body-row'>
+                                                <div className='famo-cell famo-col-1'>
+                                                    <span className='famo-text-10'>{y.ComponentCode}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-2'>
+                                                    <span className={'famo-text-10 ' + (!y.ComponentDescription ? 'famo-color-yellow' : '')}>{!y.ComponentDescription ? t('key_237') : y.ComponentDescription}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-3'>
+                                                    <span className='famo-text-10'>{y.BoxCode}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-4'>
+                                                    <span className={'famo-text-10 ' + (y.Bin.ID === -1 ? 'famo-color-yellow' : '')}>{y.Bin.ID === -1 ? 'n/a' : y.Bin.Code}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-5'>
+                                                    <span className={'fas ' + (y.BoxPrinted ? 'fa-check famo-color-green' : 'fa-times famo-color-red')}></span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </section>
+                    );
+                })}
+            </Modal>
         </React.Fragment>
     );
 }
