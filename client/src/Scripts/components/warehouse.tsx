@@ -1007,35 +1007,35 @@ function TransferBoxes(props: any) {
                             </div>
                         </div>
                     </section>
-                <React.Fragment>
-                    <section className='famo-wrapper'>
-                        <div className='famo-content'>
-                            <ContentLoader hide={!loading} />
-                            <div className={'famo-grid famo-content-grid ' + (!loading ? '' : 'hide')}>
-                                <div className='famo-row famo-header-row'>
-                                    <div className='famo-cell famo-col-1'>
-                                        <span className='famo-text-11'>{'Embalagens (' + boxes.length + ')'}</span>
-                                    </div>
-                                    <div className='famo-cell famo-col-2'>
-                                        <span className='famo-text-11'>Bin</span>
-                                    </div>
-                                </div>
-                                {boxes.map((x, i) => {
-                                    return (
-                                        <div key={i} className='famo-row famo-body-row'>
-                                            <div className='famo-cell famo-col-1'>
-                                                <span className={'famo-text-10 '}>{x.Code}</span>
-                                            </div>
-                                            <div className='famo-cell famo-col-2'>
-                                                <span className={'famo-text-10 '}>{x.Bin.Code}</span>
-                                            </div>
+                    <React.Fragment>
+                        <section className='famo-wrapper'>
+                            <div className='famo-content'>
+                                <ContentLoader hide={!loading} />
+                                <div className={'famo-grid famo-content-grid ' + (!loading ? '' : 'hide')}>
+                                    <div className='famo-row famo-header-row'>
+                                        <div className='famo-cell famo-col-1'>
+                                            <span className='famo-text-11'>{'Embalagens (' + boxes.length + ')'}</span>
                                         </div>
-                                    );
-                                })}
+                                        <div className='famo-cell famo-col-2'>
+                                            <span className='famo-text-11'>Bin</span>
+                                        </div>
+                                    </div>
+                                    {boxes.map((x, i) => {
+                                        return (
+                                            <div key={i} className='famo-row famo-body-row'>
+                                                <div className='famo-cell famo-col-1'>
+                                                    <span className={'famo-text-10 '}>{x.Code}</span>
+                                                </div>
+                                                <div className='famo-cell famo-col-2'>
+                                                    <span className={'famo-text-10 '}>{x.Bin.Code}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    </section>
-                </React.Fragment>
+                        </section>
+                    </React.Fragment>
                     <section className='famo-wrapper'>
                         <Title text={t('key_898')} />
                         <div className='famo-content'>
@@ -1301,7 +1301,18 @@ function Order(props: any) {
         orderForm: Array<InputConfig> = [orderCode],
         setOrderForm: Array<any> = [setOrderCode],
         [loading, setLoading] = useState<boolean>(false),
+        [orderCodeSearch, setOrderCodeSearch] = useState<boolean>(true),
         [order, setOrder] = useState<SalesOrder>(null),
+        [searchBox, setSearchBox] = useState<InputConfig>({
+            ref: React.createRef(),
+            type: InputType.Text,
+            label: t('key_819'),
+            className: 'famo-input famo-text-10',
+            name: 'searchBox',
+            value: '',
+            autoFocus: true
+        }),
+        [box, setBox] = useState<BinBox>(null),
         vicPieConfig = {
             standalone: false,
             cornerRadius: 10,
@@ -1367,6 +1378,62 @@ function Order(props: any) {
 
     function cleanOrderForm() {
         InputTools.resetValues(orderForm, setOrderForm);
+    }
+
+    function GetSearchBox() {
+        fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
+            code: searchBox.value,
+            languageCode: globalState.authUser.Language.Code
+        }), Http.addAuthorizationHeader({
+            method: 'GET'
+        })).then(async result => {
+            if (result.ok && result.status === httpStatus.OK) {
+                await result.json().then(data => {
+                    setOrderCode(x => { return { ...x, value: data.OrderCode }; });
+                    setSearchBox(prevSearchBox => ({
+                        ...prevSearchBox,
+                        value: ''
+                      }));
+                    setLoading(false);
+                });
+            }
+            else {
+                throw result;
+            }
+        }).catch(async error => {
+            if (error as Response) {
+                Log.httpError(error);
+
+                if (error.status === httpStatus.NOT_FOUND) {
+                    alert(t('key_883'));
+                }
+                else if (error.status === httpStatus.FORBIDDEN) {
+                    alert(t('key_871'));
+                }
+                else if (error.status === httpStatus.CONFLICT) {
+                    await error.json().then(data => {
+                        alert(t('key_887') + ' ' + data.box);
+                    }).catch(errorAux => {
+                        Log.promiseError(errorAux);
+                        alert(t('key_416'));
+                    });
+                }
+                else {
+                    alert(t('key_303'));
+                }
+            }
+            else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+
+            setSearchBox(prevSearchBox => ({
+                ...prevSearchBox,
+                value: ''
+              }));
+            setBox(null);
+            setLoading(false);
+        });
     }
 
     function getProductComponents(button: HTMLElement, productCode: string, orderCode: string) {
@@ -1481,22 +1548,46 @@ function Order(props: any) {
             <section className='famo-wrapper'>
                 <Title text={t('key_897')} />
                 <div className='famo-content'>
-                    <form className='famo-grid famo-form-grid famo-submit-form' noValidate>
-                        <div className='famo-row'>
-                            <div className='famo-cell famo-input-label'>
-                                <span className='famo-text-11'>{orderCode.label}</span>
+                    {orderCodeSearch &&
+                        <form className='famo-grid famo-form-grid famo-submit-form' hidden={!orderCodeSearch} noValidate>
+                            <div className='famo-row'>
+                                <div className='famo-cell famo-input-label'>
+                                    <span className='famo-text-11'>{orderCode.label}</span>
+                                </div>
+                                <div className='famo-cell'>
+                                    <Input {...orderCode} isDisabled={(loading || !orderCodeSearch)} set={setOrderCode} >
+                                        <option key=''></option>
+                                        {orders.map((x, i) => {
+                                            return <option key={i} value={x.Code}>{x.Code}</option>
+                                        })}
+                                    </Input>
+                                </div>
                             </div>
-                            <div className='famo-cell'>
-                                <Input {...orderCode} isDisabled={loading} set={setOrderCode} >
-                                    <option key=''></option>
-                                    {orders.map((x, i) => {
-                                        return <option key={i} value={x.Code}>{x.Code}</option>
-                                    })}
-                                </Input>
+                            <input type='submit' className='hide' value='' />
+                        </form>
+                    }
+                    {!orderCodeSearch &&
+                        <form className='famo-grid famo-form-grid famo-submit-form' hidden={orderCodeSearch} noValidate onSubmit={(e) => { e.preventDefault(); GetSearchBox(); }}>
+                            <div className='famo-row'>
+                                <div className='famo-cell famo-input-label'>
+                                    <span className='famo-text-11'>Embalagem</span>
+                                </div>
+                                <div className='famo-cell'>
+                                    <Input {...searchBox} isDisabled={(loading || orderCodeSearch)} set={setSearchBox} />
+                                </div>
+                            </div>
+                            {/* <input type='submit' className='hide' value='' /> */}
+                        </form>
+                    }
+                    <div className={'famo-grid famo-buttons ' + (loading ? 'hide' : '')}>
+                        <div className='famo-row'>
+                            <div className='famo-cell text-right'>
+                                <button type='button' className='famo-button famo-normal-button' onClick={() => { setOrderCodeSearch(!orderCodeSearch); }}>
+                                    <span className='famo-text-12'>{orderCodeSearch ? 'Embalagem' : 'Encomenda'}</span>
+                                </button>
                             </div>
                         </div>
-                        <input type='submit' className='hide' value='' />
-                    </form>
+                    </div>
                 </div>
             </section>
             {(loading || order) &&
@@ -1626,7 +1717,7 @@ function Order(props: any) {
                                             const binProductBoxes = vBox as Array<BinBox>;
 
                                             return (
-                                                <div key={i} className='famo-row famo-body-row' style={{ cursor: 'pointer'}} onClick={event => getProductComponents(event.currentTarget, kProd, order.Code)}>
+                                                <div key={i} className='famo-row famo-body-row' style={{ cursor: 'pointer' }} onClick={event => getProductComponents(event.currentTarget, kProd, order.Code)}>
                                                     <div className='famo-cell famo-col-1'>
                                                         <span className='famo-text-10'>{kProd}</span>
                                                     </div>
