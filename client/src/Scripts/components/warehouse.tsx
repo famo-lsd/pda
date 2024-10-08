@@ -455,6 +455,7 @@ function TransferBox(props: any) {
     function getBox() {
         setLoading(true);
 
+        try{
         fetch(NODE_SERVER + 'Warehouse/Bins/Boxes' + createQueryString({
             code: boxCode.value,
             languageCode: globalState.authUser.Language.Code
@@ -464,9 +465,8 @@ function TransferBox(props: any) {
             if (result.ok && result.status === httpStatus.OK) {
                 await result.json().then(data => {
                     setBox(data);
-                    setLoading(false);
-
-                    InputTools.resetValues(binForm, setBinForm);
+                    //setBinID(x => { return { ...x, value: data.Bin.ID.toString() }; });
+                    //InputTools.resetValues(binForm, setBinForm);
                 });
             }
             else {
@@ -483,11 +483,27 @@ function TransferBox(props: any) {
             }
 
             setBox(null);
-            setLoading(false);
+            //setLoading(false);
 
-            InputTools.resetValues(binForm, setBinForm);
+            //InputTools.resetValues(binForm, setBinForm);
             cleanBoxCode();
         });
+        }
+        catch(error){
+            if (error instanceof Response) {
+                Log.httpError(error);
+                alert(error.status === httpStatus.NOT_FOUND ? t('key_883') : t('key_303'));
+            } else {
+                Log.promiseError(error);
+                alert(t('key_416'));
+            }
+    
+            setBox(null);
+        } finally {
+            // Agora é seguro encerrar o loading após todos os fetches
+            setLoading(false);
+            //InputTools.resetValues(binForm, setBinForm);
+        }
     }
 
     function cleanBoxCode() {
@@ -588,6 +604,43 @@ function TransferBox(props: any) {
             InputTools.resetValidations(binForm, setBinForm);
         }
     }, binForm);
+
+    useEffect(() => {
+        if (bins.length > 0 && bins[0]?.ID && box !== null) {
+            const temp = bins[0].ID == box.Bin.ID ? bins[1].ID : bins[0].ID; 
+            setBinID(x => ({ ...x, value: temp.toString() }));
+        }
+    }, [bins]);
+
+    useEffect(() => {
+        if(box !== null){
+            fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
+                order: box.OrderCode,
+                languageCode: globalState.authUser.Language.Code
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json().then(data => {
+                        setBins(data);
+                        //setBinID(x => { return { ...x, value: bins[0].ID.toString() }; });
+                    });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    Log.httpError(error);
+                    alert(t('key_303'));
+                }
+                else {
+                    Log.promiseError(error);
+                    alert(t('key_416'));
+                }
+            });
+        }
+    }, [box])
 
     return (
         <React.Fragment>
@@ -776,7 +829,7 @@ function TransferBoxes(props: any) {
                     setBox(data);
                     setLoading(false);
 
-                    InputTools.resetValues(binForm, setBinForm);
+                    //InputTools.resetValues(binForm, setBinForm);
                 });
 
                 cleanBoxCode();
@@ -933,6 +986,42 @@ function TransferBoxes(props: any) {
     useEffect(() => {
         UpdateValues();
     }, [box])
+
+    useEffect(() => {
+        if(orderCode !== null){
+            fetch(NODE_SERVER + 'Warehouse/Bins' + createQueryString({
+                order: orderCode,
+                languageCode: globalState.authUser.Language.Code
+            }), Http.addAuthorizationHeader({
+                method: 'GET'
+            })).then(async result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    await result.json().then(data => {
+                        setBins(data);
+                        //setBinID(x => { return { ...x, value: bins[0].ID.toString() }; });
+                    });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    Log.httpError(error);
+                    alert(t('key_303'));
+                }
+                else {
+                    Log.promiseError(error);
+                    alert(t('key_416'));
+                }
+            });
+        }
+    }, [orderCode])
+
+    useEffect(() => {
+        if (bins.length > 0 && bins[0]?.ID) {
+            setBinID(x => ({ ...x, value: bins[0].ID.toString() }));
+        }
+    }, [bins])
 
     return (
         <React.Fragment>
