@@ -1831,6 +1831,12 @@ function Order(props: any) {
                     const productCode = x[0].ProductCode,
                         productDescription = x[0].ProductDescription;
 
+                        const sortedComponents = [...x].sort((a, b) => {
+                            const codeA = a.Bin?.Code || '';
+                            const codeB = b.Bin?.Code || '';
+                            return codeA.localeCompare(codeB);
+                        });
+
                     return (
                         <section key={i} className='famo-wrapper'>
                             <Title text={productCode + ' - ' + productDescription} />
@@ -1845,7 +1851,7 @@ function Order(props: any) {
                                             );
                                         })}
                                     </div>
-                                    {x.map((y, l) => {
+                                    {sortedComponents.map((y, l) => {
                                         return (
                                             <div key={l} className='famo-row famo-body-row'>
                                                 <div className='famo-cell famo-col-1'>
