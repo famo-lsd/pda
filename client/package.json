@@ -50,7 +50,7 @@
         "less": "^3.13.1",
         "less-watch-compiler": "^1.16.3",
         "rimraf": "^3.0.2",
-        "typescript": "3.7.3",
+        "typescript": "^5.8.3",
         "watch": "^1.0.2"
     },
     "eslintConfig": {
