@@ -1,3 +1,4 @@
+import { removeBoxCodePrefix } from '../utils/boxCode';
 import AudioEffect from '../utils/audio';
 import Http from '../utils/http';
 import httpStatus from 'http-status';
@@ -202,6 +203,7 @@ function Edit(props: any) {
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isBoxCode: true,
             value: '',
             autoFocus: true
         }),
@@ -286,8 +288,8 @@ function Edit(props: any) {
 
     function barcodeScanner() {
         barcodeScan((result) => {
-            setModalBoxCode(x => { return { ...x, value: result.text }; });
-            addBox(result.text);
+            setModalBoxCode(x => { return { ...x, value: removeBoxCodePrefix(result.text) }; });
+            addBox(removeBoxCodePrefix(result.text));
         }, t);
     }
 
@@ -296,6 +298,73 @@ function Edit(props: any) {
             setBoxes(boxes.filter(x => { return x.Code !== code; }));
         }
     }
+
+    /* EM PAUSA (release): removeBox e deletePallet
+    function removeBox(code: string) {
+        if (window.confirm(t('key_910'))) {
+            setLoadingBox(true);
+
+            fetch(NODE_SERVER + 'ERP/Pallets/Box' + createQueryString({
+                shipmentCode: query.shipmentCode,
+                palletID: palletID,
+                boxCode: code
+            }), Http.addAuthorizationHeader({
+                method: 'DELETE'
+            })).then(result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    setBoxes(x => { return x.filter(y => { return y.Code !== code; }); });
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    Log.httpError(error);
+                    alert(error.status === httpStatus.CONFLICT ? t('key_828') : t('key_302'));
+                }
+                else {
+                    Log.promiseError(error);
+                    alert(t('key_416'));
+                }
+            }).finally(() => {
+                setLoadingBox(false);
+            });
+        }
+    }
+
+    function deletePallet() {
+        if (window.confirm(t('key_912'))) {
+            setSavingPallet(true);
+
+            fetch(NODE_SERVER + 'ERP/Pallets' + createQueryString({
+                shipmentCode: query.shipmentCode,
+                palletID: palletID
+            }), Http.addAuthorizationHeader({
+                method: 'DELETE'
+            })).then(result => {
+                if (result.ok && result.status === httpStatus.OK) {
+                    window.sessionStorage.setItem(SS_PALLET_KEY, JSON.stringify({ shipmentCode: query.shipmentCode }));
+                    alert(t('key_913'));
+                    history.replace('/Pallets');
+                }
+                else {
+                    throw result;
+                }
+            }).catch(error => {
+                if (error as Response) {
+                    Log.httpError(error);
+                    alert(error.status === httpStatus.CONFLICT ? t('key_828') : t('key_302'));
+                }
+                else {
+                    Log.promiseError(error);
+                    alert(t('key_416'));
+                }
+            }).finally(() => {
+                setSavingPallet(false);
+            });
+        }
+    }
+    */
 
     function savePalletFunc() {
         setSavingPallet(true);
@@ -478,6 +547,9 @@ function Edit(props: any) {
                                                 {x.IsNew && <button type='button' className='famo-button famo-cancel-button' onClick={event => deleteBox(x.Code)}>
                                                     <span className='fas fa-trash-alt'></span>
                                                 </button>}
+                                                {/* EM PAUSA (release): {!x.IsNew && isPalletOpen && !isShipped && <button type='button' className='famo-button famo-cancel-button' title={t('key_909')} disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => removeBox(x.Code)}>
+                                                    <span className='fas fa-unlink'></span>
+                                                </button>} */}
                                             </span>
                                         </div>
                                     </div>
@@ -516,6 +588,11 @@ function Edit(props: any) {
                                             }
                                         </React.Fragment>
                                     }
+                                    {/* EM PAUSA (release): {palletID && isPalletOpen &&
+                                        <button type='button' className='famo-button famo-cancel-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => deletePallet()}>
+                                            <span className='famo-text-12'>{t('key_911')}</span>
+                                        </button>
+                                    } */}
                                     {palletID &&
                                         <button type='button' className='famo-button famo-confirm-button famo-loader-button' disabled={loadingBox || savingPallet || palletStatusChange} onClick={event => setPalletStatus()}>
                                             <span className={'fas fa-spinner fa-spin ' + (!palletStatusChange ? ' hide' : '')}></span>

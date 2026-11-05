@@ -85,6 +85,7 @@ function AddBox(props: any) {
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isBoxCode: true,
             value: '',
             autoFocus: true
         }),
@@ -433,6 +434,7 @@ function TransferBox(props: any) {
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isBoxCode: true,
             value: '',
             autoFocus: true
         }),
@@ -794,6 +796,7 @@ function TransferBoxes(props: any) {
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isBoxCode: true,
             value: '',
             autoFocus: true
         }),
@@ -1177,6 +1180,7 @@ function DeleteBox(props: any) {
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isBoxCode: true,
             value: '',
             autoFocus: true
         }),
@@ -1398,6 +1402,7 @@ function Order(props: any) {
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'searchBox',
+            isBoxCode: true,
             value: '',
             autoFocus: true
         }),

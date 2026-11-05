@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { convertNumeralToJS, setDecimalDelimiter } from '../../utils/number';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { removeBoxCodePrefix } from '../../utils/boxCode';
 
 export enum InputType {
     Text = 1,
@@ -26,11 +27,12 @@ export interface InputConfig {
     wrongFormat?: boolean;
     invalidValue?: boolean;
     invalidMessage?: string;
+    isBoxCode?: boolean;
 }
 
 const Input = React.forwardRef((props: any, ref: any) => {
     const { t } = useTranslation(),
-        { type, className, name, value, autoFocus, isDisabled, analyze, noData, wrongFormat, invalidValue, invalidMessage, set, children } = props,
+        { type, className, name, value, autoFocus, isDisabled, analyze, noData, wrongFormat, invalidValue, invalidMessage, isBoxCode, set, children } = props,
         [localState, setLocalState] = useState({ noData: false, wrongFormat: false, invalidValue: false });
 
     function keyDown(event) {
@@ -71,7 +73,7 @@ const Input = React.forwardRef((props: any, ref: any) => {
         <React.Fragment>
             {(type === InputType.Text || type === InputType.Number) &&
                 <React.Fragment>
-                    <input ref={ref} type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={keyDown} onChange={event => set(x => { return { ...x, value: ref.current.value }; })} />
+                    <input ref={ref} type='text' className={className + (localState.noData ? ' famo-input-error' : (localState.wrongFormat || localState.invalidValue ? ' famo-input-warning' : ''))} name={name} value={value} autoFocus={autoFocus} disabled={isDisabled} onKeyDown={keyDown} onChange={event => set(x => { return { ...x, value: isBoxCode ? removeBoxCodePrefix(ref.current.value) : ref.current.value }; })} />
                     {!isDisabled &&
                         <div className={'famo-input-message ' + (localState.wrongFormat ? '' : 'hide')}>
                             <span className='famo-text-15'>{t('key_808')}</span>

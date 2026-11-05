@@ -303,6 +303,7 @@ function Edit(props: any) {
             label: t('key_138'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isBoxCode: true,
             value: '',
             isDisabled: true
         }),
@@ -312,6 +313,7 @@ function Edit(props: any) {
             label: t('key_819'),
             className: 'famo-input famo-text-10',
             name: 'boxCode',
+            isBoxCode: true,
             value: '',
             autoFocus: true
         }),
